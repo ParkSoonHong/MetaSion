@@ -7,30 +7,30 @@
 
 FString UJsonParseLib::JsonParse(const FString& json)
 {
-	// ¸®´õ±â¸¦ ¸¸µé°í
+	// ï¿½ï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½
 	TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(json);
-	// ÆÄ½Ì °á°ú¸¦ ´ãÀ» º¯¼ö ¼±¾ð
+	// ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-	// ÇØ¼®À» ÇÑ´Ù.
+	// ï¿½Ø¼ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	FString returnValue;
 	if (FJsonSerializer::Deserialize(reader, result))
 	{
 		TArray<TSharedPtr<FJsonValue>> parseDataList = result->GetArrayField(TEXT("items"));
 		for (TSharedPtr<FJsonValue> data : parseDataList)
 		{
-			// Ã¥ÀÇ ÀÌ¸§°ú ÀúÀÚ
+			// Ã¥ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			FString bookName = data->AsObject()->GetStringField("bk_nm");
 			FString authorName = data->AsObject()->GetStringField("aut_nm");
 			returnValue.Append(FString::Printf(TEXT("BookName : %s / AuthorName : %s\n"), *bookName, *authorName));
 		}
 	}
-	// ¹ÝÈ¯ÇÑ´Ù.
+	// ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
 	return returnValue;
 }
 
 FString UJsonParseLib::MakeJson(const TMap<FString, FString> source)
 {
-	// source¸¦ JsonObject Çü½ÄÀ¸·Î ¸¸µç´Ù.
+	// sourceï¿½ï¿½ JsonObject ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 	TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
 
 	for (TPair<FString, FString> pair : source)
@@ -38,10 +38,10 @@ FString UJsonParseLib::MakeJson(const TMap<FString, FString> source)
 		jsonObject->SetStringField(pair.Key, pair.Value);
 	}
 
-	// writer¸¦ ¸¸µé¾î¼­ JsonObject¸¦ ÀÎÄÚµùÇØ¼­ 
+	// writerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î¼­ JsonObjectï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½Ø¼ï¿½ 
 	FString json;
 	TSharedRef<TJsonWriter<TCHAR>> writer = TJsonWriterFactory<TCHAR>::Create(&json);
 	FJsonSerializer::Serialize(jsonObject.ToSharedRef(), writer);
-	// ¹ÝÈ¯ÇÑ´Ù.
+	// ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
 	return json;
 }
