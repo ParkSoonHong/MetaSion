@@ -79,8 +79,9 @@ void ACJS_UserCharacter::BeginPlay()
 		
 	}
 	else
-	{
+	{		
 		UE_LOG(LogTemp, Error, TEXT("ACJS_LobbyPlayer::BeginPlay()::PlayerController (pc) is null in BeginPlay"));
+
 	}
 
 
@@ -181,12 +182,12 @@ void ACJS_UserCharacter::OnMyActionClick(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()"));
 
-	//if (!bAimPointUIShowing)
-	//{
-	//	// AimPointUI가 표시되지 않았을 때는 클릭을 무시
-	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::bAimPointUIShowing==false return"));
-	//	return;
-	//}
+	if (!bAimPointUIShowing)
+	{
+		// AimPointUI가 표시되지 않았을 때는 클릭을 무시
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::bAimPointUIShowing==false return"));
+		return;
+	}
 
 	FVector Start = FollowCamera->GetComponentLocation();
 	FVector End = Start + FollowCamera->GetForwardVector() * 100000.0f;
@@ -219,7 +220,10 @@ void ACJS_UserCharacter::OnMyActionClick(const FInputActionValue& Value)
 				APlayerController* PC = Cast<APlayerController>(GetController());
 				if (PC)
 				{
-					PC->ClientTravel("/Game/CJS/Maps/CJS_MultiRoomMap", ETravelType::TRAVEL_Absolute);
+					//PC->ClientTravel("/Game/CJS/Maps/CJS_MultiRoomMap", ETravelType::TRAVEL_Absolute);  <--- 각각 이동하면 다른 곳에 존재해서, 같이 이동하도록 수정하려고 함.
+					//GetWorld()->ServerTravel("/Game/CJS/Maps/CJS_MultiRoomMap?listen");  <--- 이렇게 하면 서버가 이동하니 Lobby가 없어져 버림.
+
+					RequestMapTravel("/Game/CJS/Maps/CJS_MultiRoomMap");
 				}
 				else
 				{
@@ -232,7 +236,8 @@ void ACJS_UserCharacter::OnMyActionClick(const FInputActionValue& Value)
 				APlayerController* PC = Cast<APlayerController>(GetController());
 				if (PC)
 				{
-					PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+					//PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+					RequestMapTravel("/Game/CJS/Maps/CJS_MyRoomMap");
 				}
 				else
 				{
@@ -250,6 +255,78 @@ void ACJS_UserCharacter::OnMyActionClick(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::No Hit Detected"));
 	}
 	
+}
+
+void ACJS_UserCharacter::OnAimPointUIStateChanged(bool bIsVisible)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnAimPointUIStateChanged()"));
+
+	bAimPointUIShowing = bIsVisible;
+	if (bAimPointUIShowing)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnAimPointUIStateChanged()::bAimPointUIShowing = true"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnAimPointUIStateChanged()::bAimPointUIShowing = false"));
+	}
+}
+
+void ACJS_UserCharacter::RequestMapTravel(const FString& MapPath)
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC && !HasAuthority())  // 클라이언트만 요청
+	{
+		Server_RequestMapTravel(MapPath);
+	}
+}
+
+void ACJS_UserCharacter::Server_RequestMapTravel_Implementation(const FString& MapPath)
+{
+	// 문제) 호스트클라이언트 + 클라이언트 모두 이동함
+	//APlayerController* PC = Cast<APlayerController>(GetController());
+	//if (HasAuthority() && PC)
+	//{
+	//	// 서버가 다른 모든 클라이언트들에게 같은 맵으로 이동하라고 명령합니다.
+	//	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	//	{
+	//		APlayerController* OtherPC = Iterator->Get();
+	//		if (OtherPC)
+	//		{
+	//			OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);
+	//		}
+	//	}
+	//}
+
+	float StartYValue = 0.0f; // 시작 Y 값
+	float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
+	int32 ClientIndex = 0; // 클라이언트 인덱스
+
+	// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* OtherPC = Iterator->Get();
+
+		// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
+		if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
+		{
+			// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
+			//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
+			
+			// 그래서 그냥 위치 이동하는 걸로 변경해 봄
+			APawn* ControlledPawn = OtherPC->GetPawn();
+			if (ControlledPawn)
+			{
+				// 캐릭터의 위치를 변경합니다.
+				//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
+
+				// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
+				FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
+				ControlledPawn->SetActorLocation(NewLocation);
+				ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
+			}
+		}
+	}
 }
 
 void ACJS_UserCharacter::OnMyActionToggleAimPointUI(const FInputActionValue& Value)

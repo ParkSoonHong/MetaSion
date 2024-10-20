@@ -83,7 +83,15 @@ public:
 	TSubclassOf<class UUserWidget> WBP_AimPoint;
 	UPROPERTY()
 	class UCJS_AimPointWidget* AimPointUI;
-	//UPROPERTY(EditAnywhere)
 	bool bAimPointUIShowing;
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void OnAimPointUIStateChanged(bool bIsVisible);
 
+
+	// ClientTravel
+	void RequestMapTravel(const FString& MapPath);
+
+	// 클라 -> 서버에 이동 요청
+	UFUNCTION(Server, Reliable)
+	void Server_RequestMapTravel(const FString& MapPath);
 };
