@@ -2,6 +2,16 @@
 
 
 #include "CJS/CJS_UserCharacter.h"
+#include "CJS/CJS_AimPointWidget.h"
+
+#include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
+
 
 // Sets default values
 ACJS_UserCharacter::ACJS_UserCharacter()
@@ -9,26 +19,310 @@ ACJS_UserCharacter::ACJS_UserCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Set size for collision capsule
+	//GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+	// Don't rotate when the controller rotates. Let that just affect the camera.
+	/*bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;*/
+
+	// Configure character movement
+	//GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
+	//GetCharacterMovement()->bUseControllerDesiredRotation = true; // Character moves in the direction of input...	
+	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+
+	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
+	// instead of recompiling to adjust them
+	/*GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;*/
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 8.5f));
+	CameraBoom->TargetOffset = FVector(0.f, 0.f, 100.0f);
+
+	// Create a follow camera
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->FieldOfView = 90.0f;
 }
 
 // Called when the game starts or when spawned
 void ACJS_UserCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+
+	// Add Input Mapping Context
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		UEnhancedInputLocalPlayerSubsystem* subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+		if (subsys && IMC_Player)
+		{
+			subsys->AddMappingContext(IMC_Player, 0);
+			UE_LOG(LogTemp, Warning, TEXT("ACJS_LobbyPlayer::BeginPlay()::IMC_Player Set OK"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ACJS_UserCharacter::BeginPlay()::IMC_Player is null or subsystem is null"));
+		}
+		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_LobbyPlayer::BeginPlay()::PlayerController (pc) is null in BeginPlay"));
+	}
+
+
+	// WBP_AimPoint 위젯 생성
+	//if (WBP_AimPoint)  // WBP_aimpoint가 올바르게 할당되어 있는지 확인
+	//{
+	//	AimPointUI = CreateWidget<UCJS_AimPointWidget>(GetWorld(), WBP_AimPoint);
+	//	if (AimPointUI)
+	//	{
+	//		AimPointUI->AddToViewport(999);
+	//		AimPointUI->SetVisibility(ESlateVisibility::Visible);
+	//		UE_LOG(LogTemp, Warning, TEXT("AimPointUI successfully created and added to viewport"));
+	//	}
+	//	else
+	//	{
+	//		UE_LOG(LogTemp, Error, TEXT("Failed to create AimPointUI Widget"));
+	//	}
+	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::BeginPlay()::WBP_AimPoint is assigned!"));
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("ACJS_UserCharacter::BeginPlay()::WBP_AimPoint is not assigned! Please assign it in the Blueprint."));
+	//}
+
 }
+
 
 // Called every frame
 void ACJS_UserCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/*FTransform tran = FTransform(GetControlRotation());
+	Direction = tran.TransformVector(Direction);
+	Direction.Z = 0.f;
+	Direction.Normalize();
+	AddMovementInput(Direction);
+	Direction = FVector::ZeroVector;*/
 }
+
 
 // Called to bind functionality to input
 void ACJS_UserCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// Set up action bindings
+	UEnhancedInputComponent* input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if (input)
+	{
+
+		// Jumping
+		//input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACJS_UserCharacter::Jump);
+		//input->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACJS_UserCharacter::StopJumping);
+
+		// Moving
+		//input->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ACJS_UserCharacter::OnMyActionMove);
+
+		// Looking
+		//input->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ACJS_UserCharacter::OnMyActionLook);
+
+		// Clicking
+		input->BindAction(IA_Click, ETriggerEvent::Started, this, &ACJS_UserCharacter::OnMyActionClick);
+
+		// Toggling
+		//input->BindAction(IA_AimPoint, ETriggerEvent::Started, this, &ACJS_UserCharacter::OnMyActionToggleAimPointUI);
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
 }
 
+
+void ACJS_UserCharacter::OnMyActionMove(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionMove()"));
+
+	FVector2D v = Value.Get<FVector2D>();
+	FVector MovementDirection = FVector(v.X, v.Y, 0.f);
+	MovementDirection = GetActorRotation().RotateVector(MovementDirection);
+	MovementDirection.Normalize();
+
+	AddMovementInput(MovementDirection);
+}
+
+void ACJS_UserCharacter::OnMyActionLook(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionLook()"));
+
+	FVector2D v = Value.Get<FVector2D>();
+	AddControllerPitchInput(-v.Y);
+	AddControllerYawInput(v.X);
+}
+
+void ACJS_UserCharacter::OnMyActionClick(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()"));
+
+	//if (!bAimPointUIShowing)
+	//{
+	//	// AimPointUI가 표시되지 않았을 때는 클릭을 무시
+	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::bAimPointUIShowing==false return"));
+	//	return;
+	//}
+
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = Start + FollowCamera->GetForwardVector() * 100000.0f;
+	FHitResult Outhit;
+	ECollisionChannel TraceChannel = ECC_Visibility;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Outhit, Start, End, TraceChannel, CollisionParams);
+
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit something!"));
+
+		if (Outhit.Component.IsValid())
+		{
+			FString HitComponentName = Outhit.Component->GetName();
+			UE_LOG(LogTemp, Warning, TEXT("Hit Component: %s"), *HitComponentName);
+		}
+
+		AActor* HitActor = Outhit.GetActor();
+		if (HitActor)
+		{
+			FString HitActorName = HitActor->GetName();
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActorName);
+
+			if (HitActorName.Contains("BP_MultiRoom"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BP_MultiRoom Clicked"));	
+				APlayerController* PC = Cast<APlayerController>(GetController());
+				if (PC)
+				{
+					PC->ClientTravel("/Game/CJS/Maps/CJS_MultiRoomMap", ETravelType::TRAVEL_Absolute);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MultiRoomMap"));
+				}
+			}
+			else if (HitActorName.Contains("BP_MyRoom"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BP_MyRoom Clicked"));
+				APlayerController* PC = Cast<APlayerController>(GetController());
+				if (PC)
+				{
+					PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MyRoomMap"));
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::Hit Actor is NULL"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::No Hit Detected"));
+	}
+	
+}
+
+void ACJS_UserCharacter::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionToggleAimPointUI()"));
+
+	if (AimPointUI)
+	{
+		if (!bAimPointUIShowing)
+		{
+			bAimPointUIShowing = true;
+			AimPointUI->SetVisibility(ESlateVisibility::Visible);
+			UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Visible"));
+
+			// 마우스 커서를 표시하고 입력 모드를 UI와 게임 모두로 설정
+			/*if (PC)
+			{
+				PC->bShowMouseCursor = true;
+				PC->SetInputMode(FInputModeGameAndUI());
+			}*/
+		}
+		else
+		{
+			bAimPointUIShowing = false;
+			AimPointUI->SetVisibility(ESlateVisibility::Hidden);
+			UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Hidden"));
+
+			// 마우스 커서를 숨기고 입력 모드를 게임 전용으로 설정
+			/*if (PC)
+			{
+				PC->bShowMouseCursor = false;
+				PC->SetInputMode(FInputModeGameOnly());
+			}*/
+		}
+	}
+
+	//if (WBP_AimPoint) // 위젯 블루프린트가 할당되어 있는지 확인
+	//{
+	//	// AimPointUI가 아직 생성되지 않았다면 생성
+	//	if (!AimPointUI)
+	//	{
+	//		AimPointUI = CreateWidget<UCJS_AimPointWidget>(GetWorld(), WBP_AimPoint);
+	//		if (AimPointUI)
+	//		{
+	//			AimPointUI->AddToViewport();
+	//		}
+	//		else
+	//		{
+	//			UE_LOG(LogTemp, Error, TEXT("Failed to create AimPointUI Widget"));
+	//			return;
+	//		}
+	//	}
+
+	//	// AimPointUI의 표시 상태 토글
+	//	if (!bAimPointUIShowing)
+	//	{
+	//		AimPointUI->SetVisibility(ESlateVisibility::Visible);
+	//		bAimPointUIShowing = true;
+	//		// AimPointUI 파괴
+
+	//		UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Visible"));
+
+	//	}
+	//	else
+	//	{
+	//		AimPointUI->SetVisibility(ESlateVisibility::Hidden);
+	//		bAimPointUIShowing = false;
+	//		UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Hidden"));
+
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("WBP_AimPoint is not assigned! Please assign it in the Blueprint."));
+	//}
+}

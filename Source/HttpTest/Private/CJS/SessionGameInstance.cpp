@@ -106,7 +106,7 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	{
 		PRINTLOG(TEXT("OnCreateSessionComplete is Successes"));
 		PRINTLOG(TEXT("Session created successfully with name: %s"), *sessionName.ToString());
-		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/LobbyMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/CJS_LobbyMap?listen"));
 	}
 	else
 	{
