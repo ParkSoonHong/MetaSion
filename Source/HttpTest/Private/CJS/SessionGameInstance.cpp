@@ -13,8 +13,7 @@
 #include "string"
 
 
-
-void USessionGameInstance::Init()
+void USessionGameInstance::Init()	// 게임 인스턴스 초기화 함수로, 온라인 서브시스템을 얻어 세션 인터페이스를 초기화. 각종 델리게이트를 설정하여 세션 관련 이벤트에 반응할 수 있도록 함.
 {
 	Super::Init();
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::Init()"));
@@ -55,7 +54,7 @@ void USessionGameInstance::Init()
 	GEngine->OnNetworkFailure().AddUObject(this, &USessionGameInstance::OnNetworkFailure);
 }
 
-// 방 생성 요청
+// 방 생성 요청 (새로운 세션을 생성. 션 설정(FOnlineSessionSettings)을 정의하고, 여러 조건(전용 서버 여부, LAN 매치 여부, 공개 여부 등)을 설정. 그리고 세션 인터페이스를 통해 세션 생성을 요청)
 void USessionGameInstance::CreateMySession()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::CreateMySession()"));
@@ -98,7 +97,7 @@ void USessionGameInstance::CreateMySession()
 	SessionInterface->CreateSession(0, FName(MySessionName), settings);
 }
 
-// 방 생성 응답
+// 방 생성 응답 (세션 생성 요청의 결과를 처리. 성공 시 서버를 특정 맵으로 이동(ServerTravel)시킴)
 void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasSuccessful)
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnCreateSessionComplete()"));
@@ -107,7 +106,7 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	{
 		PRINTLOG(TEXT("OnCreateSessionComplete is Successes"));
 		PRINTLOG(TEXT("Session created successfully with name: %s"), *sessionName.ToString());
-		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/LobbyMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/CJS_LobbyMap?listen"));
 	}
 	else
 	{
@@ -116,23 +115,11 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	}
 }
 
-
+// 방 찾기 요청 (다른 세션을 검색. 검색 설정을 정의하고, 온라인 세션 인터페이스를 통해 세션 검색을 시작함)
 void USessionGameInstance::FindSessions()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::FindSessions()"));
 	PRINTLOG(TEXT("SessionInterface valid: %s"), SessionInterface.IsValid() ? TEXT("True") : TEXT("False"));
-
-	/*if (GetWorld()->GetNetMode() == NM_ListenServer)
-	{
-		PRINTLOG(TEXT("FindSessions: Skipping on server"));
-		return;
-	}
-
-	if (!SessionInterface.IsValid())
-	{
-		PRINTLOG(TEXT("FindSessions: SessionInterface is invalid. Cannot find sessions."));
-		return;
-	}*/
 
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 
@@ -160,20 +147,10 @@ void USessionGameInstance::FindSessions()
 	//PRINTLOG(TEXT("Searching for sessions with name: %s, IsLAN: %s"), *MySessionName, SessionSearch->bIsLanQuery ? TEXT("True") :
 }
 
+// 방 찾기 응답 (세션 검색이 완료되면 호출. 색 결과를 기반으로 세션에 참가하거나, 조건에 맞는 세션이 없다면 새로 생성)
 void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 {
-	/*UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnMyFindSessionCompleteDelegate()"));
-	if (GetWorld()->GetNetMode() == NM_ListenServer || GetWorld()->GetNetMode() == NM_DedicatedServer)
-	{
-		PRINTLOG(TEXT("OnMyFindSessionsCompleteDelegates: Skipping on server"));
-		return;
-	}
-
-	if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
-	{
-		PRINTLOG(TEXT("OnMyFindSessionsCompleteDelegates: SessionInterface or SessionSearch is invalid!"));
-		return;
-	}*/
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnMyFindSessionCompleteDelegate()"));
 
 	if (bWasSuccessful)
 	{
@@ -216,6 +193,7 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 	}
 }
 
+// 방 조인 요청 (주어진 인덱스의 세션에 참가. 세션 검색 결과를 사용하여 해당 세션에 연결을 시도)
 void USessionGameInstance::JoinSession(int32 index)
 {
 	// SessionSearch
@@ -232,6 +210,7 @@ void USessionGameInstance::JoinSession(int32 index)
 	SessionInterface->JoinSession(0, FName(MySessionName), result);
 }
 
+// 방 조인 응답 (세션 참가 요청의 결과를 처리. 성공 시 플레이어 컨트롤러를 사용하여 세션 URL로 이동)
 void USessionGameInstance::OnMyJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type EOnJoinSessionCompleteResult)
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnMyJoinSessionComplete()"));
@@ -259,6 +238,7 @@ void USessionGameInstance::OnMyJoinSessionComplete(FName SessionName, EOnJoinSes
 	}
 }
 
+// 네트워크 연결 실패 시 (네트워크 오류가 발생했을 때 호출. 오류 내용을 출력하고 필요 시 특정 레벨로 이동하는 등의 동작을 수행)
 void USessionGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnNetworkFailure()"));
