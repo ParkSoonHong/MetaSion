@@ -36,7 +36,7 @@ public:
 	class UCameraComponent* CameraComp;
 	FVector Direction; 
 
-	// 인풋 ==============================================================================================
+	// 인풋 동작 ==============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputMappingContext* IMC_Player;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -47,6 +47,17 @@ public:
 	class UInputAction* IA_Jump;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Throw;
+	
+	void OnMyActionMove(const FInputActionValue& Value);
+	void OnMyActionLook(const FInputActionValue& Value);
+	void OnMyActionJump(const FInputActionValue& Value);
+	void OnMyActionThrow(const FInputActionValue& Value);
+
+
+	// 인풋 애니메이션 ====================================================================
+	UPROPERTY()
+	class UCJS_BallPlayerAnimInstance* AnimInstance;
+
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_1;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -63,10 +74,7 @@ public:
 	class UInputAction* IA_7;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_8;
-	void OnMyActionMove(const FInputActionValue& Value);
-	void OnMyActionLook(const FInputActionValue& Value);
-	void OnMyActionJump(const FInputActionValue& Value);
-	void OnMyActionThrow(const FInputActionValue& Value);
+	
 	void OnMyActionKey1(const FInputActionValue& Value);
 	void OnMyActionKey2(const FInputActionValue& Value);
 	void OnMyActionKey3(const FInputActionValue& Value);

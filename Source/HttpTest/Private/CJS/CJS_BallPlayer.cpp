@@ -3,6 +3,7 @@
 
 #include "CJS/CJS_BallPlayer.h"
 #include "CJS/CJS_HeartActor.h"
+#include "CJS/CJS_BallPlayerAnimInstance.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -13,6 +14,7 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 
 // Sets default values
@@ -62,6 +64,19 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
 	}	
+
+	// AnimInstance 초기화
+	AnimInstance = Cast<UCJS_BallPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - AnimInstance initialized"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - AnimInstance is null"));
+	}
+	
+	
 }
 
 // Called every frame
@@ -182,6 +197,15 @@ void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+	if (AnimInstance)
+	{	
+		AnimInstance->PlayAngryMontage();
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
+	}
 }
 void ACJS_BallPlayer::OnMyActionKey2(const FInputActionValue& Value)
 {
