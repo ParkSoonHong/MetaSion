@@ -28,14 +28,15 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// 카메라
+
+	// 카메라 ==============================================================================================
 	UPROPERTY(EditDefaultsOnly)
 	class USpringArmComponent* SpringArmComp;
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* CameraComp;
 	FVector Direction; 
 
-	// 인풋
+	// 인풋 ==============================================================================================
 	UPROPERTY(EditDefaultsOnly)
 	class UInputMappingContext* IMC_Player;
 	UPROPERTY(EditDefaultsOnly)
@@ -64,8 +65,10 @@ public:
 
 
 	// 하트 던질 때 ============================================================================================
-	/*UPROPERTY(EditDefaultsOnly, Category = "Heart")
-	TSubclassOf<APalSphereActor> HeartFactory;*/
+	UPROPERTY(EditDefaultsOnly, Category = "Heart")
+	TSubclassOf<class ACJS_HeartActor> HeartItemFactory;
+	UPROPERTY(EditAnyWhere)
+	FVector HeartSpawnPosition;
 
 
 };
