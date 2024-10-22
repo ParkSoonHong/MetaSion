@@ -37,20 +37,44 @@ public:
 	FVector Direction; 
 
 	// 인풋 ==============================================================================================
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputMappingContext* IMC_Player;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Move;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Look;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Jump;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Throw;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_1;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_2;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_3;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_4;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_5;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_6;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_7;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_8;
 	void OnMyActionMove(const FInputActionValue& Value);
 	void OnMyActionLook(const FInputActionValue& Value);
 	void OnMyActionJump(const FInputActionValue& Value);
 	void OnMyActionThrow(const FInputActionValue& Value);
+	void OnMyActionKey1(const FInputActionValue& Value);
+	void OnMyActionKey2(const FInputActionValue& Value);
+	void OnMyActionKey3(const FInputActionValue& Value);
+	void OnMyActionKey4(const FInputActionValue& Value);
+	void OnMyActionKey5(const FInputActionValue& Value);
+	void OnMyActionKey6(const FInputActionValue& Value);
+	void OnMyActionKey7(const FInputActionValue& Value);
+	void OnMyActionKey8(const FInputActionValue& Value);
 
 
 	// 부딪혔을 때 ==============================================================================================

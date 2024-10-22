@@ -106,6 +106,15 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionJump);
 		// 던지기
 		input->BindAction(IA_Throw, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionThrow);
+		// 숫자키
+		input->BindAction(IA_1, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey1);
+		input->BindAction(IA_2, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey2);
+		input->BindAction(IA_3, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey3);
+		input->BindAction(IA_4, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey4);
+		input->BindAction(IA_5, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey5);
+		input->BindAction(IA_6, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey6);
+		input->BindAction(IA_7, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey7);
+		input->BindAction(IA_8, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey8);
 
 		// Log to check if input actions are bound
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent() - Input actions are bound"));
@@ -170,6 +179,39 @@ void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
 	}
 }
+void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+}
+void ACJS_BallPlayer::OnMyActionKey2(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey2()"));
+}
+void ACJS_BallPlayer::OnMyActionKey3(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey3()"));
+}
+void ACJS_BallPlayer::OnMyActionKey4(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey4()"));
+}
+void ACJS_BallPlayer::OnMyActionKey5(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey5()"));
+}
+void ACJS_BallPlayer::OnMyActionKey6(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey6()"));
+}
+void ACJS_BallPlayer::OnMyActionKey7(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey7()"));
+}
+void ACJS_BallPlayer::OnMyActionKey8(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey8()"));
+}
+
 // ========================================================================================================================================================
 
 
