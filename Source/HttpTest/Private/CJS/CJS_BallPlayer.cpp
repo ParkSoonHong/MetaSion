@@ -2,18 +2,21 @@
 
 
 #include "CJS/CJS_BallPlayer.h"
+#include "CJS/CJS_HeartActor.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Camera/CameraComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/ArrowComponent.h"
 
 
 // Sets default values
-ACJS_BallPlayer::ACJS_BallPlayer()
+ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,7 +31,11 @@ ACJS_BallPlayer::ACJS_BallPlayer()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->bUsePawnControlRotation = true;
+
+	// 설정할 하트의 초기 위치를 위한 위치 값 (직접 값을 조정 가능)
+	HeartSpawnPosition = FVector(100.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정
 }
+
 
 // Called when the game starts or when spawned
 void ACJS_BallPlayer::BeginPlay()
@@ -74,7 +81,8 @@ void ACJS_BallPlayer::Tick(float DeltaTime)
 	
 }
 
-// Called to bind functionality to input
+
+// Called to bind functionality to input  =========================================================================================================================================
 void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -98,6 +106,15 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionJump);
 		// 던지기
 		input->BindAction(IA_Throw, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionThrow);
+		// 숫자키
+		input->BindAction(IA_1, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey1);
+		input->BindAction(IA_2, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey2);
+		input->BindAction(IA_3, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey3);
+		input->BindAction(IA_4, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey4);
+		input->BindAction(IA_5, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey5);
+		input->BindAction(IA_6, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey6);
+		input->BindAction(IA_7, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey7);
+		input->BindAction(IA_8, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey8);
 
 		// Log to check if input actions are bound
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent() - Input actions are bound"));
@@ -107,7 +124,6 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent():: EnhancedInputComponent is null"));
 	}
 }
-
 void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionMove()"));
@@ -120,7 +136,6 @@ void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 	// Log to check if the input value is being received
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionMove():: Move Direction: X=%f, Y=%f"), Direction.X, Direction.Y);
 }
-
 void ACJS_BallPlayer::OnMyActionLook(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionLook()"));
@@ -133,20 +148,74 @@ void ACJS_BallPlayer::OnMyActionLook(const FInputActionValue& Value)
 	AddControllerPitchInput(-v.Y);
 	AddControllerYawInput(v.X);
 }
-
 void ACJS_BallPlayer::OnMyActionJump(const FInputActionValue& Value)
 {
 	Jump();
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionJump() - Jump Triggered"));
 }
-
-
 void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionThrow()"));
+	if (HeartItemFactory)
+	{
+		// Get the spawn location and rotation from the actor
+		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
+		FRotator SpawnRotation = GetActorRotation();
+
+		// Spawn the heart actor
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
+
+		if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
+		{
+			// Apply an initial impulse to make the heart fly forward
+			FVector LaunchDirection = SpawnRotation.Vector();
+			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
+	}
+}
+void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+}
+void ACJS_BallPlayer::OnMyActionKey2(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey2()"));
+}
+void ACJS_BallPlayer::OnMyActionKey3(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey3()"));
+}
+void ACJS_BallPlayer::OnMyActionKey4(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey4()"));
+}
+void ACJS_BallPlayer::OnMyActionKey5(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey5()"));
+}
+void ACJS_BallPlayer::OnMyActionKey6(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey6()"));
+}
+void ACJS_BallPlayer::OnMyActionKey7(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey7()"));
+}
+void ACJS_BallPlayer::OnMyActionKey8(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey8()"));
 }
 
-// 공끼리 충돌 시
+// ========================================================================================================================================================
+
+
+// 공끼리 충돌 시  =========================================================================================================================================
 void ACJS_BallPlayer::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
@@ -168,7 +237,6 @@ void ACJS_BallPlayer::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPri
 		TriggerSelfHitEffects(HitLocation);
 	}
 }
-
 void ACJS_BallPlayer::TriggerSelfHitEffects(FVector HitLocation)
 {
 	// Log to indicate collision effects triggered
@@ -185,4 +253,4 @@ void ACJS_BallPlayer::TriggerSelfHitEffects(FVector HitLocation)
 	//	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSFX, HitLocation);
 	//}
 }
-
+// ========================================================================================================================================================
