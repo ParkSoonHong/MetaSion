@@ -39,7 +39,7 @@ void UHttpWidget::SendLoginData()
 	//에디터블 textblock에서 가져오는 방식으로 진행
     FString json = UJsonParseLib::Login_Convert_StructToJson(loginData);
 	//Login요청
-	JS_gi->ReqPostTest(ServerURL, json);
+	JS_gi->LoginReqPost(ServerURL, json);
 }
 
 void UHttpWidget::SendSignUpData()
@@ -52,7 +52,7 @@ void UHttpWidget::SendSignUpData()
 	//에디터블 textblock에서 가져오는 방식으로 진행
 	FString json = UJsonParseLib::SignUp_Convert_StructToJson(SignUpData);
 	//Login요청
-	JS_gi->ReqPostTest(ServerURL, json);
+	JS_gi->LoginReqPost(ServerURL, json);
 }
 
 //User
@@ -76,12 +76,10 @@ void UHttpWidget::SendUserData()
 	UserData.FeedbackTime = FDateTime::Now();
 	UserData.UpdateTime = FDateTime::Now();
 	UserData.IsRecommended = true;
-	//if문으로 분기해서 처리 해야할 듯?
 	
-	//에디터블 textblock에서 가져오는 방식으로 진행
 	FString json = UJsonParseLib::User_Convert_StructToJson(UserData);
 	//Login요청
-	JS_gi->ReqPostTest(ServerURL, json);
+	JS_gi->LoginReqPost(ServerURL, json);
 }
 
 //UserLike
@@ -101,12 +99,10 @@ void UHttpWidget::SendUserLikeData()
 	UserLikeData.MainAsset = TEXT("sky");
 	UserLikeData.BackgroundColor = TEXT("yellow");
 	UserLikeData.FloorMaterial = TEXT("stone");
-	//if문으로 분기해서 처리 해야할 듯?
 	
-	//에디터블 textblock에서 가져오는 방식으로 진행
 	FString json = UJsonParseLib::UserLike_Convert_StructToJson(UserLikeData);
 	//Login요청
-	JS_gi->ReqPostTest(ServerURL, json);
+	JS_gi->LoginReqPost(ServerURL, json);
 }
 
 

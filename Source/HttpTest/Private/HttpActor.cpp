@@ -4,6 +4,7 @@
 #include "HttpActor.h"
 #include "Blueprint/UserWidget.h"
 #include "HttpWidget.h"
+#include "JS_CreateRoomWidget.h"
 
 // Sets default values
 AHttpActor::AHttpActor()
@@ -19,11 +20,11 @@ void AHttpActor::BeginPlay()
 	Super::BeginPlay();
 
 	// UI를 생성해서 기억하고싶다.
-	HttpUI = Cast<UHttpWidget>(CreateWidget(GetWorld(), HttpUIFactory));
-	if (HttpUI)
+	CR_WidgetUI = Cast<UJS_CreateRoomWidget>(CreateWidget(GetWorld(), HttpUIFactory));
+	if (CR_WidgetUI)
 	{
-		HttpUI->AddToViewport();
-		HttpUI->SetHttpActor(this);
+		CR_WidgetUI->AddToViewport();
+		/*CR_WidgetUI->SetHttpActor(this);*/
 	}
 
 	auto* pc = GetWorld()->GetFirstPlayerController();
@@ -37,20 +38,6 @@ void AHttpActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-
-//사용 예시
-//void SomeFunction()
-//{
-//	// 음성 파일 경로 (예시)
-//	FString VoiceFilePath = FPaths::ProjectDir() + "YourVoiceFile.wav";
-//
-//	// 서버 URL
-//	FString ServerUrl = "http://your-server-address/upload";
-//
-//	// 음성 데이터를 서버로 전송
-//	UploadVoiceData(VoiceFilePath, ServerUrl);
-//}----------------------------------------------------------------------------------------
 
 // image 처리
 //void AHttpActor::ReqGetWebImage(FString url)

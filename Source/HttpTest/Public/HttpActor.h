@@ -27,9 +27,11 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UUserWidget> HttpUIFactory;
 
-	UPROPERTY()
-	class UHttpWidget* HttpUI;
+	/*UPROPERTY()
+	class UHttpWidget* HttpUI;*/
 
+	UPROPERTY()
+	class UJS_CreateRoomWidget* CR_WidgetUI;
 	/*// ButtonGetWebImage를 눌렀을 때 요청할 함수
 	void ReqGetWebImage(FString url);
 	// 응답받을 함수
