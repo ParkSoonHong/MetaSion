@@ -9,6 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimSequence.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -65,17 +67,25 @@ void ACJS_BallPlayer::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
 	}	
 
-	// AnimInstance 초기화
-	AnimInstance = Cast<UCJS_BallPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	if (AnimInstance)
+	// 애니메이션 시퀀스가 제대로 로드되었는지 확인 (1개씩 적용)
+	/*if (TestAnimSequence)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - AnimInstance initialized"));
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - TestAnimSequence loaded successfully"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - AnimInstance is null"));
-	}
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - TestAnimSequence is not set"));
+	}*/
 	
+	// 애니메이션 시퀀스 배열이 제대로 설정되었는지 확인
+	if (AnimSequences.Num() == 8)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - AnimSequences initialized with 8 elements"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - AnimSequences does not have 8 elements"));
+	}
 	
 }
 
@@ -121,15 +131,21 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionJump);
 		// 던지기
 		input->BindAction(IA_Throw, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionThrow);
-		// 숫자키
-		input->BindAction(IA_1, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey1);
-		input->BindAction(IA_2, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey2);
-		input->BindAction(IA_3, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey3);
-		input->BindAction(IA_4, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey4);
-		input->BindAction(IA_5, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey5);
-		input->BindAction(IA_6, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey6);
-		input->BindAction(IA_7, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey7);
-		input->BindAction(IA_8, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey8);
+		// 숫자키에 인덱스를 사용해 바인딩
+		for (int32 i = 0; i < 8; i++)
+		{
+			if (IA_NumKeys[i])
+			{
+				// 로그 출력 추가
+				UE_LOG(LogTemp, Warning, TEXT("Binding action for Key %d with Index %d"), i, i);
+				input->BindAction(IA_NumKeys[i], ETriggerEvent::Started, this, &ACJS_BallPlayer::OnNumberKeyPressed, i);
+			}
+			else
+			{
+				// 로그 출력: 인풋 액션이 null일 경우
+				UE_LOG(LogTemp, Error, TEXT("IA_NumKeys[%d] is null"), i);
+			}
+		}
 
 		// Log to check if input actions are bound
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent() - Input actions are bound"));
@@ -194,46 +210,57 @@ void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
 	}
 }
-void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+//void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+//	/*if (AnimInstance)
+//	{	
+//		AnimInstance->PlayAngryMontage();
+//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
+//	}*/
+//
+//	// 애니메이션 재생 함수 호출
+//	PlayTestAnimation();
+//}
+
+
+void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
-	if (AnimInstance)
-	{	
-		AnimInstance->PlayAngryMontage();
-		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
+	PlayAnimationByIndex(KeyIndex);
+}
+
+//void ACJS_BallPlayer::PlayTestAnimation()
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::void ACJS_BallPlayer::PlayTestAnimation()"));
+//
+//	if (TestAnimSequence && GetMesh())
+//	{
+//		// Skeletal Mesh Component에서 애니메이션 재생
+//		GetMesh()->PlayAnimation(TestAnimSequence, false);
+//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayTestAnimation() - Animation played"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayTestAnimation() - TestAnimSequence or SkeletalMeshComponent is null"));
+//	}
+//}
+
+void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
+{
+	if (AnimSequences.IsValidIndex(Index) && AnimSequences[Index] && GetMesh())
+	{
+		GetMesh()->PlayAnimation(AnimSequences[Index], false);
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Animation %d played"), Index + 1);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Invalid index or animation sequence"));
 	}
-}
-void ACJS_BallPlayer::OnMyActionKey2(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey2()"));
-}
-void ACJS_BallPlayer::OnMyActionKey3(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey3()"));
-}
-void ACJS_BallPlayer::OnMyActionKey4(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey4()"));
-}
-void ACJS_BallPlayer::OnMyActionKey5(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey5()"));
-}
-void ACJS_BallPlayer::OnMyActionKey6(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey6()"));
-}
-void ACJS_BallPlayer::OnMyActionKey7(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey7()"));
-}
-void ACJS_BallPlayer::OnMyActionKey8(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey8()"));
 }
 
 // ========================================================================================================================================================

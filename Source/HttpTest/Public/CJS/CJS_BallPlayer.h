@@ -55,34 +55,24 @@ public:
 
 
 	// 인풋 애니메이션 ====================================================================
-	UPROPERTY()
-	class UCJS_BallPlayerAnimInstance* AnimInstance;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_NumKeys[8];
+	void OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex);
 
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_1;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_2;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_3;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_4;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_5;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_6;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_7;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_8;
+
+	// 애니메이션 시퀀스 ========================================================================================
+	// 1개씩 적용
+	/*UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	class UAnimSequence* TestAnimSequence;
+	void PlayTestAnimation();*/
+
+	// 애니메이션 시퀀스 배열
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	TArray<class UAnimSequence*> AnimSequences;
+	void PlayAnimationByIndex(int32 Index);
+
 	
-	void OnMyActionKey1(const FInputActionValue& Value);
-	void OnMyActionKey2(const FInputActionValue& Value);
-	void OnMyActionKey3(const FInputActionValue& Value);
-	void OnMyActionKey4(const FInputActionValue& Value);
-	void OnMyActionKey5(const FInputActionValue& Value);
-	void OnMyActionKey6(const FInputActionValue& Value);
-	void OnMyActionKey7(const FInputActionValue& Value);
-	void OnMyActionKey8(const FInputActionValue& Value);
+
 
 
 	// 부딪혔을 때 ==============================================================================================
