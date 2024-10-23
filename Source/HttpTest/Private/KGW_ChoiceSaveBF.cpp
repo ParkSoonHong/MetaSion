@@ -6,41 +6,29 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
+#include "JsonParseLib.h"
 
 
 TArray<FChoiceData> UKGW_ChoiceSaveBF::ChoiceList;
+TMap<FString, int32> SelectedChoices;
 
-bool UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(const FString& FileName)
+void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile()
 {
+    // 선택된 데이터를 저장하는 TMap (int32 데이터를 FString으로 변환하여 저장)
+    TMap<FString, FString> ChoiceMap;
 
-    // JSON 배열을 생성
-    TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-    TArray<TSharedPtr<FJsonValue>> JsonArray;
-
-    // 각 선택지를 JSON 객체로 변환하여 배열에 추가
-    for (const FChoiceData& ChoiceData : ChoiceList)
+    // 기존의 TMap<FString, int32> 데이터를 FString으로 변환해서 저장
+    for (const TPair<FString, int32>& Pair : SelectedChoices)
     {
-        TSharedPtr<FJsonObject> ChoiceObject = MakeShareable(new FJsonObject);
-        ChoiceObject->SetStringField(TEXT("Question"), ChoiceData.Question);
-        ChoiceObject->SetStringField(TEXT("SelectedChoice"), ChoiceData.SelectedChoice);
-
-        JsonArray.Add(MakeShareable(new FJsonValueObject(ChoiceObject)));
+        ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 값을 FString으로 변환
     }
 
-    // JSON 객체에 선택지 배열 추가
-    JsonObject->SetArrayField(TEXT("Choices"), JsonArray);
+    // MakeJson을 호출해 TMap 데이터를 JSON 문자열로 변환
+    FString JsonString = UJsonParseLib::MakeJson(ChoiceMap);
 
-    // JSON 문자열로 직렬화
-    FString json;
-    TSharedRef<TJsonWriter<TCHAR>> Writer = TJsonWriterFactory<TCHAR>::Create(&json);
-    if (FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer))
-    {
-        // 저장할 파일 경로 설정 (Saved 디렉토리)
-        FString FullPath = FPaths::ProjectSavedDir() + FileName;
-        return FFileHelper::SaveStringToFile(json, *FullPath);
-    }
-
-    return false;
+    // 생성된 JSON 문자열을 파일로 저장 (Saved 폴더)
+    FString FullPath = FPaths::ProjectSavedDir() + "SelectedChoiced.json";
+    FFileHelper::SaveStringToFile(JsonString, *FullPath);
 }
 
 
@@ -87,6 +75,11 @@ TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
 
     // RGB 값이 저장된 배열 반환
     return Colors;
+}
+
+void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
+{
+    SelectedChoices.Add(Question, SelectedValue);
 }
 
 // FString UKGW_ChoiceSaveBF::ParseJsonToColorData(const FString& json)

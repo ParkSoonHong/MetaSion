@@ -17,7 +17,7 @@ class HTTPTEST_API AKGW_SkyLightGameModeBase : public AGameModeBase
 public:
 
 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lighting") 
-class ADirectionalLight* DirectionalLight;
+class UDirectionalLightComponent* DirectionalLight;
 
 UFUNCTION(BlueprintCallable, Category = "Weather")
 void AdjustSunBrightness(float SliderValue);

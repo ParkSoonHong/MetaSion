@@ -12,12 +12,15 @@ struct FChoiceData
 {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Choice")
-    FString Question;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Choice")
-    FString SelectedChoice;
+    FString Q1;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Choice")
+    FString Q2;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Choice")
+    FString Weather;
 };
 USTRUCT(BlueprintType)
 struct FColorData
@@ -43,14 +46,20 @@ class HTTPTEST_API UKGW_ChoiceSaveBF : public UBlueprintFunctionLibrary
 
     public:
 UFUNCTION(BlueprintCallable, Category = "Save")
-    static bool SaveChoicesToJsonFile(const FString& FileName);   
-   UFUNCTION(BlueprintCallable, Category = "Save")
+    static void SaveChoicesToJsonFile();
+    UFUNCTION(BlueprintCallable, Category = "Save")
     static void AddChoice(const FChoiceData& ChoiceData);
 
     UFUNCTION(BlueprintCallable, Category = "Save")
     static TArray<FColorData> ParseJsonToRGB(const FString& JsonString);
 
+    UFUNCTION(BlueprintCallable, Category = "Save")
+    static void StoreChoice(FString Question, int32 SelectedValue);
+
     
 	static TArray<FChoiceData> ChoiceList;
+
+    
+
 	
 };
