@@ -8,6 +8,8 @@
 #include "Interfaces/IHttpResponse.h"
 #include "JS_GameInstance.generated.h"
 
+//DECLARE_DELEGATE_OneParam(DelLogin)
+
 /**
  * 
  */
@@ -17,19 +19,24 @@ class HTTPTEST_API UJS_GameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
-	// ButtonSendPost를 눌렀을 때 요청할 함수
-	void ReqPostTest(FString url, FString json);
-	// 응답받을 함수
-	void OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	// Login
+	void LoginReqPost(FString url, FString json);
+	void LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	void ReqPostChoice(FString url, FString json);
+	// Sign_Up
+	void SignUpReqPost(FString url, FString json);
+	void SignUpResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	// User
+	void UserReqPost(FString url, FString json);
+	void UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	// User_like
+	void UserLikeReqPost(FString url, FString json);
+	void UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	/*DelLogin LoginDelegate;
 	
-	//// 음성 파일을 바이너리 데이터로 변환하는 함수
-	//bool ReqBGMDateFromFile(const FString& FilePath, TArray<uint8>& OutBgmData);
-	//// 바이너리 데이터를 서버로 전송하는 함수
-	//void SendBGMDataToServer(const TArray<uint8>& bgmData, const FString& serverUrl);
-	//void UploadBGMData(const FString& BgmFilePath, const FString& ServerUrl);
+	void BindDelegates();
+	void LoginDelegateFunction();*/
 };
