@@ -35,6 +35,11 @@ public:
 	void UserLikeReqPost(FString url, FString json);
 	void UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+
+	void ReqPostChoice(FString url, FString json);
+
+	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
 	/*DelLogin LoginDelegate;
 	
 	void BindDelegates();
