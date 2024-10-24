@@ -123,5 +123,6 @@ public:
 	// 방 클릭 시 (클라 -> 서버에 이동 요청 -> 클라 위치 이동) ====================================================
 	void RequestMapTravel(const FString& MapPath);
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_RequestMapTravel(const FString& MapPath);
+	//void ServerRPC_RequestMapTravel(const FString& MapPath);
+	void ServerRPC_RequestMapTravel(const FString& MapPath, APlayerController* RequestingPC);
 };

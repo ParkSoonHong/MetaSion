@@ -515,40 +515,52 @@ void ACJS_BallPlayer::RequestMapTravel(const FString& MapPath)
 {
 	if (PC && !HasAuthority())  // 클라이언트만 요청
 	{
-		ServerRPC_RequestMapTravel(MapPath);
+		//ServerRPC_RequestMapTravel(MapPath);
+		ServerRPC_RequestMapTravel(MapPath, PC);
 	}
 }
-
-void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath)
+//void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath)
+void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath, APlayerController* RequestingPC)
 {
-	float StartYValue = 0.0f; // 시작 Y 값
-	float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
-	int32 ClientIndex = 0; // 클라이언트 인덱스
+	//float StartYValue = 0.0f; // 시작 Y 값
+	//float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
+	//int32 ClientIndex = 0; // 클라이언트 인덱스
 
-	// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	//// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
+	//for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	//{
+	//	APlayerController* OtherPC = Iterator->Get();
+
+	//	// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
+	//	if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
+
+	//	{
+	//		// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
+	//		//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
+
+	//		// 그래서 그냥 위치 이동하는 걸로 변경해 봄
+	//		APawn* ControlledPawn = OtherPC->GetPawn();
+	//		if (ControlledPawn)
+	//		{
+	//			// 캐릭터의 위치를 변경합니다.
+	//			//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
+
+	//			// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
+	//			FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
+	//			ControlledPawn->SetActorLocation(NewLocation);
+	//			ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
+	//		}
+	//	}
+	//}
+
+	if (RequestingPC)
 	{
-		APlayerController* OtherPC = Iterator->Get();
-
-		// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
-		if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
-
+		APawn* ControlledPawn = RequestingPC->GetPawn();
+		if (ControlledPawn)
 		{
-			// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
-			//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
-
-			// 그래서 그냥 위치 이동하는 걸로 변경해 봄
-			APawn* ControlledPawn = OtherPC->GetPawn();
-			if (ControlledPawn)
-			{
-				// 캐릭터의 위치를 변경합니다.
-				//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
-
-				// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
-				FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
-				ControlledPawn->SetActorLocation(NewLocation);
-				ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
-			}
+			// 클릭한 클라이언트의 캐릭터만 이동합니다.
+			FVector NewLocation(9950.0f, 0.0f, 0.0f); // 이동하고 싶은 위치 지정
+			ControlledPawn->SetActorLocation(NewLocation);
 		}
 	}
 }
