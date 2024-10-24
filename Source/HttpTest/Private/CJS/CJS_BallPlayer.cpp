@@ -17,7 +17,6 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Blueprint/UserWidget.h"
 
 
@@ -41,6 +40,10 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 
 	// 설정할 하트의 초기 위치를 위한 위치 값 (직접 값을 조정 가능)
 	HeartSpawnPosition = FVector(100.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정
+
+	// 멀티 플레이 적용
+	bReplicates = true; // 네트워크 복제를 설정
+    SetReplicateMovement(true); // 이동 복제를 설정
 }
 
 
@@ -48,28 +51,6 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Explicitly obtain the PlayerController
-	//APlayerController* PlayerController = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
-	//if (PlayerController)
-	//{
-	//	FInputModeGameOnly InputMode;
-	//	PlayerController->SetInputMode(InputMode);
-	//	PlayerController->bShowMouseCursor = false;
-	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - Input mode set to Game Only"));
-
-	//	// Possess the character if not already possessed
-	//	if (PlayerController->GetPawn() != this)
-	//	{
-	//		PlayerController->Possess(this);
-	//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - PlayerController has possessed the pawn"));
-	//	}
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
-	//}	
-
 
 	// 컨트롤러를 가져와서 캐스팅
 	PC = Cast<APlayerController>(Controller);
@@ -228,28 +209,40 @@ void ACJS_BallPlayer::OnMyActionJump(const FInputActionValue& Value)
 void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionThrow()"));
-	if (HeartItemFactory)
+	//if (HeartItemFactory)
+	//{
+	//	// Get the spawn location and rotation from the actor
+	//	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
+	//	FRotator SpawnRotation = GetActorRotation();
+
+	//	// Spawn the heart actor
+	//	FActorSpawnParameters SpawnParams;
+	//	SpawnParams.Owner = this;
+	//	ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
+
+	//	if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
+	//	{
+	//		// Apply an initial impulse to make the heart fly forward
+	//		FVector LaunchDirection = SpawnRotation.Vector();
+	//		SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
+	//}
+
+	if (HasAuthority())
 	{
-		// Get the spawn location and rotation from the actor
-		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
-		FRotator SpawnRotation = GetActorRotation();
-
-		// Spawn the heart actor
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
-
-		if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
-		{
-			// Apply an initial impulse to make the heart fly forward
-			FVector LaunchDirection = SpawnRotation.Vector();
-			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
-		}
+		// 서버인 경우 바로 멀티캐스트 실행
+		MulticastRPC_ThrowHeart();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
+		// 클라이언트인 경우 서버에 요청
+		ServerRPC_ThrowHeart();
 	}
+
 }
 
 void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
@@ -372,7 +365,17 @@ void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
-	PlayAnimationByIndex(KeyIndex);
+	//PlayAnimationByIndex(KeyIndex);
+
+	// 서버에 애니메이션 재생을 요청합니다.
+	if (HasAuthority())
+	{
+		MulticastRPC_PlayAnimation(KeyIndex); // 서버는 직접 멀티캐스트 실행
+	}
+	else
+	{
+		ServerRPC_PlayAnimation(KeyIndex); // 클라이언트는 서버에 요청
+	}
 }
 
 //void ACJS_BallPlayer::PlayTestAnimation()
@@ -403,6 +406,7 @@ void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Invalid index or animation sequence"));
 	}
 }
+
 
 // ========================================================================================================================================================
 
@@ -446,6 +450,65 @@ void ACJS_BallPlayer::TriggerSelfHitEffects(FVector HitLocation)
 	//}
 }
 
+// 숫자키 애니메이션 작동 (멀티)
+void ACJS_BallPlayer::ServerRPC_PlayAnimation_Implementation(int32 AnimationIndex)
+{
+	// 서버에서 멀티캐스트 호출
+	MulticastRPC_PlayAnimation(AnimationIndex);
+}
+
+bool ACJS_BallPlayer::ServerRPC_PlayAnimation_Validate(int32 AnimationIndex)
+{
+	return true;
+}
+
+void ACJS_BallPlayer::MulticastRPC_PlayAnimation_Implementation(int32 AnimationIndex)
+{
+	PlayAnimationByIndex(AnimationIndex);
+}
+
+
+// 하트 던지기 (멀티)
+void ACJS_BallPlayer::ServerRPC_ThrowHeart_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ServerRPC_ThrowHeart()"));
+	// 서버에서만 하트 생성
+	if (HasAuthority())
+	{
+		MulticastRPC_ThrowHeart(); // 모든 클라이언트에게 하트를 던지라고 브로드캐스트
+	}
+}
+
+bool ACJS_BallPlayer::ServerRPC_ThrowHeart_Validate()
+{
+	return true;
+}
+
+void ACJS_BallPlayer::MulticastRPC_ThrowHeart_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::MulticastRPC_ThrowHeart()"));
+	// 실제 하트를 던지는 로직 (기존의 OnMyActionThrow 로직을 여기로 옮기기)
+	if (HeartItemFactory)
+	{
+		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
+		FRotator SpawnRotation = GetActorRotation();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
+
+		if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
+		{
+			FVector LaunchDirection = SpawnRotation.Vector();
+			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::Multicast_ThrowHeart() - HeartItemFactory is null"));
+	}
+}
+
 
 // 방 클릭 시 (클라 이동) ========================================================================================================================================
 void ACJS_BallPlayer::RequestMapTravel(const FString& MapPath)
@@ -469,6 +532,7 @@ void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& M
 
 		// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
 		if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
+
 		{
 			// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
 			//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함

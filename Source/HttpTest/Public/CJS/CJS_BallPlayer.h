@@ -92,12 +92,24 @@ public:
 	void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit);
 	void TriggerSelfHitEffects(FVector HitLocation);
 
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_PlayAnimation(int32 AnimationIndex);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_PlayAnimation(int32 AnimationIndex);
+
 
 	// 하트 던질 때 =============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "Heart")
 	TSubclassOf<class ACJS_HeartActor> HeartItemFactory;
 	UPROPERTY(EditAnyWhere)
 	FVector HeartSpawnPosition;
+
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_ThrowHeart();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_ThrowHeart();
 
 
 	// 조준점 위젯 ==============================================================================================
