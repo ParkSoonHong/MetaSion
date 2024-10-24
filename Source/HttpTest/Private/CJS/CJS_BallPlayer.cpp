@@ -3,16 +3,23 @@
 
 #include "CJS/CJS_BallPlayer.h"
 #include "CJS/CJS_HeartActor.h"
+#include "CJS/CJS_BallPlayerAnimInstance.h"
+#include "CJS/CJS_AimPointWidget.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimSequence.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Blueprint/UserWidget.h"
+
 
 
 // Sets default values
@@ -43,25 +50,81 @@ void ACJS_BallPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	// Explicitly obtain the PlayerController
-	APlayerController* PlayerController = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	if (PlayerController)
-	{
-		FInputModeGameOnly InputMode;
-		PlayerController->SetInputMode(InputMode);
-		PlayerController->bShowMouseCursor = false;
-		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - Input mode set to Game Only"));
+	//APlayerController* PlayerController = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+	//if (PlayerController)
+	//{
+	//	FInputModeGameOnly InputMode;
+	//	PlayerController->SetInputMode(InputMode);
+	//	PlayerController->bShowMouseCursor = false;
+	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - Input mode set to Game Only"));
 
-		// Possess the character if not already possessed
-		if (PlayerController->GetPawn() != this)
-		{
-			PlayerController->Possess(this);
-			UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - PlayerController has possessed the pawn"));
-		}
+	//	// Possess the character if not already possessed
+	//	if (PlayerController->GetPawn() != this)
+	//	{
+	//		PlayerController->Possess(this);
+	//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - PlayerController has possessed the pawn"));
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
+	//}	
+
+
+	// 컨트롤러를 가져와서 캐스팅
+	PC = Cast<APlayerController>(Controller);
+	if (PC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay()::PlayerController (pc) is assigned in BeginPlay"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
-	}	
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay()::PlayerController (pc) is null in BeginPlay"));
+		return;
+	}
+
+	// 애니메이션 시퀀스가 제대로 로드되었는지 확인 (1개씩 적용)
+	/*if (TestAnimSequence)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - TestAnimSequence loaded successfully"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - TestAnimSequence is not set"));
+	}*/
+	
+	// 애니메이션 시퀀스 배열이 제대로 설정되었는지 확인
+	if (AnimSequences.Num() == 8)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - AnimSequences initialized with 8 elements"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - AnimSequences does not have 8 elements"));
+	}
+
+	// WBP_AimPoint 위젯 생성
+	if (WBP_AimPoint)  // WBP_aimpoint가 올바르게 할당되어 있는지 확인
+	{
+		AimPointUI = CreateWidget<UCJS_AimPointWidget>(GetWorld(), WBP_AimPoint);
+		if (AimPointUI) 
+		{
+			AimPointUI->AddToViewport();
+			AimPointUI->SetVisibility(ESlateVisibility::Hidden);
+			UE_LOG(LogTemp, Warning, TEXT("AimPointUI successfully created and added to viewport & Hidden right now"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to create AimPointUI Widget"));
+		}
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::BeginPlay()::WBP_AimPoint is assigned!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_UserCharacter::BeginPlay()::WBP_AimPoint is not assigned! Please assign it in the Blueprint."));
+	}
+	
+	bAimPointUIShowing = false;
 }
 
 // Called every frame
@@ -77,8 +140,6 @@ void ACJS_BallPlayer::Tick(float DeltaTime)
 	AddMovementInput(Direction);
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::Tick() - Moving in Direction: X=%f, Y=%f, Z=%f"), Direction.X, Direction.Y, Direction.Z);
 	Direction = FVector::ZeroVector;  // Reset direction after movement input is added
-
-	
 }
 
 
@@ -106,15 +167,26 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		input->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionJump);
 		// 던지기
 		input->BindAction(IA_Throw, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionThrow);
-		// 숫자키
-		input->BindAction(IA_1, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey1);
-		input->BindAction(IA_2, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey2);
-		input->BindAction(IA_3, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey3);
-		input->BindAction(IA_4, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey4);
-		input->BindAction(IA_5, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey5);
-		input->BindAction(IA_6, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey6);
-		input->BindAction(IA_7, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey7);
-		input->BindAction(IA_8, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionKey8);
+		// 클릭
+		input->BindAction(IA_Click, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionClick);
+		// 토글 조준점
+		input->BindAction(IA_AimPoint, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionToggleAimPointUI);
+		// 숫자키 애니메이션 (인덱스 사용해 바인딩)
+		for (int32 i = 0; i < 8; i++)
+		{
+			if (IA_NumKeys[i])
+			{
+				// 로그 출력 추가
+				UE_LOG(LogTemp, Warning, TEXT("Binding action for Key %d with Index %d"), i, i);
+				input->BindAction(IA_NumKeys[i], ETriggerEvent::Started, this, &ACJS_BallPlayer::OnNumberKeyPressed, i);
+			}
+			else
+			{
+				// 로그 출력: 인풋 액션이 null일 경우
+				UE_LOG(LogTemp, Error, TEXT("IA_NumKeys[%d] is null"), i);
+			}
+		}
+
 
 		// Log to check if input actions are bound
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent() - Input actions are bound"));
@@ -179,37 +251,157 @@ void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
 	}
 }
-void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+
+void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()"));
+
+	if (!bAimPointUIShowing)
+	{
+		// AimPointUI가 표시되지 않았을 때는 클릭을 무시
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionClick()::bAimPointUIShowing==false return"));
+		return;
+	}
+
+	FVector Start = CameraComp->GetComponentLocation();
+	FVector End = Start + CameraComp->GetForwardVector() * 100000.0f;
+	FHitResult Outhit;
+	ECollisionChannel TraceChannel = ECC_Visibility;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Outhit, Start, End, TraceChannel, CollisionParams);
+
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit something!"));
+
+		if (Outhit.Component.IsValid())
+		{
+			FString HitComponentName = Outhit.Component->GetName();
+			UE_LOG(LogTemp, Warning, TEXT("Hit Component: %s"), *HitComponentName);
+		}
+
+		AActor* HitActor = Outhit.GetActor();
+		if (HitActor)
+		{
+			FString HitActorName = HitActor->GetName();
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActorName);
+
+			if (HitActorName.Contains("BP_MultiRoom"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BP_MultiRoom Clicked"));
+				if (PC)
+				{
+					RequestMapTravel("/Game/CJS/Maps/CJS_MultiRoomMap");
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MultiRoomMap"));
+				}
+			}
+			else if (HitActorName.Contains("BP_MyRoom"))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BP_MyRoom Clicked"));
+				if (PC)
+				{
+					RequestMapTravel("/Game/CJS/Maps/CJS_MyRoomMap");
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MyRoomMap"));
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::Hit Actor is NULL"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionClick()::No Hit Detected"));
+	}
+
 }
-void ACJS_BallPlayer::OnMyActionKey2(const FInputActionValue& Value)
+
+void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey2()"));
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionToggleAimPointUI()"));
+
+	if (AimPointUI)
+	{
+		if (!bAimPointUIShowing)
+		{
+			bAimPointUIShowing = true;
+			AimPointUI->SetVisibility(ESlateVisibility::Visible);
+			UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Visible, Visibility State: %d"), (int32)AimPointUI->GetVisibility());
+		}
+		else
+		{
+			bAimPointUIShowing = false;
+			AimPointUI->SetVisibility(ESlateVisibility::Hidden);
+			UE_LOG(LogTemp, Warning, TEXT("AimPointUI is now Hidden, Visibility State: %d"), (int32)AimPointUI->GetVisibility());
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AimPointUI is null! UI cannot be toggled."));
+	}
 }
-void ACJS_BallPlayer::OnMyActionKey3(const FInputActionValue& Value)
+
+
+//void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
+//	/*if (AnimInstance)
+//	{	
+//		AnimInstance->PlayAngryMontage();
+//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
+//	}*/
+//
+//	// 애니메이션 재생 함수 호출
+//	PlayTestAnimation();
+//}
+
+
+void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey3()"));
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
+	PlayAnimationByIndex(KeyIndex);
 }
-void ACJS_BallPlayer::OnMyActionKey4(const FInputActionValue& Value)
+
+//void ACJS_BallPlayer::PlayTestAnimation()
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::void ACJS_BallPlayer::PlayTestAnimation()"));
+//
+//	if (TestAnimSequence && GetMesh())
+//	{
+//		// Skeletal Mesh Component에서 애니메이션 재생
+//		GetMesh()->PlayAnimation(TestAnimSequence, false);
+//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayTestAnimation() - Animation played"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayTestAnimation() - TestAnimSequence or SkeletalMeshComponent is null"));
+//	}
+//}
+
+void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey4()"));
-}
-void ACJS_BallPlayer::OnMyActionKey5(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey5()"));
-}
-void ACJS_BallPlayer::OnMyActionKey6(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey6()"));
-}
-void ACJS_BallPlayer::OnMyActionKey7(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey7()"));
-}
-void ACJS_BallPlayer::OnMyActionKey8(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey8()"));
+	if (AnimSequences.IsValidIndex(Index) && AnimSequences[Index] && GetMesh())
+	{
+		GetMesh()->PlayAnimation(AnimSequences[Index], false);
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Animation %d played"), Index + 1);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Invalid index or animation sequence"));
+	}
 }
 
 // ========================================================================================================================================================
@@ -253,4 +445,47 @@ void ACJS_BallPlayer::TriggerSelfHitEffects(FVector HitLocation)
 	//	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSFX, HitLocation);
 	//}
 }
-// ========================================================================================================================================================
+
+
+// 방 클릭 시 (클라 이동) ========================================================================================================================================
+void ACJS_BallPlayer::RequestMapTravel(const FString& MapPath)
+{
+	if (PC && !HasAuthority())  // 클라이언트만 요청
+	{
+		ServerRPC_RequestMapTravel(MapPath);
+	}
+}
+
+void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath)
+{
+	float StartYValue = 0.0f; // 시작 Y 값
+	float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
+	int32 ClientIndex = 0; // 클라이언트 인덱스
+
+	// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* OtherPC = Iterator->Get();
+
+		// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
+		if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
+		{
+			// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
+			//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
+
+			// 그래서 그냥 위치 이동하는 걸로 변경해 봄
+			APawn* ControlledPawn = OtherPC->GetPawn();
+			if (ControlledPawn)
+			{
+				// 캐릭터의 위치를 변경합니다.
+				//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
+
+				// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
+				FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
+				ControlledPawn->SetActorLocation(NewLocation);
+				ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
+			}
+		}
+	}
+}
+

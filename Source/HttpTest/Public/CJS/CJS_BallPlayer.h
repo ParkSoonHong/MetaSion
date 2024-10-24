@@ -29,14 +29,19 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
-	// 카메라 ==============================================================================================
+
+	// 플레이어 컨트롤러 ======================================================================================
+	UPROPERTY()
+	class APlayerController* PC;
+
+	// 카메라 =================================================================================================
 	UPROPERTY(EditDefaultsOnly)
 	class USpringArmComponent* SpringArmComp;
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* CameraComp;
 	FVector Direction; 
 
-	// 인풋 ==============================================================================================
+	// 인풋 동작 ===============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputMappingContext* IMC_Player;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -48,33 +53,33 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Throw;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_1;
+	class UInputAction* IA_Click;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_2;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_3;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_4;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_5;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_6;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_7;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_8;
+	class UInputAction* IA_AimPoint;
+	
 	void OnMyActionMove(const FInputActionValue& Value);
 	void OnMyActionLook(const FInputActionValue& Value);
 	void OnMyActionJump(const FInputActionValue& Value);
 	void OnMyActionThrow(const FInputActionValue& Value);
-	void OnMyActionKey1(const FInputActionValue& Value);
-	void OnMyActionKey2(const FInputActionValue& Value);
-	void OnMyActionKey3(const FInputActionValue& Value);
-	void OnMyActionKey4(const FInputActionValue& Value);
-	void OnMyActionKey5(const FInputActionValue& Value);
-	void OnMyActionKey6(const FInputActionValue& Value);
-	void OnMyActionKey7(const FInputActionValue& Value);
-	void OnMyActionKey8(const FInputActionValue& Value);
+	void OnMyActionClick(const FInputActionValue& Value);
+	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
+
+
+	// 인풋 애니메이션 =========================================================================================
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_NumKeys[8];
+	void OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex);
+
+	// 애니메이션 시퀀스 ========================================================================================
+	// 1개씩 적용
+	/*UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	class UAnimSequence* TestAnimSequence;
+	void PlayTestAnimation();*/
+
+	// 애니메이션 시퀀스 배열
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	TArray<class UAnimSequence*> AnimSequences;
+	void PlayAnimationByIndex(int32 Index);
 
 
 	// 부딪혔을 때 ==============================================================================================
@@ -88,11 +93,23 @@ public:
 	void TriggerSelfHitEffects(FVector HitLocation);
 
 
-	// 하트 던질 때 ============================================================================================
+	// 하트 던질 때 =============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "Heart")
 	TSubclassOf<class ACJS_HeartActor> HeartItemFactory;
 	UPROPERTY(EditAnyWhere)
 	FVector HeartSpawnPosition;
 
 
+	// 조준점 위젯 ==============================================================================================
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> WBP_AimPoint;
+	UPROPERTY()
+	class UCJS_AimPointWidget* AimPointUI;
+	bool bAimPointUIShowing;
+
+
+	// 방 클릭 시 (클라 -> 서버에 이동 요청 -> 클라 위치 이동) ====================================================
+	void RequestMapTravel(const FString& MapPath);
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_RequestMapTravel(const FString& MapPath);
 };
