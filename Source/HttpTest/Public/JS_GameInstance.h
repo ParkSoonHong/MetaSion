@@ -22,6 +22,10 @@ public:
 	// 응답받을 함수
 	void OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	void ReqPostChoice(FString url, FString json);
+
+	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
 	
 	//// 음성 파일을 바이너리 데이터로 변환하는 함수
 	//bool ReqBGMDateFromFile(const FString& FilePath, TArray<uint8>& OutBgmData);
