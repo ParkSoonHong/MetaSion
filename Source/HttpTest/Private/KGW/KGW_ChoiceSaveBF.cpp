@@ -16,22 +16,22 @@ TMap<FString, int32> SelectedChoices;
 
 // void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 // {
-//     // ¼±ÅÃµÈ µ¥ÀÌÅÍ¸¦ ÀúÀåÇÏ´Â TMap (int32 µ¥ÀÌÅÍ¸¦ FStringÀ¸·Î º¯È¯ÇÏ¿© ÀúÀå)
+//     // ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ TMap (int32 ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½)
 //     TMap<FString, FString> ChoiceMap;
 // 
-//     // ±âÁ¸ÀÇ TMap<FString, int32> µ¥ÀÌÅÍ¸¦ FStringÀ¸·Î º¯È¯ÇØ¼­ ÀúÀå
+//     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TMap<FString, int32> ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 //     for (const TPair<FString, int32>& Pair : SelectedChoices)
 //     {
-//         ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 °ªÀ» FStringÀ¸·Î º¯È¯
+//         ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 ï¿½ï¿½ï¿½ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 //     }
 // 
-//     // MakeJsonÀ» È£ÃâÇØ TMap µ¥ÀÌÅÍ¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+//     // MakeJsonï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ TMap ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 //     FString JsonString = UJsonParseLib::MakeJson(ChoiceMap);
 // //    UE_LOG(LogTemp, Warning, TEXT(" % s"), *JsonString);
 //    FString ServerURL = "https://webhook.site/43600b7c-b435-42f0-851e-e3085ca8d187";
 //    UJS_GameInstance* PostChoice = Cast<UJS_GameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject));
 // 
-//    // °ÔÀÓ ÀÎ½ºÅÏ½º°¡ À¯È¿ÇÏ¸é ReqPostTest ÇÔ¼ö È£Ãâ
+//    // ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½Ï¸ï¿½ ReqPostTest ï¿½Ô¼ï¿½ È£ï¿½ï¿½
 //    if (PostChoice)
 //    {
 //        PostChoice->ReqPostChoice(ServerURL, JsonString);
@@ -44,50 +44,50 @@ TMap<FString, int32> SelectedChoices;
 //    }
 // 
 // 
-//     // »ý¼ºµÈ JSON ¹®ÀÚ¿­À» ÆÄÀÏ·Î ÀúÀå (Saved Æú´õ)
+//     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½ï¿½ (Saved ï¿½ï¿½ï¿½ï¿½)
 // //     FString FullPath = FPaths::ProjectSavedDir() + "SelectedChoiced.json";
 // //     FFileHelper::SaveStringToFile(JsonString, *FullPath);
 // }
 void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 {
-    // WorldContextObject°¡ nullÀÎÁö È®ÀÎ
+    // WorldContextObjectï¿½ï¿½ nullï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (!WorldContextObject)
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid WorldContextObject: null object passed."));
-        return;  // nullÀÌ¸é ÇÔ¼ö Á¾·á
+        return;  // nullï¿½Ì¸ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
 
-    // ¼±ÅÃµÈ µ¥ÀÌÅÍ¸¦ ÀúÀåÇÏ´Â TMap (int32 µ¥ÀÌÅÍ¸¦ FStringÀ¸·Î º¯È¯ÇÏ¿© ÀúÀå)
+    // ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ TMap (int32 ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½)
     TMap<FString, FString> ChoiceMap;
 
-    // ±âÁ¸ÀÇ TMap<FString, int32> µ¥ÀÌÅÍ¸¦ FStringÀ¸·Î º¯È¯ÇØ¼­ ÀúÀå
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TMap<FString, int32> ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½
     for (const TPair<FString, int32>& Pair : SelectedChoices)
     {
-        ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 °ªÀ» FStringÀ¸·Î º¯È¯
+        ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 ï¿½ï¿½ï¿½ï¿½ FStringï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
     }
 
-    // MakeJsonÀ» È£ÃâÇØ TMap µ¥ÀÌÅÍ¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+    // MakeJsonï¿½ï¿½ È£ï¿½ï¿½ï¿½ï¿½ TMap ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
     FString JsonString = UJsonParseLib::MakeJson(ChoiceMap);
 
-    // JSON ¹®ÀÚ¿­ È®ÀÎ (µð¹ö±ë¿ë ·Î±×)
+    // JSON ï¿½ï¿½ï¿½Ú¿ï¿½ È®ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
-    // ¼­¹ö URL ¼³Á¤
+    // ï¿½ï¿½ï¿½ï¿½ URL ï¿½ï¿½ï¿½ï¿½
     FString ServerURL = TEXT("https://explicitly-premium-catfish.ngrok-free.app/character");
 
-//      WorldContextObject¸¦ ÅëÇØ °ÔÀÓ ÀÎ½ºÅÏ½º¸¦ °¡Á®¿È
+//      WorldContextObjectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      UJS_GameInstance* PostChoice = Cast<UJS_GameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject->GetWorld()));
 
-    // °ÔÀÓ ÀÎ½ºÅÏ½º°¡ À¯È¿ÇÏ¸é ReqPostChoice ÇÔ¼ö È£Ãâ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½Ï¸ï¿½ ReqPostChoice ï¿½Ô¼ï¿½ È£ï¿½ï¿½
 	 if (PostChoice)
 	 {
-        // POST ¿äÃ» º¸³»±â
+        // POST ï¿½ï¿½Ã» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         PostChoice->ReqPostChoice(ServerURL, JsonString);
         UE_LOG(LogTemp, Warning, TEXT("ReqPostChoice called successfully."));
 	 }
 	 else
 	 {
-// 		 °ÔÀÓ ÀÎ½ºÅÏ½º¸¦ °¡Á®¿ÀÁö ¸øÇÑ °æ¿ì °æ°í ¸Þ½ÃÁö Ãâ·Â
+// 		 ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			 UE_LOG(LogTemp, Warning, TEXT("Failed to get GameInstance from WorldContextObject."));
 	 }
 }
@@ -102,67 +102,67 @@ void UKGW_ChoiceSaveBF::AddChoice(const FChoiceData& ChoiceData)
 
 // TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
 // {
-//     // °á°ú·Î ¹ÝÈ¯ÇÒ ¹è¿­ »ý¼º
+//     // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½
 //     TArray<FColorData> Colors;
 // 
-//     // JSON µ¥ÀÌÅÍ¸¦ ÀÐ±â À§ÇÑ Reader »ý¼º
+//     // JSON ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½ Reader ï¿½ï¿½ï¿½ï¿½
 //     TSharedRef<TJsonReader<TCHAR>> Reader = TJsonReaderFactory<TCHAR>::Create(JsonString);
 // 
-//     // ÆÄ½Ì °á°ú¸¦ ´ãÀ» JsonObject »ý¼º
+//     // ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ JsonObject ï¿½ï¿½ï¿½ï¿½
 //     TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
 // 
-//     // JSON ÆÄ½Ì ½Ãµµ
+//     // JSON ï¿½Ä½ï¿½ ï¿½Ãµï¿½
 //     if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
 //     {
-//         // JSON ¹è¿­ÀÎ "CharacterRGB" ÇÊµå °¡Á®¿À±â
+//         // JSON ï¿½è¿­ï¿½ï¿½ "CharacterRGB" ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //         TArray<TSharedPtr<FJsonValue>> ItemsArray = JsonObject->GetArrayField(TEXT("CharacterRGB"));
 // 
-//         // ¹è¿­ ¼øÈ¸ÇÏ¸é¼­ °¢ °´Ã¼¿¡¼­ µ¥ÀÌÅÍ¸¦ ÃßÃâ
+//         // ï¿½è¿­ ï¿½ï¿½È¸ï¿½Ï¸é¼­ ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 //         for (TSharedPtr<FJsonValue> CharacterRGB : ItemsArray)
 //         {
 //             TSharedPtr<FJsonObject> ItemObject = CharacterRGB->AsObject();
 // 
-//             // FColorData ±¸Á¶Ã¼ »ý¼º
+//             // FColorData ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
 //             FColorData ColorData;
 // 
-//             // RGB °ª ÃßÃâ
+//             // RGB ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //             ColorData.R = ItemObject->GetNumberField(TEXT("R"));
 //             ColorData.G = ItemObject->GetNumberField(TEXT("G"));
 //             ColorData.B = ItemObject->GetNumberField(TEXT("B"));
 // 
-//             // °á°ú ¹è¿­¿¡ Ãß°¡
+//             // ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½ß°ï¿½
 //             Colors.Add(ColorData);
 //         }
 //     }
 // 
-//     // RGB °ªÀÌ ÀúÀåµÈ ¹è¿­ ¹ÝÈ¯
+//     // RGB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­ ï¿½ï¿½È¯
 //     return Colors;
 // }
 
 TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
 {
-    // °á°ú·Î ¹ÝÈ¯ÇÒ ¹è¿­ »ý¼º
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½
     TArray<FColorData> Colors;
 
-    // JSON µ¥ÀÌÅÍ¸¦ ÀÐ±â À§ÇÑ Reader »ý¼º
+    // JSON ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½ Reader ï¿½ï¿½ï¿½ï¿½
     TSharedRef<TJsonReader<TCHAR>> Reader = TJsonReaderFactory<TCHAR>::Create(JsonString);
 
-    // ÆÄ½Ì °á°ú¸¦ ´ãÀ» JsonObject »ý¼º
+    // ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ JsonObject ï¿½ï¿½ï¿½ï¿½
     TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
 
-    // JSON ÆÄ½Ì ½Ãµµ
+    // JSON ï¿½Ä½ï¿½ ï¿½Ãµï¿½
     if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
     {
-        // "R", "G", "B" ÇÊµå°¡ Á¸ÀçÇÏ´ÂÁö È®ÀÎ ÈÄ ÆÄ½Ì
+        // "R", "G", "B" ï¿½Êµå°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ ï¿½Ä½ï¿½
         if (JsonObject->HasField(TEXT("R")) && JsonObject->HasField(TEXT("G")) && JsonObject->HasField(TEXT("B")))
         {
-            // FColorData ±¸Á¶Ã¼¿¡ RGB °ªÀ» ÀúÀå
+            // FColorData ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ RGB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             FColorData ColorData;
             ColorData.R = JsonObject->GetNumberField(TEXT("R"));
             ColorData.G = JsonObject->GetNumberField(TEXT("G"));
             ColorData.B = JsonObject->GetNumberField(TEXT("B"));
 
-            // °á°ú ¹è¿­¿¡ Ãß°¡
+            // ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½ß°ï¿½
             Colors.Add(ColorData);
             FColorData FirstColor = Colors[0];
             UE_LOG(LogTemp, Warning, TEXT("Succed."));
@@ -181,7 +181,7 @@ TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
         }
     }
     UE_LOG(LogTemp, Log, TEXT("Array length: %d"), Colors.Num());
-    // RGB °ªÀÌ ÀúÀåµÈ ¹è¿­ ¹ÝÈ¯
+    // RGB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­ ï¿½ï¿½È¯
     return Colors;
 }
 
@@ -193,9 +193,9 @@ void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
 // FString UKGW_ChoiceSaveBF::ParseJsonToColorData(const FString& json)
 // {
 //     TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(json);
-//     // ÆÄ½Ì °á°ú¸¦ ´ãÀ» º¯¼ö ¼±¾ð
+//     // ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //     TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-//     // ÇØ¼®À» ÇÑ´Ù.
+//     // ï¿½Ø¼ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 //     FString returnValue;
 //     TArray<FColorData> Colors;
 // 
@@ -205,29 +205,29 @@ void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
 //         for (TSharedPtr<FJsonValue> data : ColorObject)
 //         {
 //             
-// //  // RGB °ª ÃßÃâ
+// //  // RGB ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 // //             float R = data->AsObject()->GetNumberField(TEXT("R"));
 // //             float G = data->AsObject()->GetNumberField(TEXT("G"));
 // //             float B = data->AsObject()->GetNumberField(TEXT("B"));
 // // 
-// //             // ÃßÃâÇÑ µ¥ÀÌÅÍ¸¦ Ãâ·Â Çü½ÄÀ¸·Î Ãß°¡
+// //             // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 // //             returnValue.Append(FString::Printf(TEXT("R: %.2f / G: %.2f / B: %.2f\n"), R, G, B));
 //             TSharedPtr<FJsonObject> ItemObject = data->AsObject();
 // 
-//             // FColorData ±¸Á¶Ã¼ »ý¼º
+//             // FColorData ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
 //             FColorData ColorData;
 // 
-//             // RGB °ª ÃßÃâ
+//             // RGB ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //             ColorData.R = ItemObject->GetNumberField(TEXT("R"));
 //             ColorData.G = ItemObject->GetNumberField(TEXT("G"));
 //             ColorData.B = ItemObject->GetNumberField(TEXT("B"));
 // 
-//             // °á°ú ¹è¿­¿¡ Ãß°¡
+//             // ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½ß°ï¿½
 //             Colors.Add(ColorData);
 //         }
 //     }
 //     
-//     // ¹ÝÈ¯ÇÑ´Ù.
+//     // ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
 //     return Colors;
 // 
 // }

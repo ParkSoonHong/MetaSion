@@ -57,7 +57,7 @@ public:
 
 	// 호스트 이름 (세션 이름)
 	UPROPERTY()
-	FString MySessionName = TEXT("User2");
+	FString MySessionName = TEXT("User1");
 
 	// 방 생성 요청 (새로운 세션을 생성하는 함수)
 	UFUNCTION()
