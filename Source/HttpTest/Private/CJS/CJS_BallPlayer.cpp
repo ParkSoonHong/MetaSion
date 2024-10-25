@@ -18,6 +18,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
 #include "Blueprint/UserWidget.h"
+//#include "Materials/MaterialInstanceDynamic.h"
 
 
 
@@ -44,6 +45,11 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	// 멀티 플레이 적용
 	bReplicates = true; // 네트워크 복제를 설정
     SetReplicateMovement(true); // 이동 복제를 설정
+
+
+	// 재질 색상 초기 설정
+	//SetInitColorValue(1.0, 0.9225690792809692, 0.4);
+	InitColorValue = FLinearColor(0.1, 1.0, 0.7);
 }
 
 
@@ -51,6 +57,41 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+
+	// Material 설정 부분 추가 (SkeletalMesh 사용)
+	if (GetMesh()) // SkeletalMeshComponent 접근
+	{
+		UMaterialInterface* MaterialInterface = GetMesh()->GetMaterial(0);
+		if (MaterialInterface)
+		{
+			// Dynamic Material Instance 생성
+			UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(MaterialInterface, this);
+			if (DynamicMaterial)
+			{
+				GetMesh()->SetMaterial(0, DynamicMaterial);
+
+				// InitColorValue를 사용하여 TransmitB 파라미터 설정
+				DynamicMaterial->SetVectorParameterValue(FName("TransmitB"), InitColorValue);
+
+				UE_LOG(LogTemp, Warning, TEXT("SkeletalMesh Material color set using 'TransmitB' parameter to R: %f, G: %f, B: %f"), InitColorValue.R, InitColorValue.G, InitColorValue.B);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to create Dynamic Material Instance."));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("MaterialInterface is null."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
+	}
+
+
 
 	// 컨트롤러를 가져와서 캐스팅
 	PC = Cast<APlayerController>(Controller);
@@ -563,5 +604,12 @@ void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& M
 			ControlledPawn->SetActorLocation(NewLocation);
 		}
 	}
+}
+
+// 로비 진입 시, 캐릭터 초기 설정 ================================================================================================
+void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
+{
+	InitColorValue = FLinearColor(r, g, b);
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitColorValue() - Initial Color set to R: %f, G: %f, B: %f"), r, g, b);
 }
 

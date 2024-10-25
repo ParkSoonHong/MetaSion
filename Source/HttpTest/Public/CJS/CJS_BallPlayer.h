@@ -125,4 +125,13 @@ public:
 	UFUNCTION(Server, Reliable)
 	//void ServerRPC_RequestMapTravel(const FString& MapPath);
 	void ServerRPC_RequestMapTravel(const FString& MapPath, APlayerController* RequestingPC);
+
+
+	// 로비 입장 시 초기 설정 ============================================================================
+	/* 재질 색상 */
+	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
+	void SetInitColorValue(float r, float g, float b);
+	/* 추천방 정보 */
+
+
 };
