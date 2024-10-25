@@ -5,6 +5,7 @@
 #include "CJS/CJS_HeartActor.h"
 #include "CJS/CJS_BallPlayerAnimInstance.h"
 #include "CJS/CJS_AimPointWidget.h"
+#include "CJS/CJS_MultiRoomActor.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -18,8 +19,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
 #include "Blueprint/UserWidget.h"
-//#include "Materials/MaterialInstanceDynamic.h"
 
+#include "JsonUtilities.h" // JSON 관련 유틸리티
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 
 // Sets default values
@@ -47,9 +50,15 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
     SetReplicateMovement(true); // 이동 복제를 설정
 
 
-	// 재질 색상 초기 설정
+	// 초기 설정 ================================================================================
+	/* 재질 색상 설정 */ 
 	//SetInitColorValue(1.0, 0.9225690792809692, 0.4);
-	InitColorValue = FLinearColor(0.1, 1.0, 0.7);
+	//InitColorValue = FLinearColor(0.1, 1.0, 0.7);
+	/* 추천방 정보 설정 */
+	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
+	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
+
+	//InitJsonData(Json);
 }
 
 
@@ -58,6 +67,8 @@ void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Initialize from JSON data
+	InitializeFromJson(JsonData);
 
 	// Material 설정 부분 추가 (SkeletalMesh 사용)
 	if (GetMesh()) // SkeletalMeshComponent 접근
@@ -91,6 +102,28 @@ void ACJS_BallPlayer::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
 	}
 
+	// 추천방 정보 초기화
+	//SetInitMultiRoomInfo(1, 5, "SunnyWorld", 87);
+	//AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass());
+	//if (FoundActor)
+	//{
+	//	// ACJS_MultiRoomActor로 캐스팅
+	//	RefMultiRoom = Cast<ACJS_MultiRoomActor>(FoundActor);
+	//	if (RefMultiRoom)
+	//	{
+	//		// 초기 설정 함수 호출
+	//		RefMultiRoom->InitRefRoomInfoWidget(1, 5, "SunnyWorld", 87);
+	//		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized successfully."));
+	//	}
+	//	else
+	//	{
+	//		UE_LOG(LogTemp, Error, TEXT("Failed to cast FoundActor to ACJS_MultiRoomActor."));
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("No ACJS_MultiRoomActor found in the world."));
+	//}
 
 
 	// 컨트롤러를 가져와서 캐스팅
@@ -147,6 +180,9 @@ void ACJS_BallPlayer::BeginPlay()
 	}
 	
 	bAimPointUIShowing = false;
+
+	
+
 }
 
 // Called every frame
@@ -606,10 +642,125 @@ void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& M
 	}
 }
 
+
+
 // 로비 진입 시, 캐릭터 초기 설정 ================================================================================================
+void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitializeFromJson()"));
+	// JSON 문자열을 JSON 객체로 파싱
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(LocalJsonData);
+
+	if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+	{
+		// 1. RGB 값 추출 및 SetInitColorValue 호출
+		float R = JsonObject->GetNumberField(TEXT("R"));
+		float G = JsonObject->GetNumberField(TEXT("G"));
+		float B = JsonObject->GetNumberField(TEXT("B"));
+		SetInitColorValue(R, G, B);
+
+		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
+
+		// 최대 5개만 저장
+		for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
+		{
+			ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
+			if (MultiRoomActor)
+			{
+				MultiRoomActors.Add(MultiRoomActor);
+			}
+		}
+
+		// 저장된 MultiRoomActor의 개수 출력
+		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
+
+		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장
+		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
+		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
+
+		TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+		AllUsersArray.Append(SimilarUsersArray);
+		AllUsersArray.Append(OppositeUsersArray);
+
+		// 최대 5개의 방 정보를 저장하고, MultiRoomActor에 설정
+		for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
+		{
+			TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+			if (UserObject.IsValid())
+			{
+				// EmotionScore와 RoomName을 가져와 설정
+				float EmotionScore = UserObject->GetNumberField(TEXT("EmotionScore"));
+				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
+
+				// 현재 사용자 수와 최대 수 설정 (예시)
+				int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+				int32 MaxNumPlayer = 5;
+				float Percent = (EmotionScore / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+
+				// 각 MultiRoomActor에 정보 설정
+				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse JSON data."));
+	}
+}
+
 void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
 {
 	InitColorValue = FLinearColor(r, g, b);
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitColorValue() - Initial Color set to R: %f, G: %f, B: %f"), r, g, b);
+}
+
+//void ACJS_BallPlayer::SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
+//
+//	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.   ---> 1개
+//	AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass());
+//	if (FoundActor)
+//	{
+//		// ACJS_MultiRoomActor로 캐스팅
+//		RefMultiRoom = Cast<ACJS_MultiRoomActor>(FoundActor);
+//		if (RefMultiRoom)
+//		{
+//			// 초기 설정 함수 호출
+//			RefMultiRoom->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+//			UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized successfully."));
+//		}
+//		else
+//		{
+//			UE_LOG(LogTemp, Error, TEXT("Failed to cast FoundActor to ACJS_MultiRoomActor."));
+//		}
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("No ACJS_MultiRoomActor found in the world."));
+//	}
+//}
+
+void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
+	if (MultiRoomActor)
+	{
+		MultiRoomActor->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized for Room: %s"), *RoomName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
+	}
+}
+
+void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
+{
+	JsonData = LocalJsonData;
+	UE_LOG(LogTemp, Warning, TEXT("JsonData initialized with value: %s"), *JsonData);
 }
 
