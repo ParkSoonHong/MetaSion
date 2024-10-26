@@ -358,24 +358,24 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 			FString HitActorName = HitActor->GetName();
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActorName);
 
-			if (HitActorName.Contains("BP_MultiRoom"))
+			if (HitActorName.Contains("MultiRoom"))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("BP_MultiRoom Clicked"));
+				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MultiRoom Clicked"));
 				if (PC)
 				{
-					RequestMapTravel("/Game/CJS/Maps/CJS_MultiRoomMap");
+					RequestMoveMultiRoom(PC);
 				}
 				else
 				{
 					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MultiRoomMap"));
 				}
 			}
-			else if (HitActorName.Contains("BP_MyRoom"))
+			else if (HitActorName.Contains("MyRoom"))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("BP_MyRoom Clicked"));
+				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MyRoom Clicked"));
 				if (PC)
 				{
-					RequestMapTravel("/Game/CJS/Maps/CJS_MyRoomMap");
+					PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
 				}
 				else
 				{
@@ -421,24 +421,6 @@ void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 }
 
 
-//void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
-//	/*if (AnimInstance)
-//	{	
-//		AnimInstance->PlayAngryMontage();
-//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
-//	}*/
-//
-//	// 애니메이션 재생 함수 호출
-//	PlayTestAnimation();
-//}
-
-
 void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
@@ -454,23 +436,6 @@ void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 K
 		ServerRPC_PlayAnimation(KeyIndex); // 클라이언트는 서버에 요청
 	}
 }
-
-//void ACJS_BallPlayer::PlayTestAnimation()
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::void ACJS_BallPlayer::PlayTestAnimation()"));
-//
-//	if (TestAnimSequence && GetMesh())
-//	{
-//		// Skeletal Mesh Component에서 애니메이션 재생
-//		GetMesh()->PlayAnimation(TestAnimSequence, false);
-//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayTestAnimation() - Animation played"));
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayTestAnimation() - TestAnimSequence or SkeletalMeshComponent is null"));
-//	}
-//}
-
 void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 {
 	if (AnimSequences.IsValidIndex(Index) && AnimSequences[Index] && GetMesh())
@@ -483,9 +448,6 @@ void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Invalid index or animation sequence"));
 	}
 }
-
-
-// ========================================================================================================================================================
 
 
 // 공끼리 충돌 시  =========================================================================================================================================
@@ -586,49 +548,25 @@ void ACJS_BallPlayer::MulticastRPC_ThrowHeart_Implementation()
 	}
 }
 
-
-// 방 클릭 시 (클라 이동) ========================================================================================================================================
-void ACJS_BallPlayer::RequestMapTravel(const FString& MapPath)
+ 
+// 멀티방 이동
+void ACJS_BallPlayer::RequestMoveMultiRoom(APlayerController* RequestingPC)
 {
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::RequestMoveMultiRoom()"));
+
 	if (PC && !HasAuthority())  // 클라이언트만 요청
 	{
-		//ServerRPC_RequestMapTravel(MapPath);
-		ServerRPC_RequestMapTravel(MapPath, PC);
+		UE_LOG(LogTemp, Warning, TEXT("Requesting Server to move to MultiRoom"));
+		ServerRPC_RequestMoveMultiRoom(PC);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Authority or PC is not valid"));
 	}
 }
-//void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath)
-void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath, APlayerController* RequestingPC)
+void ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation(APlayerController* RequestingPC)
 {
-	//float StartYValue = 0.0f; // 시작 Y 값
-	//float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
-	//int32 ClientIndex = 0; // 클라이언트 인덱스
-
-	//// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
-	//for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-	//{
-	//	APlayerController* OtherPC = Iterator->Get();
-
-	//	// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
-	//	if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
-
-	//	{
-	//		// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
-	//		//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
-
-	//		// 그래서 그냥 위치 이동하는 걸로 변경해 봄
-	//		APawn* ControlledPawn = OtherPC->GetPawn();
-	//		if (ControlledPawn)
-	//		{
-	//			// 캐릭터의 위치를 변경합니다.
-	//			//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
-
-	//			// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
-	//			FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
-	//			ControlledPawn->SetActorLocation(NewLocation);
-	//			ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
-	//		}
-	//	}
-	//}
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation()"));
 
 	if (RequestingPC)
 	{
@@ -639,10 +577,17 @@ void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& M
 			FVector NewLocation(9950.0f, 0.0f, 0.0f); // 이동하고 싶은 위치 지정
 			ControlledPawn->SetActorLocation(NewLocation);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ControlledPawn is nullptr"));
+		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation():: NO RequestingPC"));
+	}
+	
 }
-
-
 
 // 로비 진입 시, 캐릭터 초기 설정 ================================================================================================
 void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
@@ -692,13 +637,13 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 			if (UserObject.IsValid())
 			{
 				// EmotionScore와 RoomName을 가져와 설정
-				float EmotionScore = UserObject->GetNumberField(TEXT("EmotionScore"));
+				float Message = UserObject->GetNumberField(TEXT("Message"));
 				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
 
 				// 현재 사용자 수와 최대 수 설정 (예시)
 				int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
 				int32 MaxNumPlayer = 5;
-				float Percent = (EmotionScore / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+				float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
 
 				// 각 MultiRoomActor에 정보 설정
 				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Percent);

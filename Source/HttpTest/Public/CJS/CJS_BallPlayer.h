@@ -121,10 +121,10 @@ public:
 
 
 	// 방 클릭 시 (클라 -> 서버에 이동 요청 -> 클라 위치 이동) ====================================================
-	void RequestMapTravel(const FString& MapPath);
+	/* 멀티 방 이동 */
+	void RequestMoveMultiRoom(APlayerController* RequestingPC);
 	UFUNCTION(Server, Reliable)
-	//void ServerRPC_RequestMapTravel(const FString& MapPath);
-	void ServerRPC_RequestMapTravel(const FString& MapPath, APlayerController* RequestingPC);
+	void ServerRPC_RequestMoveMultiRoom(APlayerController* RequestingPC);
 
 
 	// 로비 입장 시 초기 설정 ============================================================================
