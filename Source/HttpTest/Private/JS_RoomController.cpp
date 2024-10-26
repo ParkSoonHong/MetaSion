@@ -5,10 +5,20 @@
 #include "DrawDebugHelpers.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../../../../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
+#include "JsonParseLib.h"
+#include "Blueprint/UserWidget.h"
+#include "JS_CreateRoomWidget.h"
+#include "JS_RoomWidget.h" 
+#include "JS_TestWidget.h"
 
 AJS_RoomController::AJS_RoomController()
 {
     PrimaryActorTick.bCanEverTick = true; // Tick 활성화
+}
+
+void AJS_RoomController::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
 }
 
 void AJS_RoomController::BeginPlay()
@@ -19,6 +29,9 @@ void AJS_RoomController::BeginPlay()
     bShowMouseCursor = true;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
+
+    // UI초기화
+    InitializeUIWidgets();
 
     // 게임과 UI 둘 다 인풋을 받을 수 있도록 설정
     FInputModeGameAndUI InputMode;
@@ -40,12 +53,66 @@ void AJS_RoomController::SetupInputComponent()
     // EnhancedInputComponent 설정
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        // 마우스 클릭 액션 바인딩
-        //if (IA_LeftMouse)
-        {
-           /* EnhancedInputComponent->BindAction(IA_LeftMouse, ETriggerEvent::Started, this, &AJS_RoomController::OnMouseClick);*/
-            EnhancedInputComponent->BindAction(IA_LeftMouse, ETriggerEvent::Triggered, this, &AJS_RoomController::OnMouseClick);
+         EnhancedInputComponent->BindAction(IA_LeftMouse, ETriggerEvent::Triggered, this, &AJS_RoomController::OnMouseClick);
+    }
+}
+
+void AJS_RoomController::InitializeUIWidgets()
+{
+    if (CR_UIFactory) {
+        
+        CR_WidgetUI = CreateWidget<UJS_CreateRoomWidget>(this, CR_UIFactory);
+        if (CR_WidgetUI) {
+            CR_WidgetUI->AddToViewport();
+            CR_WidgetUI->SetVisibility(ESlateVisibility::Hidden);
         }
+    }
+    if (R_UIFactory)
+    {
+        R_UI = CreateWidget<UJS_RoomWidget>(this, R_UIFactory);
+        if (R_UI)
+        {
+            R_UI->AddToViewport();
+            R_UI->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+}
+//씀
+void AJS_RoomController::ShowCreateRoomUI()
+{
+    if (CR_WidgetUI)
+    {
+        CR_WidgetUI->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+//씀
+void AJS_RoomController::HideCreateRoomUI()
+{
+    if (CR_WidgetUI)
+    {
+        CR_WidgetUI->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+//씀
+void AJS_RoomController::ShowRoomUI()
+{
+    if (R_UI)
+    {
+        R_UI->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+//아직 못씀
+void AJS_RoomController::HideRoomUI()
+{
+    if (R_UI)
+    {
+        R_UI->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+void AJS_RoomController::PlayUIAnimation()
+{
+    if (R_UI) {
+        R_UI->PlayAnimation(R_UI->CameraSutterEffect);
     }
 }
 
@@ -61,19 +128,24 @@ void AJS_RoomController::OnMouseClick()
 
         if (HitActor)
         {
-            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s at Location: %s"),
-                *HitActor->GetName(), *HitResult.Location.ToString());
-
+            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s at Location: %s"), *HitActor->GetName(), *HitResult.Location.ToString());
             // 태그 체크
             if (HitActor->ActorHasTag(TEXT("WallPaper")))
             {
-                UE_LOG(LogTemp, Log, TEXT("WallPaper Hit - Processing interaction"));
-                // 여기에 사진 찍기 로직 추가
+                // 여기에 사진 찍기 로직 추가 
+                if (bShowUI) {
+                    HideCreateRoomUI();
+                    ShowRoomUI();
+                    PlayUIAnimation();
+                }
             }
-            if (HitActor->ActorHasTag(TEXT("Lobby")))
+            else if (HitActor->ActorHasTag(TEXT("Lobby")))
             {
-                UE_LOG(LogTemp, Log, TEXT("Lobby Hit - Loading lobby level"));
-                UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
+
+				UE_LOG(LogTemp, Log, TEXT("Lobby Hit - Loading lobby level"));
+                if (bShowUI) {
+                    UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
+                }
             }
         }
     }

@@ -170,6 +170,74 @@ struct FUser_like
 		  FloorMaterial(TEXT("")) 
 	{}
 };
+
+USTRUCT(BlueprintType) 
+struct FChangeIndex //ChangeIndex
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
+	FString UserID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
+	int32 index;
+
+	//기본 생성자
+	FChangeIndex() 
+			: UserID(TEXT("")),
+			  index(0)
+	{}
+};
+
+USTRUCT(BlueprintType) 
+struct FMyRoomInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoomInfo/Struct")
+	FString RoomName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoomInfo/Struct")
+	bool room_pp;
+
+	//기본 생성자
+	FMyRoomInfo() :
+				RoomName(TEXT("")),
+				room_pp(true)
+	{}
+};
+
+USTRUCT(BlueprintType)
+struct FMyCreateRoomInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	FString UserId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	int32 RoomNum;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	FString RoomName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	FString RecommendedMusic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	FString EmotionImage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyCreateRoomInfo/Struct")
+	FString Analysiscontent;
+
+	// 기본 생성자
+	FMyCreateRoomInfo()
+		: UserId(TEXT("DefaultUser"))        
+		, RoomNum(0)                          
+		, RoomName(TEXT("Default Room"))       
+		, RecommendedMusic(TEXT("None"))       
+		, EmotionImage(TEXT("DefaultImage"))   
+		, Analysiscontent(TEXT("No Analysis"))
+	{}
+};
 /**
  * 
  */
@@ -201,4 +269,19 @@ public:
 	static FString UserLike_Convert_StructToJson(const FUser_like& User_LikeStrcut);
 	//Json To Struct : Response
 	static FUser_like UserLike_Convert_JsonToStruct(const FString& JsonString);
+
+	//Struct To Json : Req
+	static FString ChangeIndex_Convert_StructToJson(const FChangeIndex& FWallPaperIndexStruct);
+	//Json To Struct : Response
+	static FChangeIndex ChangeIndex_Convert_JsonToStruct(const FString& JsonString);
+
+	//Struct To Json : Req
+	static FString MyRoomInfo_Convert_StructToJson(const FMyRoomInfo& MyRoomInfo);
+	//Json To Struct : Response
+	static FMyRoomInfo MyRoomInfo_Convert_JsonToStruct(const FString& JsonString);
+
+	//Struct To Json : Req
+	static FString FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo);
+	//Json To Struct : Response
+	static FMyCreateRoomInfo FMyCreateRoomInfo_Convert_JsonToStruct(const FString& JsonString);
 };

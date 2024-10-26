@@ -10,7 +10,6 @@
 #include "Engine/Texture2D.h"
 #include "Components/Image.h"
 #include "JsonObjectConverter.h"
-#include "JS_GameInstance.h"
 
 void UHttpWidget::NativeConstruct()
 {
@@ -23,9 +22,6 @@ void UHttpWidget::NativeConstruct()
 	btn_User->OnClicked.AddDynamic(this, &UHttpWidget::SendUserData);
 	//user_like
 	btn_UserLike->OnClicked.AddDynamic(this, &UHttpWidget::SendUserLikeData);
-
-	//ButtonGetWebImage->OnClicked.AddDynamic(this, &UHttpWidget::OnMyClickGetWebImage);
-	JS_gi = Cast<UJS_GameInstance>(GetWorld()->GetGameInstance());
 }
 
 //Login
@@ -35,11 +31,11 @@ void UHttpWidget::SendLoginData()
 	FLogin loginData;
 	loginData.UserID = UserID->GetText().ToString();
 	loginData.UserPW = UserPW->GetText().ToString();
-	
+
 	//에디터블 textblock에서 가져오는 방식으로 진행
-    FString json = UJsonParseLib::Login_Convert_StructToJson(loginData);
+	FString json = UJsonParseLib::Login_Convert_StructToJson(loginData);
 	//Login요청
-	JS_gi->LoginReqPost(ServerURL, json);
+	//JS_gi->LoginReqPost(ServerURL, json);
 }
 
 void UHttpWidget::SendSignUpData()
@@ -52,7 +48,7 @@ void UHttpWidget::SendSignUpData()
 	//에디터블 textblock에서 가져오는 방식으로 진행
 	FString json = UJsonParseLib::SignUp_Convert_StructToJson(SignUpData);
 	//Login요청
-	JS_gi->LoginReqPost(ServerURL, json);
+	//JS_gi->SignUpReqPost(ServerURL, json);
 }
 
 //User
@@ -79,7 +75,7 @@ void UHttpWidget::SendUserData()
 	
 	FString json = UJsonParseLib::User_Convert_StructToJson(UserData);
 	//Login요청
-	JS_gi->LoginReqPost(ServerURL, json);
+	//JS_gi->UserReqPost(ServerURL, json);
 }
 
 //UserLike
@@ -102,9 +98,8 @@ void UHttpWidget::SendUserLikeData()
 	
 	FString json = UJsonParseLib::UserLike_Convert_StructToJson(UserLikeData);
 	//Login요청
-	JS_gi->LoginReqPost(ServerURL, json);
+	//JS_gi->UserLikeReqPost(ServerURL, json);
 }
-
 
 void UHttpWidget::SetTextLog(FString log)
 {
@@ -115,13 +110,3 @@ void UHttpWidget::SetHttpActor(AHttpActor* actor)
 {
 	HttpActor = actor;
 }
-
-//void UHttpWidget::OnMyClickGetWebImage()
-//{
-//	HttpActor->ReqGetWebImage(WebImageURL);
-//}
-
-//void UHttpWidget::SetWebImage(UTexture2D* newTexture)
-//{
-//	ImageWeb->SetBrushFromTexture(newTexture);
-//}

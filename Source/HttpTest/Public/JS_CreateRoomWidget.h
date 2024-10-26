@@ -17,11 +17,17 @@ class HTTPTEST_API UJS_CreateRoomWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
     
+	UPROPERTY(EditAnywhere)
+	class AJS_RoomController* pc;
+
     UPROPERTY(meta=(BindWidget))
     class UButton* btn_CreateRoom_Yes;
     
     UPROPERTY(meta=(BindWidget))
     class UButton* btn_CreateRoom_No;
+
+    UPROPERTY(meta=(BindWidget))
+    class UButton* btn_CompleteCreateRoom;
     
     UPROPERTY(meta=(BindWidget))
     class UEditableText* ED_RoomName;
@@ -41,6 +47,9 @@ public:
     UPROPERTY(meta=(BindWidget))
     class UBorder* CreateRoomCompelete;
     
+    UPROPERTY(EditAnywhere)
+	class AHttpActor* httpActor;
+
     UPROPERTY(BlueprintReadWrite)
     bool bPrivate = false;
 
@@ -54,7 +63,10 @@ public:
     
     UFUNCTION()
     void CreateRoomChooseNo();
-    
+
+    UFUNCTION()
+    void CompleteCreateRoom();
+
     UFUNCTION()
     void SetPrivate();
     
@@ -63,4 +75,8 @@ public:
     
     UFUNCTION()
     void HideUI();
+
+    UFUNCTION()
+	void SendSetPrivateRoom(bool bRoom_pp);
+
 };

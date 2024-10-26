@@ -99,7 +99,78 @@ FUser_like UJsonParseLib::UserLike_Convert_JsonToStruct(const FString& JsonStrin
 	//변환된 구조체를 반환
 	return UserLikeJson;
 }
+
 // User_Like End ----------------------------------------------------------------------------
+
+// ChangeIndex ----------------------------------------------------------------------------
+FString UJsonParseLib::ChangeIndex_Convert_StructToJson(const FChangeIndex& FWallPaperIndexStruct)
+{
+	//Json 문자열을 저장할 변수
+	FString JsonString;
+
+	//구조체를 JSON 문자열로 변환
+	FJsonObjectConverter::UStructToJsonObjectString(FWallPaperIndexStruct, JsonString, 0, 0);
+
+	//완성된 Json 반환
+	return JsonString;
+}
+
+FChangeIndex UJsonParseLib::ChangeIndex_Convert_JsonToStruct(const FString& JsonString)
+{
+	FChangeIndex WallPaperJson;
+	//Json을 구조체로 변환
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &WallPaperJson, 0, 0);
+	//변환된 구조체를 반환
+	return WallPaperJson;
+}
+// ChangeIndex End ----------------------------------------------------------------------------
+// MyRoomInfo ----------------------------------------------------------------------------
+FString UJsonParseLib::MyRoomInfo_Convert_StructToJson(const FMyRoomInfo& MyRoomInfo)
+{
+	//Json 문자열을 저장할 변수
+	FString JsonString;
+
+	//구조체를 JSON 문자열로 변환
+	FJsonObjectConverter::UStructToJsonObjectString(MyRoomInfo, JsonString, 0, 0);
+
+	//완성된 Json 반환
+	return JsonString;
+}
+FMyRoomInfo UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(const FString& JsonString)
+{
+	FMyRoomInfo MyRoomInfo;
+
+	//Json을 구조체로 변환
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &MyRoomInfo, 0, 0);
+
+	//변환된 구조체를 반환
+	return MyRoomInfo;
+}
+// MyRoomInfo End----------------------------------------------------------------------------
+
+// MyCreateRoomInfo ----------------------------------------------------------------------------
+FString UJsonParseLib::FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo)
+{
+	//Json 문자열을 저장할 변수
+	FString JsonString;
+
+	//구조체를 JSON 문자열로 변환
+	FJsonObjectConverter::UStructToJsonObjectString(MyCreateRoomInfo, JsonString, 0, 0);
+
+	//완성된 Json 반환
+	return JsonString;
+}
+FMyCreateRoomInfo UJsonParseLib::FMyCreateRoomInfo_Convert_JsonToStruct(const FString& JsonString)
+{
+	FMyCreateRoomInfo MyCreateRoomInfo;
+
+	//Json을 구조체로 변환
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &MyCreateRoomInfo, 0, 0);
+
+	//변환된 구조체를 반환
+	return MyCreateRoomInfo;
+}
+// MyCreateRoomInfo End ----------------------------------------------------------------------------
 
 FString UJsonParseLib::MakeJson(const TMap<FString, FString> source)
 {
