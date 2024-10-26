@@ -9,6 +9,7 @@
 #include "JsonParseLib.h"
 #include "JS_GameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "HttpActor.h"
 
 
 TArray<FChoiceData> UKGW_ChoiceSaveBF::ChoiceList;
@@ -73,10 +74,10 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
     // ���� URL ����
-    FString ServerURL = TEXT("https://explicitly-premium-catfish.ngrok-free.app/character");
+    FString ServerURL = TEXT("https://webhook.site/43600b7c-b435-42f0-851e-e3085ca8d187");
 
 //      WorldContextObject�� ���� ���� �ν��Ͻ��� ������
-     UJS_GameInstance* PostChoice = Cast<UJS_GameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject->GetWorld()));
+    AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetGameInstance(WorldContextObject->GetWorld()));
 
     // ���� �ν��Ͻ��� ��ȿ�ϸ� ReqPostChoice �Լ� ȣ��
 	 if (PostChoice)
@@ -88,7 +89,7 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 	 else
 	 {
 // 		 ���� �ν��Ͻ��� �������� ���� ��� ��� �޽��� ���
-			 UE_LOG(LogTemp, Warning, TEXT("Failed to get GameInstance from WorldContextObject."));
+			 UE_LOG(LogTemp, Warning, TEXT("Failed Response"));
 	 }
 }
 
