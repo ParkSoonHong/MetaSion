@@ -58,6 +58,7 @@ public:
 	// 호스트 이름 (세션 이름)
 	UPROPERTY()
 	FString MySessionName = TEXT("User1");
+	//FString MySessionName;
 
 	// 방 생성 요청 (새로운 세션을 생성하는 함수)
 	UFUNCTION()
@@ -82,6 +83,15 @@ public:
 
 	// 네트워크 연결 실패 시 (네트워크 연결 실패 시 호출되는 함수로, 오류 메시지를 출력하거나 특정 동작을 수행)
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+
+	
+	
+	// UserId 할당
+	//UPROPERTY()
+	//class ACJS_BallPlayerState* PlayerState;
+	// PlayerState의 UserId를 받아서 MySessionName에 지정
+	void AssignSessionNameFromPlayerState();
+	bool ValidateSessionInterfaceAndSearch() const;
 
 };
 

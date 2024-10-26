@@ -6,6 +6,8 @@
 #include "CJS/CJS_BallPlayerAnimInstance.h"
 #include "CJS/CJS_AimPointWidget.h"
 #include "CJS/CJS_MultiRoomActor.h"
+#include "CJS/CJS_HttpActor.h"
+#include "JsonParseLib.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,6 +25,8 @@
 #include "JsonUtilities.h" // JSON 관련 유틸리티
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "CJS/SessionGameInstance.h"
+
 
 
 // Sets default values
@@ -58,7 +62,7 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	//InitJsonData(Json);
+	InitJsonData(Json);
 }
 
 
@@ -182,7 +186,8 @@ void ACJS_BallPlayer::BeginPlay()
 	bAimPointUIShowing = false;
 
 	
-
+	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
+	sgi->AssignSessionNameFromPlayerState();*/
 }
 
 // Called every frame
@@ -362,8 +367,59 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MultiRoom Clicked"));
 				if (PC)
-				{
-					RequestMoveMultiRoom(PC);
+				{				
+					//RequestMoveMultiRoom(PC);
+
+					// GameInstance에서 MySessionName 값을 가져옴  <---- 추가한 부분
+					FString UserId;
+					int32 ActorIndex;
+					//FString RoomOwner;
+					FString RoomNum;
+					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
+					if (GameInstance)
+					{
+						UserId = GameInstance->MySessionName;
+						UE_LOG(LogTemp, Warning, TEXT("Assigned UserId from MySessionName: %s"), *UserId);
+					}
+					
+					// MultiRoomActors의 인덱스를 찾기
+					ActorIndex = MultiRoomActors.IndexOfByKey(HitActor);
+					if (ActorIndex != INDEX_NONE && AllUsersArray.IsValidIndex(ActorIndex))
+					{
+						// AllUsersArray에서 UserObject를 가져와 정보 추출
+						TSharedPtr<FJsonObject> UserObject = AllUsersArray[ActorIndex]->AsObject();
+						if (UserObject.IsValid())
+						{
+							//RoomOwner = UserObject->GetStringField(TEXT("UserId"));
+							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
+							RoomNum = "2";
+							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomNum: %s"), *RoomNum);
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("Failed to retrieve UserObject from AllUsersArray"));
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("Could not find the MultiRoomActor in MultiRoomActors or invalid index in AllUsersArray"));
+					}
+
+					// 사용자 데이터를 맵에 추가
+					TMap<FString, FString> MultiRoomData;
+					MultiRoomData.Add("UserId", UserId);
+					MultiRoomData.Add("RoomNum", RoomNum);
+					
+					// JSON 형식으로 변환
+					FString json = UJsonParseLib::MakeJson(MultiRoomData);
+
+					// 로그 출력 (디버깅용)
+					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
+					UE_LOG(LogTemp, Warning, TEXT("UserId: %s, RoomNum: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
+
+					HttpActor->ReqPostClickMultiRoom(URL, json);
 				}
 				else
 				{
@@ -622,11 +678,11 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		// 저장된 MultiRoomActor의 개수 출력
 		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
 
-		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장
+		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장                            <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
 		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
 		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
 
-		TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+		//TArray<TSharedPtr<FJsonValue>> AllUsersArray;
 		AllUsersArray.Append(SimilarUsersArray);
 		AllUsersArray.Append(OppositeUsersArray);
 
