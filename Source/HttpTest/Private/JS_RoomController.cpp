@@ -11,6 +11,8 @@
 #include "JS_RoomWidget.h" 
 #include "JS_TestWidget.h"
 #include "HttpWidget.h"
+#include "Components/WidgetComponent.h"
+#include "KGW/WBP_Image.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -20,6 +22,27 @@ AJS_RoomController::AJS_RoomController()
 void AJS_RoomController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    FHitResult HitResult;
+    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, HitResult);
+
+    AActor* HoveredActor = bHitSuccessful ? HitResult.GetActor() : nullptr;
+
+    // 만약 새로운 액터에 마우스가 오버되었다면, OnMouseHover 호출
+    if (HoveredActor != CurrentHoveredActor)
+    {
+        if (CurrentHoveredActor)
+        {
+            OnMouseHoverEnd(CurrentHoveredActor); // 이전 액터에서 마우스가 벗어남
+        }
+
+        if (HoveredActor)
+        {
+            OnMouseHover(HoveredActor); // 새로운 액터에 마우스가 들어옴
+        }
+
+        CurrentHoveredActor = HoveredActor; // 현재 오버된 액터 업데이트
+    }
+
 }
 
 void AJS_RoomController::BeginPlay()
@@ -175,7 +198,71 @@ void AJS_RoomController::OnMouseClick()
                     UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
                 }
             }
+            else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
+            {
+
+                UE_LOG(LogTemp, Log, TEXT("Lobby Hit - Loading lobby level"));
+
+                UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
+
+            }
+
         }
     }
 }
 //Mouse Interaction --------------------------------------------------------------------------
+void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
+{
+    if (HoveredActor)
+    {
+        if (HoveredActor->ActorHasTag(TEXT("ShowImage")))
+        {
+            UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
+            if (WidgetComp)
+            {
+                UE_LOG(LogTemp, Log, TEXT("Hovered:ShowImage "));
+
+                // 위젯을 보이도록 설정
+                WidgetComp->SetVisibility(true);
+
+                // 위젯의 애니메이션을 재생
+                UUserWidget* Widget = WidgetComp->GetWidget();
+                if (Widget)
+                {
+
+                    if (UWBP_Image* WBPImage = Cast<UWBP_Image>(Widget))
+                    {
+                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // 이미 애니메이션이 재생 중인지 확인
+                        {
+                            WBPImage->PlayShowImageAnimation();
+                            UE_LOG(LogTemp, Log, TEXT("play ShowImage "));
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
+{
+    if (HoveredActor)
+    {
+        if (HoveredActor->ActorHasTag(TEXT("ShowImage")))
+        {
+            UE_LOG(LogTemp, Log, TEXT("Hovere end:ShowImage "));
+
+            // Widget Component 가져오기
+            UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
+            if (WidgetComp)
+            {
+                // 위젯을 숨기기
+                WidgetComp->SetVisibility(false);
+                //             UE_LOG(LogTemp, Log, TEXT("get  ShowImage "));
+
+            }
+        }
+    }
+}
+
