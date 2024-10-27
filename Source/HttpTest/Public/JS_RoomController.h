@@ -7,9 +7,6 @@
 #include "JS_RoomWidget.h"
 #include "JS_RoomController.generated.h"
 
-//블루프린트에서 바인딩할 수 있는 이벤트 선언
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTaggedActorClickedSignature);
-
 UCLASS()
 class HTTPTEST_API AJS_RoomController : public APlayerController
 {
@@ -33,10 +30,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* IA_LeftMouse;
 
-	/*UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnTaggedActorClickedSignature OnTaggedActorClicked;*/
-
     // 인터페이스를 위한 UI
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UHttpWidget>  LoginUIFactory;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UJS_CreateRoomWidget> CR_UIFactory;
 
@@ -44,24 +41,38 @@ public:
 	TSubclassOf<class UJS_RoomWidget> R_UIFactory;
 
 	UPROPERTY(EditAnywhere)
+	class UHttpWidget* LoginUI;
+
+	UPROPERTY(EditAnywhere)
 	class UJS_CreateRoomWidget* CR_WidgetUI;
 
 	UPROPERTY(EditAnywhere)
 	class UJS_RoomWidget* R_UI;
 
-    // 무조건 인덱스 보내기
+    // index 요청 시 send만 할 경우 처리를 위한 변수
     bool bOnlyIndexSend = false;
-
     
 	// UI세팅 함수
     bool bShowUI = false;
-    FTimerHandle PlayAnimHandle;
 
+    // UI 초기화
     void InitializeUIWidgets();
+
+    //LoginUI
+    void ShowLoginUI();
+    void HideLoginUI();
+
+    //CreateRoomUI
     void ShowCreateRoomUI();
     void HideCreateRoomUI();
+
+    //RoomUI
     void ShowRoomUI();
     void HideRoomUI();
     void PlayUIAnimation();
+
+    
+
+    //Mouse Interaction
     void OnMouseClick();
 };

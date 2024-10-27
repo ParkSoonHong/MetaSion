@@ -44,11 +44,11 @@ FString UJsonParseLib::SignUp_Convert_StructToJson(const FSign_up& SignUpStruct)
 
 FSign_up UJsonParseLib::SignUp_Convert_JsonToStruct(const FString& JsonString)
 {
-	FSign_up signUpStruct;
+	FSign_up SingupStruct;
 	//Json을 구조체로 변환
-	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &signUpStruct, 0, 0);
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &SingupStruct, 0, 0);
 	//변환된 구조체를 반환
-	return signUpStruct;
+	return SingupStruct;
 }
 // Sign up End----------------------------------------------------------------------------
 

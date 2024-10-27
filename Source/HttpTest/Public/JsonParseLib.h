@@ -12,14 +12,14 @@ struct FLogin //로그인
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Login/Struct")
-	FString UserID;
+	FString userId;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Login/Struct")
-	FString UserPW;
+	FString userpass;
 
 	//기본 생성자
 	FLogin() : 
-			  UserID(TEXT("")), 
-			  UserPW(TEXT(""))
+			  userId(TEXT("")), 
+			  userpass(TEXT(""))
 	{}
 };
 
@@ -29,17 +29,14 @@ struct FSign_up // 회원가입
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
-	FString UserNickName;
+	FString userId;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
-	FString UserID;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
-	FString UserPW;
+	FString userpass;
 
 	//기본 생성자
 	FSign_up() : 
-				UserNickName(TEXT("")), 
-				UserID(TEXT("")), 
-				UserPW(TEXT("")) 
+				userId(TEXT("")), 
+				userpass(TEXT("")) 
 	{}
 };
 
@@ -48,57 +45,57 @@ struct FUser // 유저 테이블
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
-	FString UserID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
+	FString userId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FDateTime LoginTime;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	int32 MoodScore;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	int32 EnergyScore;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	int32 StabilityScore;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString WeatherChoice;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString MainAsset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString SecondaryAsset;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString BackgroundColor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString FloorMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	int32 ClusterId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString RecommendedRoomId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FString Feedback;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FDateTime FeedbackTime;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	FDateTime UpdateTime;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sign_up/Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "User/Struct")
 	bool IsRecommended;
 
 	// 기본 생성자
 	FUser() 
-		: UserID(TEXT("")), 
+		: userId(TEXT("")), 
 		  LoginTime(FDateTime::Now()), 
 		  MoodScore(0), 
 		  EnergyScore(0), 
@@ -177,13 +174,13 @@ struct FChangeIndex //ChangeIndex
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
-	FString UserID;
+	FString userId;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
 	int32 index;
 
 	//기본 생성자
 	FChangeIndex() 
-			: UserID(TEXT("")),
+			: userId(TEXT("")),
 			  index(0)
 	{}
 };
