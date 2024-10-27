@@ -23,12 +23,12 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UHttpWidget> Sign_Factory;
 
 	UPROPERTY(EditAnywhere)
-	class UHttpWidget* HttpWidgetUI;
+	class AJS_RoomController* pc;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UHttpWidget> Sign_Factory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UJS_TestWidget> Test_Factory;

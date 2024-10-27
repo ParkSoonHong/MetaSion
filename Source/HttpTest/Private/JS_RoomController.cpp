@@ -10,6 +10,7 @@
 #include "JS_CreateRoomWidget.h"
 #include "JS_RoomWidget.h" 
 #include "JS_TestWidget.h"
+#include "HttpWidget.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -59,8 +60,14 @@ void AJS_RoomController::SetupInputComponent()
 
 void AJS_RoomController::InitializeUIWidgets()
 {
+    if (LoginUIFactory) {
+        LoginUI = CreateWidget<UHttpWidget>(this, LoginUIFactory);
+        if (LoginUI) {
+            LoginUI->AddToViewport();
+            LoginUI->SetVisibility(ESlateVisibility::Visible);
+        }
+    }
     if (CR_UIFactory) {
-        
         CR_WidgetUI = CreateWidget<UJS_CreateRoomWidget>(this, CR_UIFactory);
         if (CR_WidgetUI) {
             CR_WidgetUI->AddToViewport();
@@ -77,6 +84,21 @@ void AJS_RoomController::InitializeUIWidgets()
         }
     }
 }
+void AJS_RoomController::ShowLoginUI()
+{
+    if (LoginUI)
+    {
+        LoginUI->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+void AJS_RoomController::HideLoginUI()
+{
+    if (LoginUI)
+    {
+        LoginUI->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+//CreateRoom --------------------------------------------------------------------------
 //¾¸
 void AJS_RoomController::ShowCreateRoomUI()
 {
@@ -93,6 +115,9 @@ void AJS_RoomController::HideCreateRoomUI()
         CR_WidgetUI->SetVisibility(ESlateVisibility::Hidden);
     }
 }
+//CreateRoom --------------------------------------------------------------------------
+
+//Room --------------------------------------------------------------------------
 //¾¸
 void AJS_RoomController::ShowRoomUI()
 {
@@ -109,13 +134,16 @@ void AJS_RoomController::HideRoomUI()
         R_UI->SetVisibility(ESlateVisibility::Hidden);
     }
 }
+
 void AJS_RoomController::PlayUIAnimation()
 {
     if (R_UI) {
         R_UI->PlayAnimation(R_UI->CameraSutterEffect);
     }
 }
+//Room --------------------------------------------------------------------------
 
+//Mouse Interaction --------------------------------------------------------------------------
 void AJS_RoomController::OnMouseClick()
 {
     FHitResult HitResult;
@@ -150,3 +178,4 @@ void AJS_RoomController::OnMouseClick()
         }
     }
 }
+//Mouse Interaction --------------------------------------------------------------------------

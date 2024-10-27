@@ -18,25 +18,19 @@ public:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(EditAnywhere)
+	class AJS_RoomController* pc;
+
+	UPROPERTY(EditAnywhere)
 	class AHttpActor* HttpActor;
 
 	UPROPERTY(meta=(BindWidget))
-	class UTextBlock* TextLog;
+	class UEditableText* userId;
 
 	UPROPERTY(meta=(BindWidget))
-	class UEditableText* UserID;
+	class UEditableText* userpass;
 
 	UPROPERTY(meta=(BindWidget))
-	class UEditableText* UserPW;
-
-	UPROPERTY(meta=(BindWidget))
-	class UButton* ButtonPostSend;
-
-	UPROPERTY(meta=(BindWidget))
-	class UButton* btn_User;
-
-	UPROPERTY(meta=(BindWidget))
-	class UButton* btn_UserLike;
+	class UButton* btn_Login;
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton* btn_SignUp;
@@ -47,18 +41,14 @@ public:
 	UFUNCTION()
 	void SendSignUpData();
 
-	UFUNCTION()
+	/*FString ServerURL = "https://jsonplaceholder.typicode.com/posts";*/
+	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
+
+	/*UFUNCTION()
 	void SendUserData();
 
 	UFUNCTION()
-	void SendUserLikeData();
-
-	void SetTextLog(FString log);
-
-	void SetHttpActor(class AHttpActor* actor);
-
-	//FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
-	FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
+	void SendUserLikeData();*/
 
 	//FString URL = "https://apis.data.go.kr/4050000/libnewbk/getLibnewbk";
 	//FString Key = "1B4jOfk0801JYukDA2FApT%2Bs0VOwrTVSE5qPJFlZ1mgXYs1UhkQ53Zj23EbsaJAITIcsaLGVB2gDGEMSk6IaDA%3D%3D";

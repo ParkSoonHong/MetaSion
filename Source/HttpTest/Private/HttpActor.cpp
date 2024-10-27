@@ -28,14 +28,16 @@ void AHttpActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+    pc = Cast<AJS_RoomController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
     FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
 
-    if (LevelName == TEXT("TestLevel")) {
-        TestWidgetUI = CreateWidget<UJS_TestWidget>(GetWorld()->GetFirstPlayerController(), Test_Factory);
-        if (TestWidgetUI) {
-            TestWidgetUI->AddToViewport();
-        }
-    }
+	/*  if (LevelName == TEXT("TestLevel")) {
+		  TestWidgetUI = CreateWidget<UJS_TestWidget>(GetWorld()->GetFirstPlayerController(), Test_Factory);
+		  if (TestWidgetUI) {
+			  TestWidgetUI->AddToViewport();
+		  }
+	  }*/
 }
 
 // Called every frame
@@ -77,11 +79,14 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
         FString result = Response->GetContentAsString();
         UJsonParseLib::Login_Convert_JsonToStruct(result);
         
-        UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
+        UE_LOG(LogTemp, Log, TEXT("Login Post Request Success: %s"), *result);
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+    }
+    if (pc) {
+        pc->HideLoginUI();
     }
 }
 //Login End-------------------------------------------------------------
@@ -240,7 +245,7 @@ void AHttpActor::ChangeIndexResPost(FHttpRequestPtr Request, FHttpResponsePtr Re
         FChangeIndex ChangerIndexData = UJsonParseLib::ChangeIndex_Convert_JsonToStruct(result);
 
         // 서버에서 반환된 데이터를 로그로 출력
-        UE_LOG(LogTemp, Log, TEXT("Response Received: UserID = %s, index = %d"), *ChangerIndexData.UserID, ChangerIndexData.index);
+        UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s, index = %d"), *ChangerIndexData.userId, ChangerIndexData.index);
 
         // 현재 레벨에서 RoomWidget을 찾음
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
@@ -339,7 +344,7 @@ void AHttpActor::MyCreateRoomInfoResPost(FHttpRequestPtr Request, FHttpResponseP
         FMyCreateRoomInfo MyCreateRoomInfoData = UJsonParseLib::FMyCreateRoomInfo_Convert_JsonToStruct(result);
 
         // 서버에서 반환된 데이터를 로그로 출력
-        UE_LOG(LogTemp, Log, TEXT("Response Received: UserID = %s,RoomNum = %d, RoomName = %s"),
+        UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s,RoomNum = %d, RoomName = %s"),
             *MyCreateRoomInfoData.UserId,
              MyCreateRoomInfoData.RoomNum,
             *MyCreateRoomInfoData.RoomName);
