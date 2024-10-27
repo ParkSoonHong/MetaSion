@@ -5,6 +5,9 @@
 #include "CJS/CJS_HeartActor.h"
 #include "CJS/CJS_BallPlayerAnimInstance.h"
 #include "CJS/CJS_AimPointWidget.h"
+#include "CJS/CJS_MultiRoomActor.h"
+#include "CJS/CJS_HttpActor.h"
+#include "JsonParseLib.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -17,8 +20,12 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/ArrowComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Blueprint/UserWidget.h"
+
+#include "JsonUtilities.h" // JSON 관련 유틸리티
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "CJS/SessionGameInstance.h"
 
 
 
@@ -41,6 +48,21 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 
 	// 설정할 하트의 초기 위치를 위한 위치 값 (직접 값을 조정 가능)
 	HeartSpawnPosition = FVector(100.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정
+
+	// 멀티 플레이 적용
+	bReplicates = true; // 네트워크 복제를 설정
+    SetReplicateMovement(true); // 이동 복제를 설정
+
+
+	// 초기 설정 ================================================================================
+	/* 재질 색상 설정 */ 
+	//SetInitColorValue(1.0, 0.9225690792809692, 0.4);
+	//InitColorValue = FLinearColor(0.1, 1.0, 0.7);
+	/* 추천방 정보 설정 */
+	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
+	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
+
+	InitJsonData(Json);
 }
 
 
@@ -49,26 +71,63 @@ void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Explicitly obtain the PlayerController
-	//APlayerController* PlayerController = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
-	//if (PlayerController)
-	//{
-	//	FInputModeGameOnly InputMode;
-	//	PlayerController->SetInputMode(InputMode);
-	//	PlayerController->bShowMouseCursor = false;
-	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - Input mode set to Game Only"));
+	// Initialize from JSON data
+	InitializeFromJson(JsonData);
 
-	//	// Possess the character if not already possessed
-	//	if (PlayerController->GetPawn() != this)
+	// Material 설정 부분 추가 (SkeletalMesh 사용)
+	if (GetMesh()) // SkeletalMeshComponent 접근
+	{
+		UMaterialInterface* MaterialInterface = GetMesh()->GetMaterial(0);
+		if (MaterialInterface)
+		{
+			// Dynamic Material Instance 생성
+			UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(MaterialInterface, this);
+			if (DynamicMaterial)
+			{
+				GetMesh()->SetMaterial(0, DynamicMaterial);
+
+				// InitColorValue를 사용하여 TransmitB 파라미터 설정
+				DynamicMaterial->SetVectorParameterValue(FName("TransmitB"), InitColorValue);
+
+				UE_LOG(LogTemp, Warning, TEXT("SkeletalMesh Material color set using 'TransmitB' parameter to R: %f, G: %f, B: %f"), InitColorValue.R, InitColorValue.G, InitColorValue.B);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to create Dynamic Material Instance."));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("MaterialInterface is null."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
+	}
+
+	// 추천방 정보 초기화
+	//SetInitMultiRoomInfo(1, 5, "SunnyWorld", 87);
+	//AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass());
+	//if (FoundActor)
+	//{
+	//	// ACJS_MultiRoomActor로 캐스팅
+	//	RefMultiRoom = Cast<ACJS_MultiRoomActor>(FoundActor);
+	//	if (RefMultiRoom)
 	//	{
-	//		PlayerController->Possess(this);
-	//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay() - PlayerController has possessed the pawn"));
+	//		// 초기 설정 함수 호출
+	//		RefMultiRoom->InitRefRoomInfoWidget(1, 5, "SunnyWorld", 87);
+	//		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized successfully."));
+	//	}
+	//	else
+	//	{
+	//		UE_LOG(LogTemp, Error, TEXT("Failed to cast FoundActor to ACJS_MultiRoomActor."));
 	//	}
 	//}
 	//else
 	//{
-	//	UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::BeginPlay() - NO PlayerController"));
-	//}	
+	//	UE_LOG(LogTemp, Error, TEXT("No ACJS_MultiRoomActor found in the world."));
+	//}
 
 
 	// 컨트롤러를 가져와서 캐스팅
@@ -125,6 +184,10 @@ void ACJS_BallPlayer::BeginPlay()
 	}
 	
 	bAimPointUIShowing = false;
+
+	
+	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
+	sgi->AssignSessionNameFromPlayerState();*/
 }
 
 // Called every frame
@@ -228,28 +291,40 @@ void ACJS_BallPlayer::OnMyActionJump(const FInputActionValue& Value)
 void ACJS_BallPlayer::OnMyActionThrow(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionThrow()"));
-	if (HeartItemFactory)
+	//if (HeartItemFactory)
+	//{
+	//	// Get the spawn location and rotation from the actor
+	//	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
+	//	FRotator SpawnRotation = GetActorRotation();
+
+	//	// Spawn the heart actor
+	//	FActorSpawnParameters SpawnParams;
+	//	SpawnParams.Owner = this;
+	//	ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
+
+	//	if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
+	//	{
+	//		// Apply an initial impulse to make the heart fly forward
+	//		FVector LaunchDirection = SpawnRotation.Vector();
+	//		SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
+	//}
+
+	if (HasAuthority())
 	{
-		// Get the spawn location and rotation from the actor
-		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
-		FRotator SpawnRotation = GetActorRotation();
-
-		// Spawn the heart actor
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
-
-		if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
-		{
-			// Apply an initial impulse to make the heart fly forward
-			FVector LaunchDirection = SpawnRotation.Vector();
-			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
-		}
+		// 서버인 경우 바로 멀티캐스트 실행
+		MulticastRPC_ThrowHeart();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionThrow() - HeartItemFactory is null"));
+		// 클라이언트인 경우 서버에 요청
+		ServerRPC_ThrowHeart();
 	}
+
 }
 
 void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
@@ -288,24 +363,75 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 			FString HitActorName = HitActor->GetName();
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActorName);
 
-			if (HitActorName.Contains("BP_MultiRoom"))
+			if (HitActorName.Contains("MultiRoom"))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("BP_MultiRoom Clicked"));
+				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MultiRoom Clicked"));
 				if (PC)
-				{
-					RequestMapTravel("/Game/CJS/Maps/CJS_MultiRoomMap");
+				{				
+					//RequestMoveMultiRoom(PC);
+
+					// GameInstance에서 MySessionName 값을 가져옴  <---- 추가한 부분
+					FString UserId;
+					int32 ActorIndex;
+					//FString RoomOwner;
+					FString RoomNum;
+					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
+					if (GameInstance)
+					{
+						UserId = GameInstance->MySessionName;
+						UE_LOG(LogTemp, Warning, TEXT("Assigned UserId from MySessionName: %s"), *UserId);
+					}
+					
+					// MultiRoomActors의 인덱스를 찾기
+					ActorIndex = MultiRoomActors.IndexOfByKey(HitActor);
+					if (ActorIndex != INDEX_NONE && AllUsersArray.IsValidIndex(ActorIndex))
+					{
+						// AllUsersArray에서 UserObject를 가져와 정보 추출
+						TSharedPtr<FJsonObject> UserObject = AllUsersArray[ActorIndex]->AsObject();
+						if (UserObject.IsValid())
+						{
+							//RoomOwner = UserObject->GetStringField(TEXT("UserId"));
+							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
+							RoomNum = "2";
+							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomNum: %s"), *RoomNum);
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("Failed to retrieve UserObject from AllUsersArray"));
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("Could not find the MultiRoomActor in MultiRoomActors or invalid index in AllUsersArray"));
+					}
+
+					// 사용자 데이터를 맵에 추가
+					TMap<FString, FString> MultiRoomData;
+					MultiRoomData.Add("UserId", UserId);
+					MultiRoomData.Add("RoomNum", RoomNum);
+					
+					// JSON 형식으로 변환
+					FString json = UJsonParseLib::MakeJson(MultiRoomData);
+
+					// 로그 출력 (디버깅용)
+					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
+					UE_LOG(LogTemp, Warning, TEXT("UserId: %s, RoomNum: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
+
+					HttpActor->ReqPostClickMultiRoom(URL, json);
 				}
 				else
 				{
 					UE_LOG(LogTemp, Error, TEXT("PlayerController is nullptr. Cannt Move to the MultiRoomMap"));
 				}
 			}
-			else if (HitActorName.Contains("BP_MyRoom"))
+			else if (HitActorName.Contains("MyRoom"))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("BP_MyRoom Clicked"));
+				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MyRoom Clicked"));
 				if (PC)
 				{
-					RequestMapTravel("/Game/CJS/Maps/CJS_MyRoomMap");
+					PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
 				}
 				else
 				{
@@ -351,46 +477,21 @@ void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 }
 
 
-//void ACJS_BallPlayer::OnMyActionKey1(const FInputActionValue& Value)
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1()"));
-//	/*if (AnimInstance)
-//	{	
-//		AnimInstance->PlayAngryMontage();
-//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionKey1() - Angry animation played"));
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::OnMyActionKey1() - AnimInstance is null"));
-//	}*/
-//
-//	// 애니메이션 재생 함수 호출
-//	PlayTestAnimation();
-//}
-
-
 void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
-	PlayAnimationByIndex(KeyIndex);
+	//PlayAnimationByIndex(KeyIndex);
+
+	// 서버에 애니메이션 재생을 요청합니다.
+	if (HasAuthority())
+	{
+		MulticastRPC_PlayAnimation(KeyIndex); // 서버는 직접 멀티캐스트 실행
+	}
+	else
+	{
+		ServerRPC_PlayAnimation(KeyIndex); // 클라이언트는 서버에 요청
+	}
 }
-
-//void ACJS_BallPlayer::PlayTestAnimation()
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::void ACJS_BallPlayer::PlayTestAnimation()"));
-//
-//	if (TestAnimSequence && GetMesh())
-//	{
-//		// Skeletal Mesh Component에서 애니메이션 재생
-//		GetMesh()->PlayAnimation(TestAnimSequence, false);
-//		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayTestAnimation() - Animation played"));
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayTestAnimation() - TestAnimSequence or SkeletalMeshComponent is null"));
-//	}
-//}
-
 void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 {
 	if (AnimSequences.IsValidIndex(Index) && AnimSequences[Index] && GetMesh())
@@ -403,8 +504,6 @@ void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Invalid index or animation sequence"));
 	}
 }
-
-// ========================================================================================================================================================
 
 
 // 공끼리 충돌 시  =========================================================================================================================================
@@ -446,46 +545,223 @@ void ACJS_BallPlayer::TriggerSelfHitEffects(FVector HitLocation)
 	//}
 }
 
-
-// 방 클릭 시 (클라 이동) ========================================================================================================================================
-void ACJS_BallPlayer::RequestMapTravel(const FString& MapPath)
+// 숫자키 애니메이션 작동 (멀티)
+void ACJS_BallPlayer::ServerRPC_PlayAnimation_Implementation(int32 AnimationIndex)
 {
-	if (PC && !HasAuthority())  // 클라이언트만 요청
+	// 서버에서 멀티캐스트 호출
+	MulticastRPC_PlayAnimation(AnimationIndex);
+}
+
+bool ACJS_BallPlayer::ServerRPC_PlayAnimation_Validate(int32 AnimationIndex)
+{
+	return true;
+}
+
+void ACJS_BallPlayer::MulticastRPC_PlayAnimation_Implementation(int32 AnimationIndex)
+{
+	PlayAnimationByIndex(AnimationIndex);
+}
+
+
+// 하트 던지기 (멀티)
+void ACJS_BallPlayer::ServerRPC_ThrowHeart_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ServerRPC_ThrowHeart()"));
+	// 서버에서만 하트 생성
+	if (HasAuthority())
 	{
-		ServerRPC_RequestMapTravel(MapPath);
+		MulticastRPC_ThrowHeart(); // 모든 클라이언트에게 하트를 던지라고 브로드캐스트
 	}
 }
 
-void ACJS_BallPlayer::ServerRPC_RequestMapTravel_Implementation(const FString& MapPath)
+bool ACJS_BallPlayer::ServerRPC_ThrowHeart_Validate()
 {
-	float StartYValue = 0.0f; // 시작 Y 값
-	float YOffsetIncrement = 100.0f; // 각 클라이언트마다 Y 값 증가량
-	int32 ClientIndex = 0; // 클라이언트 인덱스
+	return true;
+}
 
-	// 서버가 모든 플레이어 컨트롤러를 탐색합니다.
-	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+void ACJS_BallPlayer::MulticastRPC_ThrowHeart_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::MulticastRPC_ThrowHeart()"));
+	// 실제 하트를 던지는 로직 (기존의 OnMyActionThrow 로직을 여기로 옮기기)
+	if (HeartItemFactory)
 	{
-		APlayerController* OtherPC = Iterator->Get();
+		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
+		FRotator SpawnRotation = GetActorRotation();
 
-		// 서버 겸 클라이언트가 아닌 일반 클라이언트만 이동합니다. 서버 겸 클라이언트(호스트)는 ROLE_Authority
-		if (OtherPC && OtherPC->GetRemoteRole() == ROLE_AutonomousProxy)
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		ACJS_HeartActor* SpawnedHeart = GetWorld()->SpawnActor<ACJS_HeartActor>(HeartItemFactory, SpawnLocation, SpawnRotation, SpawnParams);
+
+		if (SpawnedHeart && SpawnedHeart->ProjectileMovementComp)
 		{
-			// listen 파라미터 없이 이동하여 기존 서버 세션을 따르게 합니다.		
-			//OtherPC->ClientTravel(MapPath, ETravelType::TRAVEL_Absolute);  // <-- 서버가 같은 공간에 있는 게 아니라서 계속 따로 이동함
+			FVector LaunchDirection = SpawnRotation.Vector();
+			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::Multicast_ThrowHeart() - HeartItemFactory is null"));
+	}
+}
 
-			// 그래서 그냥 위치 이동하는 걸로 변경해 봄
-			APawn* ControlledPawn = OtherPC->GetPawn();
-			if (ControlledPawn)
+ 
+// 멀티방 이동
+void ACJS_BallPlayer::RequestMoveMultiRoom(APlayerController* RequestingPC)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::RequestMoveMultiRoom()"));
+
+	if (PC && !HasAuthority())  // 클라이언트만 요청
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Requesting Server to move to MultiRoom"));
+		ServerRPC_RequestMoveMultiRoom(PC);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Authority or PC is not valid"));
+	}
+}
+void ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation(APlayerController* RequestingPC)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation()"));
+
+	if (RequestingPC)
+	{
+		APawn* ControlledPawn = RequestingPC->GetPawn();
+		if (ControlledPawn)
+		{
+			// 클릭한 클라이언트의 캐릭터만 이동합니다.
+			FVector NewLocation(9950.0f, 0.0f, 0.0f); // 이동하고 싶은 위치 지정
+			ControlledPawn->SetActorLocation(NewLocation);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("ControlledPawn is nullptr"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::ServerRPC_RequestMoveMultiRoom_Implementation():: NO RequestingPC"));
+	}
+	
+}
+
+// 로비 진입 시, 캐릭터 초기 설정 ================================================================================================
+void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitializeFromJson()"));
+	// JSON 문자열을 JSON 객체로 파싱
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(LocalJsonData);
+
+	if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+	{
+		// 1. RGB 값 추출 및 SetInitColorValue 호출
+		float R = JsonObject->GetNumberField(TEXT("R"));
+		float G = JsonObject->GetNumberField(TEXT("G"));
+		float B = JsonObject->GetNumberField(TEXT("B"));
+		SetInitColorValue(R, G, B);
+
+		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
+
+		// 최대 5개만 저장
+		for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
+		{
+			ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
+			if (MultiRoomActor)
 			{
-				// 캐릭터의 위치를 변경합니다.
-				//ControlledPawn->SetActorLocation(FVector(9950.0f, 0.0f, 0.0f));
+				MultiRoomActors.Add(MultiRoomActor);
+			}
+		}
 
-				// 각 클라이언트마다 다른 Y 값을 사용하여 위치를 변경합니다.
-				FVector NewLocation(9950.0f, StartYValue + (YOffsetIncrement * ClientIndex), 0.0f);
-				ControlledPawn->SetActorLocation(NewLocation);
-				ClientIndex++; // 다음 클라이언트를 위해 인덱스 증가
+		// 저장된 MultiRoomActor의 개수 출력
+		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
+
+		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장                            <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
+		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
+		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
+
+		//TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+		AllUsersArray.Append(SimilarUsersArray);
+		AllUsersArray.Append(OppositeUsersArray);
+
+		// 최대 5개의 방 정보를 저장하고, MultiRoomActor에 설정
+		for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
+		{
+			TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+			if (UserObject.IsValid())
+			{
+				// EmotionScore와 RoomName을 가져와 설정
+				float Message = UserObject->GetNumberField(TEXT("Message"));
+				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
+
+				// 현재 사용자 수와 최대 수 설정 (예시)
+				int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+				int32 MaxNumPlayer = 5;
+				float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+
+				// 각 MultiRoomActor에 정보 설정
+				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Percent);
 			}
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to parse JSON data."));
+	}
+}
+
+void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
+{
+	InitColorValue = FLinearColor(r, g, b);
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitColorValue() - Initial Color set to R: %f, G: %f, B: %f"), r, g, b);
+}
+
+//void ACJS_BallPlayer::SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
+//
+//	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.   ---> 1개
+//	AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass());
+//	if (FoundActor)
+//	{
+//		// ACJS_MultiRoomActor로 캐스팅
+//		RefMultiRoom = Cast<ACJS_MultiRoomActor>(FoundActor);
+//		if (RefMultiRoom)
+//		{
+//			// 초기 설정 함수 호출
+//			RefMultiRoom->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+//			UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized successfully."));
+//		}
+//		else
+//		{
+//			UE_LOG(LogTemp, Error, TEXT("Failed to cast FoundActor to ACJS_MultiRoomActor."));
+//		}
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("No ACJS_MultiRoomActor found in the world."));
+//	}
+//}
+
+void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
+	if (MultiRoomActor)
+	{
+		MultiRoomActor->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized for Room: %s"), *RoomName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
+	}
+}
+
+void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
+{
+	JsonData = LocalJsonData;
+	UE_LOG(LogTemp, Warning, TEXT("JsonData initialized with value: %s"), *JsonData);
 }
 

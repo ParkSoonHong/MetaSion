@@ -92,12 +92,24 @@ public:
 	void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit);
 	void TriggerSelfHitEffects(FVector HitLocation);
 
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_PlayAnimation(int32 AnimationIndex);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_PlayAnimation(int32 AnimationIndex);
+
 
 	// 하트 던질 때 =============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "Heart")
 	TSubclassOf<class ACJS_HeartActor> HeartItemFactory;
 	UPROPERTY(EditAnyWhere)
 	FVector HeartSpawnPosition;
+
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_ThrowHeart();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_ThrowHeart();
 
 
 	// 조준점 위젯 ==============================================================================================
@@ -109,7 +121,35 @@ public:
 
 
 	// 방 클릭 시 (클라 -> 서버에 이동 요청 -> 클라 위치 이동) ====================================================
-	void RequestMapTravel(const FString& MapPath);
+	/* 멀티 방 이동 */
+	void RequestMoveMultiRoom(APlayerController* RequestingPC);
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_RequestMapTravel(const FString& MapPath);
+	void ServerRPC_RequestMoveMultiRoom(APlayerController* RequestingPC);
+
+
+	// 로비 입장 시 초기 설정 ============================================================================
+	void InitializeFromJson(const FString& LocalJsonData);
+	/* 재질 색상 */
+	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
+	void SetInitColorValue(float r, float g, float b);
+	/* 추천방 정보 */
+	UPROPERTY()
+	class ACJS_MultiRoomActor* RefMultiRoom;
+	//void SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	TArray<ACJS_MultiRoomActor*> MultiRoomActors;
+	TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+
+
+	// <----- 경원아 아래 JsonData 변수에 값이 할당될 수 있도록 InitJsonData()를 호촐하면 돼!!!
+	//FString JsonData = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString Json = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString JsonData;
+	void InitJsonData(FString LocalJsonData);
+
+
+	// 로비 -> 체험방 입장 시 통신 ======================================================================
+	UPROPERTY()
+	class ACJS_HttpActor* HttpActor;
+	FString URL = "";
 };
