@@ -13,12 +13,12 @@ void AKGW_SkyLightGameModeBase::AdjustSunBrightness(float SliderValue)
 
     if (DirectionalLight)
     {
-        // LightComponent¸¦ UDirectionalLightComponent·Î Ä³½ºÆÃ
+        // LightComponentï¿½ï¿½ UDirectionalLightComponentï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
 //         UDirectionalLightComponent* LightComponent = Cast<UDirectionalLightComponent>(DirectionalLight->GetLightComponent());
         if (DirectionalLight)
         {
-            // ½½¶óÀÌ´õ °ª¿¡ µû¶ó ¹à±â Á¶Àý
-            DirectionalLight->SetIntensity(SliderValue * 500.0f); // ¹à±â °ª ¹üÀ§ ¼³Á¤
+            // ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            DirectionalLight->SetIntensity(SliderValue * 500.0f); // ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         }
     }
     

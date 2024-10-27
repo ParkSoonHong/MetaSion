@@ -7,6 +7,7 @@
 #include "CJS/CJS_AimPointWidget.h"
 #include "CJS/CJS_MultiRoomActor.h"
 #include "CJS/CJS_HttpActor.h"
+#include "HttpActor.h"
 #include "JsonParseLib.h"
 
 #include "GameFramework/SpringArmComponent.h"
@@ -184,6 +185,30 @@ void ACJS_BallPlayer::BeginPlay()
 	}
 	
 	bAimPointUIShowing = false;
+
+
+	// HttpActor 초기화 시도
+	HttpActor = Cast<ACJS_HttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_HttpActor::StaticClass()));
+
+	if (HttpActor == nullptr)
+	{
+		// HttpActor를 찾지 못한 경우, 새로 생성
+		FActorSpawnParameters SpawnParams;
+		HttpActor = GetWorld()->SpawnActor<ACJS_HttpActor>(ACJS_HttpActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+		if (HttpActor)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HttpActor spawned successfully."));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn HttpActor."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HttpActor found and cast successfully."));
+	}
 
 	
 	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
@@ -392,7 +417,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						{
 							//RoomOwner = UserObject->GetStringField(TEXT("UserId"));
 							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
-							RoomNum = "2";
+							RoomNum = "3";
 							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
 							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomNum: %s"), *RoomNum);
 						}
@@ -408,18 +433,19 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					// 사용자 데이터를 맵에 추가
 					TMap<FString, FString> MultiRoomData;
-					MultiRoomData.Add("UserId", UserId);
-					MultiRoomData.Add("RoomNum", RoomNum);
+					//MultiRoomData.Add("userId", UserId);
+					MultiRoomData.Add("room_num", RoomNum);
 					
 					// JSON 형식으로 변환
 					FString json = UJsonParseLib::MakeJson(MultiRoomData);
 
 					// 로그 출력 (디버깅용)
 					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
-					UE_LOG(LogTemp, Warning, TEXT("UserId: %s, RoomNum: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s, roomNum: %s"), *UserId, *RoomNum);
 					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
 
 					HttpActor->ReqPostClickMultiRoom(URL, json);
+					UE_LOG(LogTemp, Warning, TEXT("----------  post reqeust done"));
 				}
 				else
 				{

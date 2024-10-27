@@ -73,10 +73,10 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
     // ���� URL ����
-    FString ServerURL = TEXT("https://webhook.site/43600b7c-b435-42f0-851e-e3085ca8d187");
+    FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
 
 //      WorldContextObject�� ���� ���� �ν��Ͻ��� ������
-    AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetGameInstance(WorldContextObject->GetWorld()));
+    AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(WorldContextObject->GetWorld(), AHttpActor::StaticClass()));
 
     // ���� �ν��Ͻ��� ��ȿ�ϸ� ReqPostChoice �Լ� ȣ��
 	 if (PostChoice)
