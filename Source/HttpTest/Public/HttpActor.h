@@ -36,6 +36,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UJS_TestWidget* TestWidgetUI;
 
+	UPROPERTY(BlueprintReadWrite, Category = "JSON Data")
+	FString StoredJsonResponse;
+
+	FString StoredJsonResponsetest = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+
 	// Login
 	void LoginReqPost(FString url, FString json);
 	void LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
@@ -63,6 +68,13 @@ public:
 	//MyCreateRoomInfo
 	void MyCreateRoomInfoReqPost(FString url, FString json);
 	void MyCreateRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqPostChoice(FString url, FString json);
+	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	UFUNCTION(BlueprintCallable, Category = "JSON")
+    FString StoreJsonResponse();
+
 
 	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
 	FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
