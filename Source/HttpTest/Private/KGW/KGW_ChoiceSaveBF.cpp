@@ -7,7 +7,6 @@
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
 #include "JsonParseLib.h"
-#include "JS_GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "HttpActor.h"
 

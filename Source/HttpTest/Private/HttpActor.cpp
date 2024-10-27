@@ -349,6 +349,74 @@ void AHttpActor::MyCreateRoomInfoResPost(FHttpRequestPtr Request, FHttpResponseP
         UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
     }
 }
+void AHttpActor::ReqPostChoice(FString url, FString json)
+{
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    // 요청할 정보를 설정
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+
+    // 응답받을 함수를 연결
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostChoice);
+    // 서버에 요청
+
+    req->ProcessRequest();
+
+}
+void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (bConnectedSuccessfully && Response.IsValid())
+    {
+        // 성공적으로 응답을 받았을 때
+        FString ResponseContent = Response->GetContentAsString();
+        UE_LOG(LogTemp, Log, TEXT("POST Response: %s"), *ResponseContent);
+        StoredJsonResponse = ResponseContent;
+        UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
+        // JSON 응답에서 RGB 값들을 파싱
+//         ParsedColors = UKGW_ChoiceSaveBF::ParseJsonToRGB(ResponseContent);
+        //         // 파싱된 RGB 값이 있을 경우 처리
+        //         if (Colors.Num() > 0)
+        //         {
+        //             // 첫 번째 RGB 값 사용 예시 (머티리얼에 적용)
+        //             FColorData FirstColor = Colors[0];
+        // 
+        //             UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(CharacterMaterial, this);
+        //             if (DynamicMaterial)
+        //             {
+        //                 DynamicMaterial->SetVectorParameterValue(FName("BaseColor"), FLinearColor(FirstColor.R, FirstColor.G, FirstColor.B));
+        //                 CharacterMesh->SetMaterial(0, DynamicMaterial);
+        //             }
+        // 
+        //             // 추가 처리 가능
+        //         }
+        //         if (ParsedColors.Num() > 0)
+        //         {
+        //             // 파싱된 데이터가 있을 경우 첫 번째 값을 로그로 출력 (디버깅용)
+        //             FColorData FirstColor = ParsedColors[0];
+        //             UE_LOG(LogTemp, Log, TEXT("Parsed Color - R: %f, G: %f, B: %f"), FirstColor.R, FirstColor.G, FirstColor.B);
+        //         }
+        //         else
+        //         {
+        //             UE_LOG(LogTemp, Warning, TEXT("No valid RGB data found in response."));
+        //         }
+        }
+        else
+        {
+            // 요청이 실패했을 때
+            UE_LOG(LogTemp, Warning, TEXT("POST Request Failed"));
+        }
+
+}
+FString AHttpActor::StoreJsonResponse()
+{
+    FString JsonString = StoredJsonResponsetest;
+
+    return JsonString;
+}
 //MyCreateRoomInfo End-------------------------------------------------------------
 
 
