@@ -75,4 +75,12 @@ public:
 
     //Mouse Interaction
     void OnMouseClick();
+
+    //Mouse Hover
+    void OnMouseHover(AActor* HoveredActor);
+
+    void OnMouseHoverEnd(AActor* HoveredActor);
+
+    AActor* CurrentHoveredActor = nullptr;
+
 };
