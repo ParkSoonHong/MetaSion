@@ -65,7 +65,7 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	//InitJsonData(Json);
+	InitJsonData(Json);
 }
 	
 
@@ -76,7 +76,7 @@ void ACJS_BallPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	// SessionGameInstance 할당
-	SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
 	if (SessionGI)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
@@ -85,7 +85,7 @@ void ACJS_BallPlayer::BeginPlay()
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
-	}
+	}*/
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -322,7 +322,7 @@ void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 		AddMovementInput(MoveDirection, MoveSpeed * GetWorld()->GetDeltaSeconds());
 
 		// 이동 방향에 따라 공의 회전을 설정 (Roll 값 추가)
-		RollSpeed = 10.0f; // 회전 속도 조절 (필요에 따라 조정 가능)
+		//RollSpeed = 10.0f; // 회전 속도 조절 (필요에 따라 조정 가능)
 		FRotator NewRotation = FRotator(RollSpeed * Direction.Y, 0.0f, -RollSpeed * Direction.X);
 		AddActorLocalRotation(NewRotation * GetWorld()->GetDeltaSeconds());
 	}
@@ -432,7 +432,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					// GameInstance에서 MySessionName 값을 가져옴
 					FString UserId;
 					int32 ActorIndex;
-					//FString RoomOwner;
+					FString RoomOwner;
 					FString RoomNum;
 					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
 					if (GameInstance)
@@ -449,11 +449,11 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						TSharedPtr<FJsonObject> UserObject = AllUsersArray[ActorIndex]->AsObject();
 						if (UserObject.IsValid())
 						{
-							//RoomOwner = UserObject->GetStringField(TEXT("UserId"));
+							RoomOwner = UserObject->GetStringField(TEXT("UserId"));
 							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
 							RoomNum = "3";
 							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
-							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomNum: %s"), *RoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
 						}
 						else
 						{
@@ -468,6 +468,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					// 사용자 데이터를 맵에 추가
 					TMap<FString, FString> MultiRoomData;
 					//MultiRoomData.Add("userId", UserId);
+					//MultiRoomData.Add("room_num", "3");
 					MultiRoomData.Add("room_num", RoomNum);
 					
 					// JSON 형식으로 변환

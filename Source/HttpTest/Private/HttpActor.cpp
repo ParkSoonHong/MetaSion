@@ -98,21 +98,22 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
     {
         // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
+        //FString result = "{\"userId\": \"testuser\", \"userpass\": \"testpassword\"}";  <--- 올바른 JSON 형식
+        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+
         //UJsonParseLib::Login_Convert_JsonToStruct(result);
         FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- 추가
-        FString uesrid = LoginData.userId;
+        FString userid = LoginData.userId;
+        UE_LOG(LogTemp, Warning, TEXT("LoginData.userid: %s"), *userid);
         if (SessionGI)
         {
-            SessionGI->InitSessionName(uesrid);
+            SessionGI->InitSessionName(userid);
             UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGI->MySessionName);
         }
         else
         {
             UE_LOG(LogTemp, Error, TEXT("AHttpActor::LoginResPost():: No SessionGM"));
-        }
-
-        
-        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+        } 
     }
     else
     {
@@ -539,8 +540,8 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
         UE_LOG(LogTemp, Warning, TEXT("OnResPosLogin OK... %d"), Response->GetResponseCode());
 
         int32 res = Response->GetResponseCode();
-        /*if (res == 200)
-        {*/
+        if (res == 200)
+        {
             UE_LOG(LogTemp, Warning, TEXT("Response ... OK!! "));
             FString str = Response->GetContentAsString();
             UE_LOG(LogTemp, Warning, TEXT(" %s"), *str);
@@ -563,11 +564,11 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
             {
                 UE_LOG(LogTemp, Error, TEXT("Failed to get PlayerController."));
             }
-       /* }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Response ... not OK!! "));
-        }*/
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response ... not OK!! "));
+		}
     }
     else
     {

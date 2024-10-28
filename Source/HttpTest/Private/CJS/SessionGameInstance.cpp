@@ -313,37 +313,37 @@ FString USessionGameInstance::GetMySessionName()
 }
 	
 	
-void USessionGameInstance::SetRefMultiRoomInfo(FString json)
-{
-	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetRefMultiRoomInfo()"));
-
-	// World 객체에서 첫 번째 PlayerController 가져오기
-		UWorld * World = GetWorld();
-	if (!World)
-	{
-		UE_LOG(LogTemp, Error, TEXT("World is null in SetRefMultiRoomInfo"));
-		return;
-	}
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!PlayerController)
-	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerController is null in SetRefMultiRoomInfo"));
-		return;
-	}
-
-	// PlayerController에서 현재 Pawn을 가져와 ACJS_BallPlayer로 캐스팅
-	ACJS_BallPlayer* Player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
-	if (Player)
-	{
-		Player->InitJsonData(json);
-		UE_LOG(LogTemp, Warning, TEXT("Player cast successful and InitJsonData called"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to cast to ACJS_BallPlayer"));
-	}
-}
+//void USessionGameInstance::SetRefMultiRoomInfo(FString json)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetRefMultiRoomInfo()"));
+//
+//	// World 객체에서 첫 번째 PlayerController 가져오기
+//		UWorld * World = GetWorld();
+//	if (!World)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("World is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	APlayerController* PlayerController = World->GetFirstPlayerController();
+//	if (!PlayerController)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("PlayerController is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	// PlayerController에서 현재 Pawn을 가져와 ACJS_BallPlayer로 캐스팅
+//	ACJS_BallPlayer* Player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
+//	if (Player)
+//	{
+//		Player->InitJsonData(json);
+//		UE_LOG(LogTemp, Warning, TEXT("Player cast successful and InitJsonData called"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("Failed to cast to ACJS_BallPlayer"));
+//	}
+//}
 
 void USessionGameInstance::SetNetInfoCharacterTOLobby(FString info)
 {	
