@@ -202,6 +202,7 @@ void ACJS_BallPlayer::BeginPlay()
 	bAimPointUIShowing = false;
 
 
+
 	// HttpActor 초기화 시도
 	//HttpActor = Cast<ACJS_HttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_HttpActor::StaticClass()));
 	HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
@@ -225,10 +226,11 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HttpActor found and cast successfully."));
 	}
-
 	
 	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
 	sgi->AssignSessionNameFromPlayerState();*/
+
+	RollSpeed = 80.0f;
 }
 
 // Called every frame
@@ -307,7 +309,23 @@ void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 	FVector2D v = Value.Get<FVector2D>();
 	Direction.X = v.X;
 	Direction.Y = v.Y;
-	Direction.Normalize();
+	//Direction.Normalize();
+
+	if (Direction.SizeSquared() > 0)
+	{
+		// 방향을 정규화하여 이동 벡터 계산
+		Direction.Normalize();
+
+		// 이동 벡터에 따른 이동 설정
+		FVector MoveDirection = FVector(Direction.X, Direction.Y, 0.0f); // X, Y 평면에서의 이동 방향
+		float MoveSpeed = 100.0f; // 이동 속도 (필요에 따라 조정 가능)
+		AddMovementInput(MoveDirection, MoveSpeed * GetWorld()->GetDeltaSeconds());
+
+		// 이동 방향에 따라 공의 회전을 설정 (Roll 값 추가)
+		RollSpeed = 10.0f; // 회전 속도 조절 (필요에 따라 조정 가능)
+		FRotator NewRotation = FRotator(RollSpeed * Direction.Y, 0.0f, -RollSpeed * Direction.X);
+		AddActorLocalRotation(NewRotation * GetWorld()->GetDeltaSeconds());
+	}
 
 	// Log to check if the input value is being received
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionMove():: Move Direction: X=%f, Y=%f"), Direction.X, Direction.Y);

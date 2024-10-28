@@ -88,11 +88,17 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
+
+    //FString result1 = Response->GetContentAsString();
+    //UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost() result: %s"), *result1);
+   
+
     // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
         // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
+        //UJsonParseLib::Login_Convert_JsonToStruct(result);
         FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- 추가
         FString uesrid = LoginData.userId;
         if (SessionGI)
@@ -110,7 +116,7 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+        UE_LOG(LogTemp, Warning, TEXT("LoginResPost() Failed..."));
     }
     if (pc) {
         pc->HideLoginUI();
