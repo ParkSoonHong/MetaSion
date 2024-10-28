@@ -50,6 +50,8 @@ TMap<FString, int32> SelectedChoices;
 // }
 void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 {
+    UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::SaveChoicesToJsonFile()"));
+
     // WorldContextObject�� null���� Ȯ��
     if (!WorldContextObject)
     {
@@ -73,7 +75,8 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
     // ���� URL ����
-    FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
+    //FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
+    FString ServerURL = TEXT("https://jsonplaceholder.typicode.com/posts");
 
 //      WorldContextObject�� ���� ���� �ν��Ͻ��� ������
     AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(WorldContextObject->GetWorld(), AHttpActor::StaticClass()));
@@ -187,6 +190,7 @@ TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
 
 void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
 {
+    UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::StoreChoice()"));
     SelectedChoices.Add(Question, SelectedValue);
 }
 

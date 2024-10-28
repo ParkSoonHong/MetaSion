@@ -92,6 +92,7 @@ public:
 	// PlayerState의 UserId를 받아서 MySessionName에 지정
 	void AssignSessionNameFromPlayerState();
 	bool ValidateSessionInterfaceAndSearch() const;
+	void InitSessionName(FString name);
 
 };
 

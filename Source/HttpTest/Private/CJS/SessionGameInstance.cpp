@@ -112,7 +112,7 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	{
 		PRINTLOG(TEXT("OnCreateSessionComplete is Successes"));
 		PRINTLOG(TEXT("Session created successfully with name: %s"), *sessionName.ToString());
-		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/CJS_LobbyMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/Main/Maps/Main_Lobby.Main_Lobby'?listen"));
 	}
 	else
 	{
@@ -300,4 +300,11 @@ bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
 	}
 
 	return true;
+}
+
+void USessionGameInstance::InitSessionName(FString name)
+{
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName()"));
+	MySessionName = name;
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName() MySessionName : %s"), *MySessionName);
 }
