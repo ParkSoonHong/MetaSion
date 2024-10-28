@@ -151,5 +151,8 @@ public:
 	// 로비 -> 체험방 입장 시 통신 ======================================================================
 	UPROPERTY()
 	class ACJS_HttpActor* HttpActor;
-	FString URL = "";
+	//class AHttpActor* HttpActor;
+	//FString URL = "192.168.0.4:3326/api/auth/getRoomData";
+	FString URL = "https://jsonplaceholder.typicode.com/posts";
+
 };
