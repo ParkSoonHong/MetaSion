@@ -71,7 +71,7 @@ public:
     void HideRoomUI();
     void PlayUIAnimation();
 
-    
+    void SpawnAndSwitchToCamera();
 
     //Mouse Interaction
     void OnMouseClick();
@@ -83,9 +83,7 @@ public:
 
     AActor* CurrentHoveredActor = nullptr;
 
-
     //Screen Capture + Wallpaper Python Auto Execute
     void ScreenCapture();
     void ExecuteWallPaperPython();
-
 };

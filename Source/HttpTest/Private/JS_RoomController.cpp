@@ -13,11 +13,11 @@
 #include "HttpWidget.h"
 #include "Components/WidgetComponent.h"
 #include "KGW/WBP_Image.h"
-#include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"  // íŒŒì´ì¬ ìžë™ ì‹¤í–‰
+#include "Camera/CameraActor.h"
+#include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"
 #include "HighResScreenshot.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
-
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -65,8 +65,14 @@ void AJS_RoomController::BeginPlay()
     // ï¿½ï¿½ï¿½Ó°ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ç²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FInputModeGameAndUI InputMode;
     InputMode.SetHideCursorDuringCapture(false); // Ä¸Ã³ ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ì½º Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½
     SetInputMode(InputMode);
+
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+    if (LevelName == TEXT("Main_Sky")) {
+        SpawnAndSwitchToCamera();
+    }
 }
 
 void AJS_RoomController::SetupInputComponent()
@@ -195,7 +201,7 @@ void AJS_RoomController::OnMouseClick()
             if (HitActor->ActorHasTag(TEXT("WallPaper")))
             {
                 UE_LOG(LogTemp, Warning, TEXT("-----------------------------"));
-                // ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ 
+                // ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ 
                 //if (bShowUI) {
                     UE_LOG(LogTemp, Log, TEXT("bShowUI true"));
                     HideCreateRoomUI();
@@ -239,14 +245,14 @@ void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
                 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 WidgetComp->SetVisibility(true);
 
-                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?
                 UUserWidget* Widget = WidgetComp->GetWidget();
                 if (Widget)
                 {
 
                     if (UWBP_Image* WBPImage = Cast<UWBP_Image>(Widget))
                     {
-                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // ï¿½Ì¹ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // ï¿½Ì¹ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
                         {
                             WBPImage->PlayShowImageAnimation();
                             UE_LOG(LogTemp, Log, TEXT("play ShowImage "));
@@ -301,7 +307,7 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
             UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
             if (WidgetComp)
             {
-                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿?
                 WidgetComp->SetVisibility(false);
                 //             UE_LOG(LogTemp, Log, TEXT("get  ShowImage "));
 
@@ -325,15 +331,37 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
     }
 }
 
+void AJS_RoomController::SpawnAndSwitchToCamera()
+{
+    // ¿øÇÏ´Â À§Ä¡¿Í È¸ÀüÀ» ÁöÁ¤
+    FVector CameraLocation(-470047.589317, 643880.898148, 648118.610643);
+    FRotator CameraRotation(9.157953, 200.435537, 0.000001);
+
+    // Ä«¸Þ¶ó ¾×ÅÍ¸¦ ½ºÆù
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ACameraActor* TargetCamera = GetWorld()->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), CameraLocation, CameraRotation, SpawnParams);
+
+    // Ä«¸Þ¶ó°¡ Á¤»óÀûÀ¸·Î »ý¼ºµÇ¾ú´ÂÁö È®ÀÎ ÈÄ ºä Å¸°ÙÀ¸·Î ÀüÈ¯
+    if (TargetCamera)
+    {
+        SetViewTarget(TargetCamera);
+        UE_LOG(LogTemp, Log, TEXT("Camera view switched to target camera successfully."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn target camera."));
+    }
+}
 //Screen Capture Start ---------------------------------------------------------------------------------------
 void AJS_RoomController::ScreenCapture()
 {
     UE_LOG(LogTemp, Warning, TEXT(" AJS_RoomController::ScreenCapture()"));
 
-    // íŒŒì¼ ê²½ë¡œ ì„¤ì • (ì˜ˆ: í”„ë¡œì íŠ¸ ë””ë ‰í† ë¦¬ ë‚´ Screenshots í´ë”)
+    // ?Œì¼ ê²½ë¡œ ?¤ì • (?? ?„ë¡œ?íŠ¸ ?”ë ‰? ë¦¬ ??Screenshots ?´ë”)
     FString ScreenshotPath = FPaths::ProjectDir() + TEXT("Screenshots/ScreenCapture.png");
 
-    // ìŠ¤í¬ë¦°ìƒ· ìº¡ì²˜ ìš”ì²­
+    // ?¤í¬ë¦°ìƒ· ìº¡ì²˜ ?”ì²­
     FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
 
     UE_LOG(LogTemp, Warning, TEXT("Screenshot saved at: %s"), *ScreenshotPath);
@@ -347,10 +375,10 @@ void AJS_RoomController::ExecuteWallPaperPython()
 {
     UE_LOG(LogTemp, Warning, TEXT(" AJS_RoomController::ExecuteWallPaperPython()"));
 
-    // íŒŒì´ì¬ íŒŒì¼ ê²½ë¡œ ì„¤ì •
+    // ?Œì´???Œì¼ ê²½ë¡œ ?¤ì •
     FString ScriptPath = FPaths::ProjectContentDir() + TEXT("Python/Wallpaper.py");
 
-    // íŒŒì´ì¬ ìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰
+    // ?Œì´???¤í¬ë¦½íŠ¸ ?¤í–‰
     IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
     if (PythonPlugin && PythonPlugin->IsPythonAvailable())
     {
