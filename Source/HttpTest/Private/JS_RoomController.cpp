@@ -13,6 +13,7 @@
 #include "HttpWidget.h"
 #include "Components/WidgetComponent.h"
 #include "KGW/WBP_Image.h"
+#include "Camera/CameraActor.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -62,6 +63,12 @@ void AJS_RoomController::BeginPlay()
     InputMode.SetHideCursorDuringCapture(false); // 캡처 중에 마우스 커서를 숨기지 않음
     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // 마우스를 잠그지 않음
     SetInputMode(InputMode);
+
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+    if (LevelName == TEXT("Main_Sky")) {
+        SpawnAndSwitchToCamera();
+    }
 }
 
 void AJS_RoomController::SetupInputComponent()
@@ -310,4 +317,29 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
     }
 }
+
+void AJS_RoomController::SpawnAndSwitchToCamera()
+{
+    // 원하는 위치와 회전을 지정
+    FVector CameraLocation(-470047.589317, 643880.898148, 648118.610643);
+    FRotator CameraRotation(9.157953, 200.435537, 0.000001);
+
+    // 카메라 액터를 스폰
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    ACameraActor* TargetCamera = GetWorld()->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), CameraLocation, CameraRotation, SpawnParams);
+
+    // 카메라가 정상적으로 생성되었는지 확인 후 뷰 타겟으로 전환
+    if (TargetCamera)
+    {
+        SetViewTarget(TargetCamera);
+        UE_LOG(LogTemp, Log, TEXT("Camera view switched to target camera successfully."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to spawn target camera."));
+    }
+}
+
+
 

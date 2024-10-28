@@ -71,7 +71,7 @@ public:
     void HideRoomUI();
     void PlayUIAnimation();
 
-    
+    void SpawnAndSwitchToCamera();
 
     //Mouse Interaction
     void OnMouseClick();
@@ -82,5 +82,7 @@ public:
     void OnMouseHoverEnd(AActor* HoveredActor);
 
     AActor* CurrentHoveredActor = nullptr;
+
+
 
 };
