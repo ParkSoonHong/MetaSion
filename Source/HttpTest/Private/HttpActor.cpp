@@ -87,6 +87,8 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
     }
     if (pc) {
         pc->HideLoginUI();
+        //이쪽에 다음 UI로 넘어가는 거 구현
+        ShowQuestionUI();
     }
 }
 //Login End-------------------------------------------------------------
@@ -415,6 +417,21 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
             UE_LOG(LogTemp, Warning, TEXT("POST Request Failed"));
         }
 
+}
+void AHttpActor::ShowQuestionUI()
+{
+    // MyWidgetClass가 유효한지 확인
+    if (QuestionUIFactory && !QuestionUI)
+    {
+        // UI 위젯 인스턴스를 생성
+        QuestionUI = CreateWidget<UUserWidget>(GetWorld(), QuestionUIFactory);
+
+        if (QuestionUI)
+        {
+            // 화면에 추가
+            QuestionUI->AddToViewport();
+        }
+    }
 }
 FString AHttpActor::StoreJsonResponse()
 {

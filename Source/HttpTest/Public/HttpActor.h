@@ -31,10 +31,10 @@ public:
 	TSubclassOf<class UHttpWidget> Sign_Factory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<class UJS_TestWidget> Test_Factory;
+	TSubclassOf<class UUserWidget> QuestionUIFactory;
 
 	UPROPERTY(EditAnywhere)
-	class UJS_TestWidget* TestWidgetUI;
+	class UUserWidget* QuestionUI;
 
 	UPROPERTY(BlueprintReadWrite, Category = "JSON Data")
 	FString StoredJsonResponse;
@@ -71,6 +71,9 @@ public:
 
 	void ReqPostChoice(FString url, FString json);
 	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// UI 생성 및 화면에 추가하는 함수
+	void ShowQuestionUI();
 
 	UFUNCTION(BlueprintCallable, Category = "JSON")
     FString StoreJsonResponse();
