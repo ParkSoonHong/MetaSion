@@ -28,7 +28,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* boxComp;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* meshComp;
 
 	 // À§Á¬ ÄÄÆ÷³ÍÆ® ¼±¾ð

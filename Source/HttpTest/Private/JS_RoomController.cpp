@@ -241,7 +241,37 @@ void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
                     }
                 }
             }
+
         }
+        if (HoveredActor->ActorHasTag(TEXT("Showlist")))
+        {
+            UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
+            if (WidgetComp)
+            {
+                UE_LOG(LogTemp, Log, TEXT("Hovered:Showlist "));
+
+                // 위젯을 보이도록 설정
+                WidgetComp->SetVisibility(true);
+
+                // 위젯의 애니메이션을 재생
+                UUserWidget* Widget = WidgetComp->GetWidget();
+                if (Widget)
+                {
+
+                    if (UWBP_Image* WBPImage = Cast<UWBP_Image>(Widget))
+                    {
+                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // 이미 애니메이션이 재생 중인지 확인
+                        {
+                            WBPImage->PlayShowImageAnimation();
+                            UE_LOG(LogTemp, Log, TEXT("play Showlist "));
+
+                        }
+                    }
+                }
+            }
+
+        }
+
     }
 }
 
@@ -263,6 +293,21 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
             }
         }
+        if (HoveredActor->ActorHasTag(TEXT("Showlist")))
+        {
+            UE_LOG(LogTemp, Log, TEXT("Hovere end:Showlist "));
+
+            // Widget Component 가져오기
+            UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
+            if (WidgetComp)
+            {
+                // 위젯을 숨기기
+                WidgetComp->SetVisibility(false);
+                //             UE_LOG(LogTemp, Log, TEXT("get  ShowImage "));
+
+            }
+        }
+
     }
 }
 
