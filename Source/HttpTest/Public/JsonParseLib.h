@@ -235,6 +235,39 @@ struct FMyCreateRoomInfo
 		, Analysiscontent(TEXT("No Analysis"))
 	{}
 };
+
+USTRUCT(BlueprintType)
+struct FRoomData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    FString question_03;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    int32 RoomNum;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    FString RoomName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    FString RecommendedMusic;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    FString EmotionImage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
+    FString Analysiscontent;
+
+    FRoomData() : question_03(TEXT("")),
+				  RoomNum(0),
+				  RoomName(TEXT("")),
+				  RecommendedMusic(TEXT("")),
+				  EmotionImage(TEXT("")),
+				  Analysiscontent(TEXT(""))
+				  {}
+};
+
 /**
  * 
  */
@@ -281,4 +314,7 @@ public:
 	static FString FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo);
 	//Json To Struct : Response
 	static FMyCreateRoomInfo FMyCreateRoomInfo_Convert_JsonToStruct(const FString& JsonString);
+
+	//Json To Struct : Response
+	static FRoomData RoomData_Convert_JsonToStruct(const FString& JsonString);
 };

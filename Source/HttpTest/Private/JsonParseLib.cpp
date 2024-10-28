@@ -170,6 +170,16 @@ FMyCreateRoomInfo UJsonParseLib::FMyCreateRoomInfo_Convert_JsonToStruct(const FS
 	//변환된 구조체를 반환
 	return MyCreateRoomInfo;
 }
+FRoomData UJsonParseLib::RoomData_Convert_JsonToStruct(const FString& JsonString)
+{
+	FRoomData RoomData;
+
+	//Json을 구조체로 변환
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &RoomData, 0, 0);
+
+	//변환된 구조체를 반환
+	return RoomData;
+}
 // MyCreateRoomInfo End ----------------------------------------------------------------------------
 
 FString UJsonParseLib::MakeJson(const TMap<FString, FString> source)

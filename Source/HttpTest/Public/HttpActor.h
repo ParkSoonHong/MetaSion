@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HttpFwd.h"
+#include "JsonParseLib.h"
 #include "HttpActor.generated.h"
 
 UCLASS()
@@ -86,4 +87,13 @@ public:
 	//로비 -> 멀티방 입장 시 통신
 	void ReqPostClickMultiRoom(FString url, FString json);
 	void OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	//로비 -> 내방으로 입장 시 통신
+	void ReqPostClickMyRoom(FString url, FString json);
+	void OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	//다른 클래스에서 파싱된 RoomData를 사용하기 위한 Getter함수
+	FRoomData GetRoomData() const;
+	FRoomData RoomData;
+
 };

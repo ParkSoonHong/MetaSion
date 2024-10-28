@@ -528,6 +528,72 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
     }
 }
 
+//JS ReWrite 내방 통신 추가 부분
+void AHttpActor::ReqPostClickMyRoom(FString url, FString json)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::ReqPostClickMyRoom()"));
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+    req->SetTimeout(60.0f); // 타임아웃 설정
+
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostClickMyRoom);
+
+    if (req->ProcessRequest())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Http Request processed successfully"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Http Request failed to process"));
+    }
+}
+
+void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (!Response.IsValid())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+        return;
+    }
+
+    if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+    {
+        // 응답에서 JSON 문자열 얻기
+        FString JsonResponse = Response->GetContentAsString();
+        UE_LOG(LogTemp, Warning, TEXT("Response JSON: %s"), *JsonResponse);
+
+        // FRoomData 구조체로 변환
+        RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
+
+        RoomData.RecommendedMusic = TEXT("Music_02");
+		UE_LOG(LogTemp, Warning, TEXT("Room Data Parsed Successfully"));
+		UE_LOG(LogTemp, Warning, TEXT("Question_03: %s"), *RoomData.question_03);
+		UE_LOG(LogTemp, Warning, TEXT("RoomNum: %d"), RoomData.RoomNum);
+		UE_LOG(LogTemp, Warning, TEXT("RoomName: %s"), *RoomData.RoomName);
+		UE_LOG(LogTemp, Warning, TEXT("RecommendedMusic: %s"), *RoomData.RecommendedMusic);
+		UE_LOG(LogTemp, Warning, TEXT("EmotionImage: %s"), *RoomData.EmotionImage);
+		UE_LOG(LogTemp, Warning, TEXT("Analysiscontent: %s"), *RoomData.Analysiscontent);
+
+        //MyRoom으로 이동
+        if (pc) {
+            pc->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
+    }
+}
+//Getter 함수
+FRoomData AHttpActor::GetRoomData() const
+{
+    return RoomData;
+}
 //MyCreateRoomInfo End-------------------------------------------------------------
 
 
