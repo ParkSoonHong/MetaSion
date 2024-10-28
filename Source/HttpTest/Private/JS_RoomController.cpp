@@ -14,10 +14,14 @@
 #include "Components/WidgetComponent.h"
 #include "KGW/WBP_Image.h"
 #include "Camera/CameraActor.h"
+#include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"
+#include "HighResScreenshot.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
 
 AJS_RoomController::AJS_RoomController()
 {
-    PrimaryActorTick.bCanEverTick = true; // Tick È°¼ºÈ­
+    PrimaryActorTick.bCanEverTick = true; // Tick È°ï¿½ï¿½È­
 }
 
 void AJS_RoomController::Tick(float DeltaTime)
@@ -28,20 +32,20 @@ void AJS_RoomController::Tick(float DeltaTime)
 
     AActor* HoveredActor = bHitSuccessful ? HitResult.GetActor() : nullptr;
 
-    // ¸¸¾à »õ·Î¿î ¾×ÅÍ¿¡ ¸¶¿ì½º°¡ ¿À¹öµÇ¾ú´Ù¸é, OnMouseHover È£Ãâ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ù¸ï¿½, OnMouseHover È£ï¿½ï¿½
     if (HoveredActor != CurrentHoveredActor)
     {
         if (CurrentHoveredActor)
         {
-            OnMouseHoverEnd(CurrentHoveredActor); // ÀÌÀü ¾×ÅÍ¿¡¼­ ¸¶¿ì½º°¡ ¹þ¾î³²
+            OnMouseHoverEnd(CurrentHoveredActor); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½î³²
         }
 
         if (HoveredActor)
         {
-            OnMouseHover(HoveredActor); // »õ·Î¿î ¾×ÅÍ¿¡ ¸¶¿ì½º°¡ µé¾î¿È
+            OnMouseHover(HoveredActor); // ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         }
 
-        CurrentHoveredActor = HoveredActor; // ÇöÀç ¿À¹öµÈ ¾×ÅÍ ¾÷µ¥ÀÌÆ®
+        CurrentHoveredActor = HoveredActor; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     }
 
 }
@@ -50,18 +54,18 @@ void AJS_RoomController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // ¸¶¿ì½º °ü·Ã ¼³Á¤
+    // ï¿½ï¿½ï¿½ì½º ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     bShowMouseCursor = true;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
 
-    // UIÃÊ±âÈ­
+    // UIï¿½Ê±ï¿½È­
     InitializeUIWidgets();
 
-    // °ÔÀÓ°ú UI µÑ ´Ù ÀÎÇ²À» ¹ÞÀ» ¼ö ÀÖµµ·Ï ¼³Á¤
+    // ï¿½ï¿½ï¿½Ó°ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ç²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FInputModeGameAndUI InputMode;
-    InputMode.SetHideCursorDuringCapture(false); // Ä¸Ã³ Áß¿¡ ¸¶¿ì½º Ä¿¼­¸¦ ¼û±âÁö ¾ÊÀ½
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ¸¶¿ì½º¸¦ Àá±×Áö ¾ÊÀ½
+    InputMode.SetHideCursorDuringCapture(false); // Ä¸Ã³ ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ì½º Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½
     SetInputMode(InputMode);
 
     FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
@@ -75,13 +79,13 @@ void AJS_RoomController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    // EnhancedInputLocalPlayerSubsystem¿¡¼­ InputMappingContext¸¦ Ãß°¡ÇÕ´Ï´Ù.
+    // EnhancedInputLocalPlayerSubsystemï¿½ï¿½ï¿½ï¿½ InputMappingContextï¿½ï¿½ ï¿½ß°ï¿½ï¿½Õ´Ï´ï¿½.
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
         //Subsystem->ClearAllMappings();
         Subsystem->AddMappingContext(IMC_Controller, 0);
     }
-    // EnhancedInputComponent ¼³Á¤
+    // EnhancedInputComponent ï¿½ï¿½ï¿½ï¿½
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
          EnhancedInputComponent->BindAction(IA_LeftMouse, ETriggerEvent::Triggered, this, &AJS_RoomController::OnMouseClick);
@@ -129,7 +133,7 @@ void AJS_RoomController::HideLoginUI()
     }
 }
 //CreateRoom --------------------------------------------------------------------------
-//¾¸
+//ï¿½ï¿½
 void AJS_RoomController::ShowCreateRoomUI()
 {
     if (CR_WidgetUI)
@@ -137,9 +141,11 @@ void AJS_RoomController::ShowCreateRoomUI()
         CR_WidgetUI->SetVisibility(ESlateVisibility::Visible);
     }
 }
-//¾¸
+//ï¿½ï¿½
 void AJS_RoomController::HideCreateRoomUI()
 {
+    UE_LOG(LogTemp, Log, TEXT(" AJS_RoomController::HideCreateRoomUI()"));
+
     if (CR_WidgetUI)
     {
         CR_WidgetUI->SetVisibility(ESlateVisibility::Hidden);
@@ -148,15 +154,17 @@ void AJS_RoomController::HideCreateRoomUI()
 //CreateRoom --------------------------------------------------------------------------
 
 //Room --------------------------------------------------------------------------
-//¾¸
+//ï¿½ï¿½
 void AJS_RoomController::ShowRoomUI()
 {
+    UE_LOG(LogTemp, Log, TEXT(" AJS_RoomController::ShowRoomUI()"));
+
     if (R_UI)
     {
         R_UI->SetVisibility(ESlateVisibility::Visible);
     }
 }
-//¾ÆÁ÷ ¸ø¾¸
+//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 void AJS_RoomController::HideRoomUI()
 {
     if (R_UI)
@@ -167,6 +175,8 @@ void AJS_RoomController::HideRoomUI()
 
 void AJS_RoomController::PlayUIAnimation()
 {
+    UE_LOG(LogTemp, Log, TEXT(" AJS_RoomController::PlayUIAnimation()"));
+
     if (R_UI) {
         R_UI->PlayAnimation(R_UI->CameraSutterEffect);
     }
@@ -186,21 +196,24 @@ void AJS_RoomController::OnMouseClick()
 
         if (HitActor)
         {
-            UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s at Location: %s"), *HitActor->GetName(), *HitResult.Location.ToString());
-            // ÅÂ±× Ã¼Å©
+            UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s at Location: %s"), *HitActor->GetName(), *HitResult.Location.ToString());
+            // ï¿½Â±ï¿½ Ã¼Å©
             if (HitActor->ActorHasTag(TEXT("WallPaper")))
             {
-                // ¿©±â¿¡ »çÁø Âï±â ·ÎÁ÷ Ãß°¡ 
-                if (bShowUI) {
+                UE_LOG(LogTemp, Warning, TEXT("-----------------------------"));
+                // ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ 
+                //if (bShowUI) {
+                    UE_LOG(LogTemp, Log, TEXT("bShowUI true"));
                     HideCreateRoomUI();
                     ShowRoomUI();
                     PlayUIAnimation();
-                }
+                    ScreenCapture();
+               // }
             }
             else if (HitActor->ActorHasTag(TEXT("Lobby")))
             {
 
-				UE_LOG(LogTemp, Log, TEXT("Lobby Hit - Loading lobby level"));
+				UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
                 if (bShowUI) {
                     UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
                 }
@@ -208,7 +221,7 @@ void AJS_RoomController::OnMouseClick()
             else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
             {
 
-                UE_LOG(LogTemp, Log, TEXT("Lobby Hit - Loading lobby level"));
+                UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
 
                 UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
 
@@ -229,17 +242,17 @@ void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
             {
                 UE_LOG(LogTemp, Log, TEXT("Hovered:ShowImage "));
 
-                // À§Á¬À» º¸ÀÌµµ·Ï ¼³Á¤
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 WidgetComp->SetVisibility(true);
 
-                // À§Á¬ÀÇ ¾Ö´Ï¸ÞÀÌ¼ÇÀ» Àç»ý
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?
                 UUserWidget* Widget = WidgetComp->GetWidget();
                 if (Widget)
                 {
 
                     if (UWBP_Image* WBPImage = Cast<UWBP_Image>(Widget))
                     {
-                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // ÀÌ¹Ì ¾Ö´Ï¸ÞÀÌ¼ÇÀÌ Àç»ý ÁßÀÎÁö È®ÀÎ
+                        if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // ï¿½Ì¹ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
                         {
                             WBPImage->PlayShowImageAnimation();
                             UE_LOG(LogTemp, Log, TEXT("play ShowImage "));
@@ -290,11 +303,11 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
         {
             UE_LOG(LogTemp, Log, TEXT("Hovere end:ShowImage "));
 
-            // Widget Component °¡Á®¿À±â
+            // Widget Component ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             UWidgetComponent* WidgetComp = HoveredActor->FindComponentByClass<UWidgetComponent>();
             if (WidgetComp)
             {
-                // À§Á¬À» ¼û±â±â
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿?
                 WidgetComp->SetVisibility(false);
                 //             UE_LOG(LogTemp, Log, TEXT("get  ShowImage "));
 
@@ -340,6 +353,41 @@ void AJS_RoomController::SpawnAndSwitchToCamera()
         UE_LOG(LogTemp, Warning, TEXT("Failed to spawn target camera."));
     }
 }
+//Screen Capture Start ---------------------------------------------------------------------------------------
+void AJS_RoomController::ScreenCapture()
+{
+    UE_LOG(LogTemp, Warning, TEXT(" AJS_RoomController::ScreenCapture()"));
 
+    // ?Œì¼ ê²½ë¡œ ?¤ì • (?? ?„ë¡œ?íŠ¸ ?”ë ‰? ë¦¬ ??Screenshots ?´ë”)
+    FString ScreenshotPath = FPaths::ProjectDir() + TEXT("Screenshots/ScreenCapture.png");
 
+    // ?¤í¬ë¦°ìƒ· ìº¡ì²˜ ?”ì²­
+    FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+
+    UE_LOG(LogTemp, Warning, TEXT("Screenshot saved at: %s"), *ScreenshotPath);
+
+    ExecuteWallPaperPython();
+}
+//Screen Capture End -----------------------------------------------------------------------------------------
+
+//Wallpaper Python Auto Execute Start ------------------------------------------------------------------------
+void AJS_RoomController::ExecuteWallPaperPython()
+{
+    UE_LOG(LogTemp, Warning, TEXT(" AJS_RoomController::ExecuteWallPaperPython()"));
+
+    // ?Œì´???Œì¼ ê²½ë¡œ ?¤ì •
+    FString ScriptPath = FPaths::ProjectContentDir() + TEXT("Python/Wallpaper.py");
+
+    // ?Œì´???¤í¬ë¦½íŠ¸ ?¤í–‰
+    IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
+    if (PythonPlugin && PythonPlugin->IsPythonAvailable())
+    {
+        PythonPlugin->ExecPythonCommand(*ScriptPath);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Python is not available in this build."));
+    }
+}
+//Wallpaper Python Auto Execute End ------------------------------------------------------------------------
 

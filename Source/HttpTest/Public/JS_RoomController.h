@@ -17,7 +17,7 @@ protected:
     virtual void BeginPlay() override;
     
 public:
-    AJS_RoomController(); // »ý¼ºÀÚ Ãß°¡
+    AJS_RoomController(); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -30,7 +30,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* IA_LeftMouse;
 
-    // ÀÎÅÍÆäÀÌ½º¸¦ À§ÇÑ UI
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UHttpWidget>  LoginUIFactory;
 
@@ -49,13 +49,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UJS_RoomWidget* R_UI;
 
-    // index ¿äÃ» ½Ã send¸¸ ÇÒ °æ¿ì Ã³¸®¸¦ À§ÇÑ º¯¼ö
+    // index ï¿½ï¿½Ã» ï¿½ï¿½ sendï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     bool bOnlyIndexSend = false;
     
-	// UI¼¼ÆÃ ÇÔ¼ö
+	// UIï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     bool bShowUI = false;
 
-    // UI ÃÊ±âÈ­
+    // UI ï¿½Ê±ï¿½È­
     void InitializeUIWidgets();
 
     //LoginUI
@@ -83,6 +83,7 @@ public:
 
     AActor* CurrentHoveredActor = nullptr;
 
-
-
+    //Screen Capture + Wallpaper Python Auto Execute
+    void ScreenCapture();
+    void ExecuteWallPaperPython();
 };
