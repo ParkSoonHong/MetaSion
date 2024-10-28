@@ -43,8 +43,8 @@ void AHttpActor::BeginPlay()
 
 
     // SessionGameInstance 할당
-    SessionGM = Cast<USessionGameInstance>(GetGameInstance());
-    if (SessionGM)
+    SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+    if (SessionGI)
     {
         UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
     }
@@ -95,10 +95,10 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
         FString result = Response->GetContentAsString();
         FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- 추가
         FString uesrid = LoginData.userId;
-        if (SessionGM)
+        if (SessionGI)
         {
-            SessionGM->InitSessionName(uesrid);
-            UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGM->MySessionName);
+            SessionGI->InitSessionName(uesrid);
+            UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGI->MySessionName);
         }
         else
         {
@@ -408,8 +408,23 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
         // ���������� ������ �޾��� ��
         FString ResponseContent = Response->GetContentAsString();
         UE_LOG(LogTemp, Log, TEXT("POST Response: %s"), *ResponseContent);
-        StoredJsonResponse = ResponseContent;
+        //StoredJsonResponse = ResponseContent;
         UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
+        StoredJsonResponse = StoredJsonResponsetest;    // <-------------------------------------------- 여기부터 수정
+        if (SessionGI)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
+            SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
+            SessionGI->FindSessions();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
+        }
+
+        
+
+
         // JSON ���信�� RGB ������ �Ľ�
 //         ParsedColors = UKGW_ChoiceSaveBF::ParseJsonToRGB(ResponseContent);
         //         // �Ľ̵� RGB ���� ���� ��� ó��
