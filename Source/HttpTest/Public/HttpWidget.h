@@ -17,45 +17,39 @@ class HTTPTEST_API UHttpWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
+	class AJS_RoomController* pc;
+
+	UPROPERTY(EditAnywhere)
 	class AHttpActor* HttpActor;
 
 	UPROPERTY(meta=(BindWidget))
-	class UTextBlock* TextLog;
+	class UEditableText* userId;
 
 	UPROPERTY(meta=(BindWidget))
-	class UEditableText* UserID;
+	class UEditableText* userpass;
 
 	UPROPERTY(meta=(BindWidget))
-	class UEditableText* UserPW;
+	class UButton* btn_Login;
 
 	UPROPERTY(meta=(BindWidget))
-	class UButton* ButtonPostSend;
+	class UButton* btn_SignUp;
 
 	UFUNCTION()
-	void OnMyClickSendPost();
-
-	UPROPERTY(meta=(BindWidget))
-	class UButton* ButtonGetWebImage;
+	void SendLoginData();
 
 	UFUNCTION()
-	void OnMyClickGetWebImage();
+	void SendSignUpData();
 
-	UPROPERTY(meta=(BindWidget))
-	class UImage* ImageWeb;
+	/*FString ServerURL = "https://jsonplaceholder.typicode.com/posts";*/
+	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
 
-	void SetWebImage(class UTexture2D* newTexture);
+	/*UFUNCTION()
+	void SendUserData();
 
-	void SetTextLog(FString log);
+	UFUNCTION()
+	void SendUserLikeData();*/
 
-	void SetHttpActor(class AHttpActor* actor);
-
-
-	FString URL = "https://apis.data.go.kr/4050000/libnewbk/getLibnewbk";
-
-	FString Key = "1B4jOfk0801JYukDA2FApT%2Bs0VOwrTVSE5qPJFlZ1mgXYs1UhkQ53Zj23EbsaJAITIcsaLGVB2gDGEMSk6IaDA%3D%3D";
-
-	FString ServerURL = "http://mtvs.helloworldlabs.kr:7771/api/json";
-
-	FString WebImageURL = "https://t1.daumcdn.net/news/202105/25/koreadognews/20210525045023050wquu.jpg";
+	//FString URL = "https://apis.data.go.kr/4050000/libnewbk/getLibnewbk";
+	//FString Key = "1B4jOfk0801JYukDA2FApT%2Bs0VOwrTVSE5qPJFlZ1mgXYs1UhkQ53Zj23EbsaJAITIcsaLGVB2gDGEMSk6IaDA%3D%3D";
 };

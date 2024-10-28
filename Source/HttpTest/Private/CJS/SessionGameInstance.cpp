@@ -2,6 +2,7 @@
 
 
 #include "CJS/SessionGameInstance.h"
+#include "CJS/CJS_BallPlayerState.h"
 #include "../HttpTest.h"
 
 #include "OnlineSubsystem.h"
@@ -13,10 +14,15 @@
 #include "string"
 
 
+
 void USessionGameInstance::Init()	// 게임 인스턴스 초기화 함수로, 온라인 서브시스템을 얻어 세션 인터페이스를 초기화. 각종 델리게이트를 설정하여 세션 관련 이벤트에 반응할 수 있도록 함.
 {
 	Super::Init();
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::Init()"));
+
+	// UserId로 방이름 초기화
+	//MySessionName = PlayerState->GetUserId();
+	//GetWorld()->GetTimerManager().SetTimerForNextTick(this, &USessionGameInstance::AssignSessionNameFromPlayerState);
 
 	IOnlineSubsystem* subSystem = IOnlineSubsystem::Get();
 
@@ -152,31 +158,34 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnMyFindSessionCompleteDelegate()"));
 
+	if (!SessionSearch.IsValid())
+	{
+		PRINTLOG(TEXT("OnMyFindSessionCompleteDelegate: SessionSearch is not valid!"));
+		return;
+	}
+
 	if (bWasSuccessful)
 	{
-		TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;  // 결과가 담겨있음
+		TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;
 		PRINTLOG(TEXT("Found %d sessions"), results.Num());
 		bool bJoinSession = false;
 
-		for (int32 i = 0; results.Num(); i++)
+		for (int32 i = 0; i < results.Num(); ++i) // i < results.Num() 으로 수정
 		{
-			FOnlineSessionSearchResult ret = results[i];
-			if (false == results[i].IsValid())
+			FOnlineSessionSearchResult& ret = results[i]; // 참조를 사용하여 불필요한 복사를 피함
+			if (!ret.IsValid())
 			{
 				continue;
 			}
 
-			FRoomInfo roomInfo;
-			roomInfo.index = i;
-
 			FString HostName;
-			results[i].Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
+			ret.Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
 			PRINTLOG(TEXT("Session %d: HostName=%s"), i, *HostName);
 
 			if (HostName == MySessionName)
 			{
 				PRINTLOG(TEXT("Join Session Call"));
-				JoinSession(roomInfo.index);
+				JoinSession(i);
 				bJoinSession = true;
 				break;
 			}
@@ -249,4 +258,46 @@ void USessionGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver
 		PRINTLOG(TEXT("Host closed connection, returning to Exit Map"));
 		//UGameplayStatics::OpenLevel(this, FName("/Game/ArtProject/LHM/Maps/LHM_Exit"));
 	}
+}
+
+void USessionGameInstance::AssignSessionNameFromPlayerState()
+{
+	PRINTLOG(TEXT("USessionGameInstance::AssignSessionNameFromPlayerState()"));
+
+	APlayerController* PlayerController = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+
+	if (PlayerController)
+	{
+		ACJS_BallPlayerState* PlayerState = Cast<ACJS_BallPlayerState>(PlayerController->PlayerState);
+		if (PlayerState)
+		{
+			MySessionName = PlayerState->GetUserId();
+			PRINTLOG(TEXT("MySessionName:: %s"), *MySessionName);
+		}
+		else
+		{
+			PRINTLOG(TEXT("AssignSessionNameFromPlayerState: PlayerState is not valid"));
+		}
+	}
+	else
+	{
+		PRINTLOG(TEXT("AssignSessionNameFromPlayerState: PlayerController is not valid"));
+	}
+}
+
+bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
+{
+	if (!SessionInterface.IsValid())
+	{
+		PRINTLOG(TEXT("SessionInterface is not valid"));
+		return false;
+	}
+
+	if (!SessionSearch.IsValid())
+	{
+		PRINTLOG(TEXT("SessionSearch is not valid"));
+		return false;
+	}
+
+	return true;
 }

@@ -35,6 +35,14 @@ ACJS_HeartActor::ACJS_HeartActor()
     ProjectileMovementComp->bShouldBounce = true;
     ProjectileMovementComp->Bounciness = 0.3f; // 바운스 정도를 설정
     ProjectileMovementComp->Friction = 0.2f;   // 마찰 계수
+
+    bReplicates = true; // 이 설정은 여전히 유효합니다.
+
+    // UProjectileMovementComponent가 존재하는지 확인하고, 네트워크 복제를 설정합니다.
+    if (ProjectileMovementComp)
+    {
+        ProjectileMovementComp->SetIsReplicated(true);
+    }
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +59,7 @@ void ACJS_HeartActor::BeginPlay()
         if (MatInstance)
         {
             FLinearColor RandomColor = FLinearColor::MakeRandomColor();
-            MatInstance->SetVectorParameterValue(FName("BaseColor"), RandomColor);
+            MatInstance->SetVectorParameterValue(FName("Color"), RandomColor);
         }
     }
 }

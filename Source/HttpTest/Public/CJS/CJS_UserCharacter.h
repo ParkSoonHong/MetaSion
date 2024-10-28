@@ -88,10 +88,8 @@ public:
 	void OnAimPointUIStateChanged(bool bIsVisible);
 
 
-	// ClientTravel
+	// 클라 -> 서버에 이동 요청 -> 위치 이동 ==================================================================
 	void RequestMapTravel(const FString& MapPath);
-
-	// 클라 -> 서버에 이동 요청
 	UFUNCTION(Server, Reliable)
 	void Server_RequestMapTravel(const FString& MapPath);
 };

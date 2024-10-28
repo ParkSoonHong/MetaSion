@@ -1,0 +1,107 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "CJS/CJS_MultiRoomActor.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/TextBlock.h"
+#include "Engine/Font.h"
+
+// Sets default values
+ACJS_MultiRoomActor::ACJS_MultiRoomActor()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	// Create the sphere collision component
+	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereMesh"));
+	RootComponent = SphereMesh;
+
+	// Create the sphere mesh component and attach it to the collision
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollision->SetupAttachment(SphereMesh);
+
+	RefRoomInfoWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("RefRoomInfoWidget"));
+	RefRoomInfoWidgetComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+}
+
+// Called when the game starts or when spawned
+void ACJS_MultiRoomActor::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// Get the user widget instance
+	UUserWidget* WidgetInstance = Cast<UUserWidget>(RefRoomInfoWidgetComp->GetUserWidgetObject());
+	if (WidgetInstance)
+	{
+		// Get references to the TextBlock components inside the widget
+		Txt_CurNumPlayer = Cast<UTextBlock>(WidgetInstance->GetWidgetFromName(TEXT("Txt_CurNumPlayer")));
+		Txt_MaxNumPlayer = Cast<UTextBlock>(WidgetInstance->GetWidgetFromName(TEXT("Txt_MaxNumPlayer")));
+		Txt_RefRoomName = Cast<UTextBlock>(WidgetInstance->GetWidgetFromName(TEXT("Txt_RefRoomName")));
+		Txt_RefPercent = Cast<UTextBlock>(WidgetInstance->GetWidgetFromName(TEXT("Txt_RefPercent")));
+	}
+}
+
+// Called every frame
+void ACJS_MultiRoomActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//// 사용자의 카메라를 찾고
+	//FVector target = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetCameraLocation();
+	//// 그 카메라를 바라보는 방향을 만들어서
+	//FVector dir = target - HPComp->GetComponentLocation();
+	//dir.Normalize();
+
+	//// HPComp를 회전하고싶다.(Billboard 기법)
+	//FRotator rot = dir.ToOrientationRotator();
+	//HPComp->SetWorldRotation(rot);
+}
+
+void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_MultiRoomActor::InitRefRoomInfoWidget"));
+	if (Txt_CurNumPlayer)
+	{
+		Txt_CurNumPlayer->SetText(FText::FromString(FString::FromInt(CurNumPlayer)));
+	}
+
+	if (Txt_MaxNumPlayer)
+	{
+		Txt_MaxNumPlayer->SetText(FText::FromString(FString::FromInt(MaxNumPlayer)));
+	}
+
+	if (Txt_RefRoomName)
+	{
+		// FText::FromString 대신 FText::AsCultureInvariant를 사용하여 한글 텍스트 설정
+		//Txt_RefRoomName->SetText(FText::AsCultureInvariant(RoomName));
+		
+		// 폰트 로드
+		//UFont* Font = LoadObject<UFont>(nullptr, TEXT("/Game/CJS/Fonts/F_NanumGothic.F_NanumGothic")); // 한글 지원 폰트 사용
+		//if (Font)
+		//{
+		//	FSlateFontInfo FontInfo(Font, 32);
+
+		//	// SetFont 사용
+		//	Txt_RefRoomName->SetFont(FontInfo);
+		//	Txt_RefRoomName->SetText(FText::AsCultureInvariant(RoomName));
+		//	UE_LOG(LogTemp, Warning, TEXT("Font set successfully."));
+		//}
+		//else
+		//{
+		//	UE_LOG(LogTemp, Error, TEXT("Failed to load font."));
+		//}
+
+		// 한글 텍스트 설정
+		Txt_RefRoomName->SetText(FText::FromString(RoomName));
+	
+	}
+
+	if (Txt_RefPercent)
+	{
+		// Percent 값을 텍스트로 변환하여 표시 (예: 50%)
+		FString PercentText = FString::Printf(TEXT("%.2f%%"), Percent);
+		Txt_RefPercent->SetText(FText::FromString(PercentText));
+	}
+}
+

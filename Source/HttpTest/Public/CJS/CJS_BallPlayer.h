@@ -29,14 +29,19 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
-	// 카메라 ==============================================================================================
+
+	// 플레이어 컨트롤러 ======================================================================================
+	UPROPERTY()
+	class APlayerController* PC;
+
+	// 카메라 =================================================================================================
 	UPROPERTY(EditDefaultsOnly)
 	class USpringArmComponent* SpringArmComp;
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* CameraComp;
 	FVector Direction; 
 
-	// 인풋 ==============================================================================================
+	// 인풋 동작 ===============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputMappingContext* IMC_Player;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -48,33 +53,33 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_Throw;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_1;
+	class UInputAction* IA_Click;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_2;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_3;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_4;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_5;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_6;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_7;
-	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
-	class UInputAction* IA_8;
+	class UInputAction* IA_AimPoint;
+	
 	void OnMyActionMove(const FInputActionValue& Value);
 	void OnMyActionLook(const FInputActionValue& Value);
 	void OnMyActionJump(const FInputActionValue& Value);
 	void OnMyActionThrow(const FInputActionValue& Value);
-	void OnMyActionKey1(const FInputActionValue& Value);
-	void OnMyActionKey2(const FInputActionValue& Value);
-	void OnMyActionKey3(const FInputActionValue& Value);
-	void OnMyActionKey4(const FInputActionValue& Value);
-	void OnMyActionKey5(const FInputActionValue& Value);
-	void OnMyActionKey6(const FInputActionValue& Value);
-	void OnMyActionKey7(const FInputActionValue& Value);
-	void OnMyActionKey8(const FInputActionValue& Value);
+	void OnMyActionClick(const FInputActionValue& Value);
+	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
+
+
+	// 인풋 애니메이션 =========================================================================================
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_NumKeys[8];
+	void OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex);
+
+	// 애니메이션 시퀀스 ========================================================================================
+	// 1개씩 적용
+	/*UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	class UAnimSequence* TestAnimSequence;
+	void PlayTestAnimation();*/
+
+	// 애니메이션 시퀀스 배열
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	TArray<class UAnimSequence*> AnimSequences;
+	void PlayAnimationByIndex(int32 Index);
 
 
 	// 부딪혔을 때 ==============================================================================================
@@ -87,12 +92,67 @@ public:
 	void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit);
 	void TriggerSelfHitEffects(FVector HitLocation);
 
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_PlayAnimation(int32 AnimationIndex);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_PlayAnimation(int32 AnimationIndex);
 
-	// 하트 던질 때 ============================================================================================
+
+	// 하트 던질 때 =============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "Heart")
 	TSubclassOf<class ACJS_HeartActor> HeartItemFactory;
 	UPROPERTY(EditAnyWhere)
 	FVector HeartSpawnPosition;
 
+	// 멀티 적용
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPC_ThrowHeart();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPC_ThrowHeart();
+
+
+	// 조준점 위젯 ==============================================================================================
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> WBP_AimPoint;
+	UPROPERTY()
+	class UCJS_AimPointWidget* AimPointUI;
+	bool bAimPointUIShowing;
+
+
+	// 방 클릭 시 (클라 -> 서버에 이동 요청 -> 클라 위치 이동) ====================================================
+	/* 멀티 방 이동 */
+	void RequestMoveMultiRoom(APlayerController* RequestingPC);
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_RequestMoveMultiRoom(APlayerController* RequestingPC);
+
+
+	// 로비 입장 시 초기 설정 ============================================================================
+	void InitializeFromJson(const FString& LocalJsonData);
+	/* 재질 색상 */
+	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
+	void SetInitColorValue(float r, float g, float b);
+	/* 추천방 정보 */
+	UPROPERTY()
+	class ACJS_MultiRoomActor* RefMultiRoom;
+	//void SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	TArray<ACJS_MultiRoomActor*> MultiRoomActors;
+	TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+
+
+	// <----- 경원아 아래 JsonData 변수에 값이 할당될 수 있도록 InitJsonData()를 호촐하면 돼!!!
+	//FString JsonData = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString Json = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString JsonData;
+	void InitJsonData(FString LocalJsonData);
+
+
+	// 로비 -> 체험방 입장 시 통신 ======================================================================
+	UPROPERTY()
+	class ACJS_HttpActor* HttpActor;
+	//class AHttpActor* HttpActor;
+	//FString URL = "192.168.0.4:3326/api/auth/getRoomData";
+	FString URL = "https://jsonplaceholder.typicode.com/posts";
 
 };
