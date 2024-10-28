@@ -9,10 +9,13 @@
 #include "JsonParseLib.h"
 #include "Kismet/GameplayStatics.h"
 #include "HttpActor.h"
+#include "CJS/SessionGameInstance.h"
 
 
 TArray<FChoiceData> UKGW_ChoiceSaveBF::ChoiceList;
+
 TMap<FString, int32> SelectedChoices;
+//TMap<FString, FString> SelectedChoices;  <-- 수정 필요
 
 // void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 // {
@@ -50,6 +53,8 @@ TMap<FString, int32> SelectedChoices;
 // }
 void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 {
+    UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::SaveChoicesToJsonFile()"));
+
     // WorldContextObject�� null���� Ȯ��
     if (!WorldContextObject)
     {
@@ -62,8 +67,10 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 
     // ������ TMap<FString, int32> �����͸� FString���� ��ȯ�ؼ� ����
     for (const TPair<FString, int32>& Pair : SelectedChoices)
+    //for (const TPair<FString, FString>& Pair : SelectedChoices)
     {
         ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 ���� FString���� ��ȯ
+        //ChoiceMap.Add(Pair.Key, FString::FString(Pair.Value));  // int32 ���� FString���� ��ȯ
     }
 
     // MakeJson�� ȣ���� TMap �����͸� JSON ���ڿ��� ��ȯ
@@ -73,7 +80,8 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
     // ���� URL ����
-    FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
+    //FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
+    FString ServerURL = TEXT("https://jsonplaceholder.typicode.com/posts");
 
 //      WorldContextObject�� ���� ���� �ν��Ͻ��� ������
     AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(WorldContextObject->GetWorld(), AHttpActor::StaticClass()));
@@ -186,7 +194,9 @@ TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
 }
 
 void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
+//void UKGW_ChoiceSaveBF::StoreChoice(FString Question, FString SelectedValue)  <-- 수정 필요
 {
+    UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::StoreChoice()"));
     SelectedChoices.Add(Question, SelectedValue);
 }
 
@@ -231,3 +241,18 @@ void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
 //     return Colors;
 // 
 // }
+
+
+
+// UserId 설정  <-- 추가 필요
+//void UKGW_ChoiceSaveBF::GetUserId(USessionGameInstance* SessionGM, FString Question)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::GetUserId()"));
+//	FString userid;
+//	if (SessionGM)
+//	{
+//		userid = SessionGM->GetMySessionName();
+//	}
+//
+//	SelectedChoices.Add(Question, userid);
+//}

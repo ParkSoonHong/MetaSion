@@ -14,6 +14,8 @@
 #include "JS_RoomController.h"
 #include "JS_TestWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "CJS/CJS_BallPlayer.h"
+#include "CJS/SessionGameInstance.h"
 
 
 // Sets default values
@@ -38,6 +40,18 @@ void AHttpActor::BeginPlay()
 			  TestWidgetUI->AddToViewport();
 		  }
 	  }*/
+
+
+    // SessionGameInstance í• ë‹¹
+    SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+    if (SessionGI)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+    }
 }
 
 // Called every frame
@@ -53,41 +67,61 @@ void AHttpActor::LoginReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
     req->SetContentAsString(json);
 
-    // ÀÀ´ä¹ÞÀ» ÇÔ¼ö¸¦ ¿¬°á
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::LoginResPost);
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
 void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost()"));
+
     if (!Response.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+
+    //FString result1 = Response->GetContentAsString();
+    //UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost() result: %s"), *result1);
+   
+
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
-        UJsonParseLib::Login_Convert_JsonToStruct(result);
-        
-        UE_LOG(LogTemp, Log, TEXT("Login Post Request Success: %s"), *result);
+        //FString result = "{\"userId\": \"testuser\", \"userpass\": \"testpassword\"}";  <--- ì˜¬ë°”ë¥¸ JSON í˜•ì‹
+        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+
+        //UJsonParseLib::Login_Convert_JsonToStruct(result);
+        FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- ì¶”ê°€
+        FString userid = LoginData.userId;
+        UE_LOG(LogTemp, Warning, TEXT("LoginData.userid: %s"), *userid);
+        if (SessionGI)
+        {
+            SessionGI->InitSessionName(userid);
+            UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGI->MySessionName);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AHttpActor::LoginResPost():: No SessionGM"));
+        } 
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+        UE_LOG(LogTemp, Warning, TEXT("LoginResPost() Failed..."));
     }
     if (pc) {
         pc->HideLoginUI();
-        //ÀÌÂÊ¿¡ ´ÙÀ½ UI·Î ³Ñ¾î°¡´Â °Å ±¸Çö
+        //ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ ï¿½Ñ¾î°¡ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         ShowQuestionUI();
     }
 }
@@ -99,15 +133,15 @@ void AHttpActor::SignUpReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
     req->SetContentAsString(json);
 
-    // ÀÀ´ä¹ÞÀ» ÇÔ¼ö¸¦ ¿¬°á
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SignUpResPost);
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -118,10 +152,10 @@ void AHttpActor::SignUpResPost(FHttpRequestPtr Request, FHttpResponsePtr Respons
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         UJsonParseLib::SignUp_Convert_JsonToStruct(result);
         UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
@@ -140,15 +174,15 @@ void AHttpActor::UserReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
     req->SetContentAsString(json);
 
-    // ÀÀ´ä¹ÞÀ» ÇÔ¼ö¸¦ ¿¬°á
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::UserResPost);
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -159,10 +193,10 @@ void AHttpActor::UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response,
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         UJsonParseLib::UserLike_Convert_JsonToStruct(result);
         UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
@@ -180,15 +214,15 @@ void AHttpActor::UserLikeReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
     req->SetContentAsString(json);
 
-    // ÀÀ´ä¹ÞÀ» ÇÔ¼ö¸¦ ¿¬°á
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::UserLikeResPost);
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -199,10 +233,10 @@ void AHttpActor::UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Respo
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         UJsonParseLib::UserLike_Convert_JsonToStruct(result);
         UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
@@ -220,7 +254,7 @@ void AHttpActor::ChangeIndexReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
@@ -228,7 +262,7 @@ void AHttpActor::ChangeIndexReqPost(FString url, FString json)
 
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::ChangeIndexResPost);
 
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -239,24 +273,24 @@ void AHttpActor::ChangeIndexResPost(FHttpRequestPtr Request, FHttpResponsePtr Re
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         FChangeIndex ChangerIndexData = UJsonParseLib::ChangeIndex_Convert_JsonToStruct(result);
 
-        // ¼­¹ö¿¡¼­ ¹ÝÈ¯µÈ µ¥ÀÌÅÍ¸¦ ·Î±×·Î Ãâ·Â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½
         UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s, index = %d"), *ChangerIndexData.userId, ChangerIndexData.index);
 
-        // ÇöÀç ·¹º§¿¡¼­ RoomWidgetÀ» Ã£À½
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RoomWidgetï¿½ï¿½ Ã£ï¿½ï¿½
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
         if (PlayerController)
         {
             AJS_RoomController* RoomController = Cast<AJS_RoomController>(PlayerController);
             if (RoomController && RoomController->R_UI)
             {
-                // ¹ÞÀº Index °ªÀ¸·Î UI¸¦ ¾÷µ¥ÀÌÆ®
+                // ï¿½ï¿½ï¿½ï¿½ Index ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
                 RoomController->R_UI->SetIndex(ChangerIndexData.index, 100);
             }
         }
@@ -275,7 +309,7 @@ void AHttpActor::MyRoomInfoReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
@@ -283,7 +317,7 @@ void AHttpActor::MyRoomInfoReqPost(FString url, FString json)
 
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::MyRoomInfoResPost);
 
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -294,14 +328,14 @@ void AHttpActor::MyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Res
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         FMyRoomInfo MyRoomInfoData = UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(result);
 
-        // ¼­¹ö¿¡¼­ ¹ÝÈ¯µÈ µ¥ÀÌÅÍ¸¦ ·Î±×·Î Ãâ·Â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½
         UE_LOG(LogTemp, Log, TEXT("Response Received: RoomName = %s, room_pp = %s"),
             *MyRoomInfoData.RoomName,
             MyRoomInfoData.room_pp ? TEXT("true") : TEXT("false"));
@@ -319,7 +353,7 @@ void AHttpActor::MyCreateRoomInfoReqPost(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
@@ -327,7 +361,7 @@ void AHttpActor::MyCreateRoomInfoReqPost(FString url, FString json)
 
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::MyCreateRoomInfoResPost);
 
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
     req->ProcessRequest();
 }
 
@@ -338,14 +372,14 @@ void AHttpActor::MyCreateRoomInfoResPost(FHttpRequestPtr Request, FHttpResponseP
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ¿äÃ»ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú´ÂÁö È®ÀÎ
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ÀÀ´äÀ» ¹®ÀÚ¿­·Î °¡Á®¿À±â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         FString result = Response->GetContentAsString();
         FMyCreateRoomInfo MyCreateRoomInfoData = UJsonParseLib::FMyCreateRoomInfo_Convert_JsonToStruct(result);
 
-        // ¼­¹ö¿¡¼­ ¹ÝÈ¯µÈ µ¥ÀÌÅÍ¸¦ ·Î±×·Î Ãâ·Â
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½
         UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s,RoomNum = %d, RoomName = %s"),
             *MyCreateRoomInfoData.UserId,
              MyCreateRoomInfoData.RoomNum,
@@ -361,15 +395,15 @@ void AHttpActor::ReqPostChoice(FString url, FString json)
     FHttpModule& httpModule = FHttpModule::Get();
     TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
-    // ¿äÃ»ÇÒ Á¤º¸¸¦ ¼³Á¤
+    // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->SetURL(url);
     req->SetVerb(TEXT("POST"));
     req->SetHeader(TEXT("content-type"), TEXT("application/json"));
     req->SetContentAsString(json);
 
-    // ÀÀ´ä¹ÞÀ» ÇÔ¼ö¸¦ ¿¬°á
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostChoice);
-    // ¼­¹ö¿¡ ¿äÃ»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 
     req->ProcessRequest();
 
@@ -378,17 +412,32 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
 {
     if (bConnectedSuccessfully && Response.IsValid())
     {
-        // ¼º°øÀûÀ¸·Î ÀÀ´äÀ» ¹Þ¾ÒÀ» ¶§
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾ï¿½ï¿½ï¿½ ï¿½ï¿½
         FString ResponseContent = Response->GetContentAsString();
         UE_LOG(LogTemp, Log, TEXT("POST Response: %s"), *ResponseContent);
-        StoredJsonResponse = ResponseContent;
+        //StoredJsonResponse = ResponseContent;
         UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
-        // JSON ÀÀ´ä¿¡¼­ RGB °ªµéÀ» ÆÄ½Ì
+        StoredJsonResponse = StoredJsonResponsetest;    // <-------------------------------------------- ì—¬ê¸°ë¶€í„° ìˆ˜ì •
+        if (SessionGI)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
+            SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
+            SessionGI->FindSessions();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
+        }
+
+        
+
+
+        // JSON ï¿½ï¿½ï¿½ä¿¡ï¿½ï¿½ RGB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
 //         ParsedColors = UKGW_ChoiceSaveBF::ParseJsonToRGB(ResponseContent);
-        //         // ÆÄ½ÌµÈ RGB °ªÀÌ ÀÖÀ» °æ¿ì Ã³¸®
+        //         // ï¿½Ä½Ìµï¿½ RGB ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
         //         if (Colors.Num() > 0)
         //         {
-        //             // Ã¹ ¹øÂ° RGB °ª »ç¿ë ¿¹½Ã (¸ÓÆ¼¸®¾ó¿¡ Àû¿ë)
+        //             // Ã¹ ï¿½ï¿½Â° RGB ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         //             FColorData FirstColor = Colors[0];
         // 
         //             UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(CharacterMaterial, this);
@@ -398,11 +447,11 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
         //                 CharacterMesh->SetMaterial(0, DynamicMaterial);
         //             }
         // 
-        //             // Ãß°¡ Ã³¸® °¡´É
+        //             // ï¿½ß°ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         //         }
         //         if (ParsedColors.Num() > 0)
         //         {
-        //             // ÆÄ½ÌµÈ µ¥ÀÌÅÍ°¡ ÀÖÀ» °æ¿ì Ã¹ ¹øÂ° °ªÀ» ·Î±×·Î Ãâ·Â (µð¹ö±ë¿ë)
+        //             // ï¿½Ä½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×·ï¿½ ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
         //             FColorData FirstColor = ParsedColors[0];
         //             UE_LOG(LogTemp, Log, TEXT("Parsed Color - R: %f, G: %f, B: %f"), FirstColor.R, FirstColor.G, FirstColor.B);
         //         }
@@ -413,22 +462,22 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
         }
         else
         {
-            // ¿äÃ»ÀÌ ½ÇÆÐÇßÀ» ¶§
+            // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
             UE_LOG(LogTemp, Warning, TEXT("POST Request Failed"));
         }
 
 }
 void AHttpActor::ShowQuestionUI()
 {
-    // MyWidgetClass°¡ À¯È¿ÇÑÁö È®ÀÎ
+    // MyWidgetClassï¿½ï¿½ ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     if (QuestionUIFactory && !QuestionUI)
     {
-        // UI À§Á¬ ÀÎ½ºÅÏ½º¸¦ »ý¼º
+        // UI ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         QuestionUI = CreateWidget<UUserWidget>(GetWorld(), QuestionUIFactory);
 
         if (QuestionUI)
         {
-            // È­¸é¿¡ Ãß°¡
+            // È­ï¿½é¿¡ ï¿½ß°ï¿½
             QuestionUI->AddToViewport();
         }
     }
@@ -439,6 +488,94 @@ FString AHttpActor::StoreJsonResponse()
 
     return JsonString;
 }
+
+void AHttpActor::ReqPostClickMultiRoom(FString url, FString json)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::ReqPostClickMultiRoom()"));
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+    req->SetTimeout(60.0f); // íƒ€ìž„ì•„ì›ƒ ì„¤ì •
+
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostClickMultiRoom);
+
+    if (req->ProcessRequest())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Http Request processed successfully"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Http Request failed to process"));
+    }
+}
+
+void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::OnResPostClickMultiRoom()"));
+
+    /*if (!Response.IsValid())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+        return;
+    }
+
+    if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+    {
+        FString result = Response->GetContentAsString();
+        UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
+    }
+    else
+    {
+        int32 ResponseCode = Response->GetResponseCode();
+        UE_LOG(LogTemp, Warning, TEXT("OnResPostClickMultiRoom() Failed... Response Code: %d, Connected Successfully: %s"),
+            ResponseCode, bConnectedSuccessfully ? TEXT("True") : TEXT("False"));
+    }*/
+
+    if (bConnectedSuccessfully)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OnResPosLogin OK... %d"), Response->GetResponseCode());
+
+        int32 res = Response->GetResponseCode();
+        if (res == 200)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Response ... OK!! "));
+            FString str = Response->GetContentAsString();
+            UE_LOG(LogTemp, Warning, TEXT(" %s"), *str);
+
+            // í”Œë ˆì´ì–´ ìºìŠ¤íŒ… ë° RequestMoveMultiRoom í˜¸ì¶œ
+            if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+            {
+                ACJS_BallPlayer* player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
+                if (player)
+                {
+                    player->RequestMoveMultiRoom(PlayerController);
+                    UE_LOG(LogTemp, Warning, TEXT("RequestMoveMultiRoom called successfully."));
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Failed to cast PlayerController's Pawn to ACJS_BallPlayer."));
+                }
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to get PlayerController."));
+            }
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response ... not OK!! "));
+		}
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed...%d"), Response->GetResponseCode());
+    }
+}
+
 //MyCreateRoomInfo End-------------------------------------------------------------
 
 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "CJS/SessionGameInstance.h"
@@ -12,6 +12,7 @@
 #include "GenericPlatform/GenericPlatformMisc.h"
 #include "Kismet/GameplayStatics.h"
 #include "string"
+#include "CJS/CJS_BallPlayer.h"
 
 
 
@@ -19,10 +20,6 @@ void USessionGameInstance::Init()	// 게임 인스턴스 초기화 함수로, �
 {
 	Super::Init();
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::Init()"));
-
-	// UserId로 방이름 초기화
-	//MySessionName = PlayerState->GetUserId();
-	//GetWorld()->GetTimerManager().SetTimerForNextTick(this, &USessionGameInstance::AssignSessionNameFromPlayerState);
 
 	IOnlineSubsystem* subSystem = IOnlineSubsystem::Get();
 
@@ -112,7 +109,7 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	{
 		PRINTLOG(TEXT("OnCreateSessionComplete is Successes"));
 		PRINTLOG(TEXT("Session created successfully with name: %s"), *sessionName.ToString());
-		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/CJS_LobbyMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/Main/Maps/Main_Lobby?listen"));  
 	}
 	else
 	{
@@ -300,4 +297,63 @@ bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
 	}
 
 	return true;
+}
+
+void USessionGameInstance::InitSessionName(FString name)
+{
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName()"));
+	MySessionName = name;
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName() MySessionName : %s"), *MySessionName);
+}
+
+FString USessionGameInstance::GetMySessionName()
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %s"), *MySessionName);
+	return MySessionName;
+}
+	
+	
+//void USessionGameInstance::SetRefMultiRoomInfo(FString json)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetRefMultiRoomInfo()"));
+//
+//	// World 객체에서 첫 번째 PlayerController 가져오기
+//		UWorld * World = GetWorld();
+//	if (!World)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("World is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	APlayerController* PlayerController = World->GetFirstPlayerController();
+//	if (!PlayerController)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("PlayerController is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	// PlayerController에서 현재 Pawn을 가져와 ACJS_BallPlayer로 캐스팅
+//	ACJS_BallPlayer* Player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
+//	if (Player)
+//	{
+//		Player->InitJsonData(json);
+//		UE_LOG(LogTemp, Warning, TEXT("Player cast successful and InitJsonData called"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("Failed to cast to ACJS_BallPlayer"));
+//	}
+//}
+
+void USessionGameInstance::SetNetInfoCharacterTOLobby(FString info)
+{	
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby()"));
+	NetInfoCharacterTOLobby = info;
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby() : %s"), *NetInfoCharacterTOLobby);
+}
+
+FString USessionGameInstance::GetNetInfoCharacterTOLobby()
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetNetInfoCharacterTOLobby()"));
+	return NetInfoCharacterTOLobby;
 }

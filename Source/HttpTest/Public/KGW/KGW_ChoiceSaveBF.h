@@ -55,6 +55,9 @@ UFUNCTION(BlueprintCallable, Category = "Save")
 
     UFUNCTION(BlueprintCallable, Category = "Save")
     static void StoreChoice(FString Question, int32 SelectedValue);
+    //static void StoreChoice(FString Question, FString SelectedValue);
+
+    
 
     
 	static TArray<FChoiceData> ChoiceList;
@@ -63,5 +66,7 @@ UFUNCTION(BlueprintCallable, Category = "Save")
 //     static class UJS_GameInstance* PostChoice;
     
 
-	
+	//UserId 설정   <-- 이거 추가해야 함.
+    //UFUNCTION(BlueprintCallable, Category = "Save")
+    //static void GetUserId(USessionGameInstance* SessionGM, FString Question);
 };

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -86,12 +86,26 @@ public:
 
 	
 	
+
+	/* --------------------------------------------------------------------------------------------------------------------------- */
 	// UserId 할당
 	//UPROPERTY()
 	//class ACJS_BallPlayerState* PlayerState;
 	// PlayerState의 UserId를 받아서 MySessionName에 지정
 	void AssignSessionNameFromPlayerState();
 	bool ValidateSessionInterfaceAndSearch() const;
+	void InitSessionName(FString name);
+	FString GetMySessionName();
+
+	// Lobby Ref MultiRoom Info 전달
+	//UPROPERTY()
+	//class ACJS_BallPlayer* Player;
+	//UFUNCTION()
+	//void SetRefMultiRoomInfo(FString json);
+	FString NetInfoCharacterTOLobby;
+	void SetNetInfoCharacterTOLobby(FString info);
+	FString GetNetInfoCharacterTOLobby();
+
 
 };
 
