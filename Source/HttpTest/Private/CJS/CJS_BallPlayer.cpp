@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "CJS/CJS_BallPlayer.h"
@@ -27,6 +27,8 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "CJS/SessionGameInstance.h"
+
+#include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"  // 파이썬 자동 실행
 
 
 
@@ -188,13 +190,14 @@ void ACJS_BallPlayer::BeginPlay()
 
 
 	// HttpActor 초기화 시도
-	HttpActor = Cast<ACJS_HttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_HttpActor::StaticClass()));
-
+	//HttpActor = Cast<ACJS_HttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_HttpActor::StaticClass()));
+	HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
 	if (HttpActor == nullptr)
 	{
 		// HttpActor를 찾지 못한 경우, 새로 생성
 		FActorSpawnParameters SpawnParams;
-		HttpActor = GetWorld()->SpawnActor<ACJS_HttpActor>(ACJS_HttpActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		//HttpActor = GetWorld()->SpawnActor<ACJS_HttpActor>(ACJS_HttpActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		HttpActor = GetWorld()->SpawnActor<AHttpActor>(AHttpActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 
 		if (HttpActor)
 		{
@@ -395,7 +398,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 				{				
 					//RequestMoveMultiRoom(PC);
 
-					// GameInstance에서 MySessionName 값을 가져옴  <---- 추가한 부분
+					// GameInstance에서 MySessionName 값을 가져옴
 					FString UserId;
 					int32 ActorIndex;
 					//FString RoomOwner;
@@ -789,5 +792,22 @@ void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
 	JsonData = LocalJsonData;
 	UE_LOG(LogTemp, Warning, TEXT("JsonData initialized with value: %s"), *JsonData);
+}
+
+void ACJS_BallPlayer::ExecuteWallPaperPython()
+{
+	// 파이썬 파일 경로 설정
+	FString ScriptPath = FPaths::ProjectContentDir() + TEXT("Python/Wallpaper.py");
+
+	// 파이썬 스크립트 실행
+	IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
+	if (PythonPlugin && PythonPlugin->IsPythonAvailable())
+	{
+		PythonPlugin->ExecPythonCommand(*ScriptPath);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Python is not available in this build."));
+	}
 }
 
