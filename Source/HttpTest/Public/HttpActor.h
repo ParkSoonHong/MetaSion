@@ -83,6 +83,12 @@ public:
 	FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
 
 
+
+	/* Sunny */
+	//캐릭터생성 -> 로비 입장 시 초기 설정
+	UPROPERTY()
+	class USessionGameInstance* SessionGM;
+
 	//로비 -> 멀티방 입장 시 통신
 	void ReqPostClickMultiRoom(FString url, FString json);
 	void OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);

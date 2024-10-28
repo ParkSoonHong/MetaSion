@@ -15,6 +15,7 @@
 #include "JS_TestWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "CJS/CJS_BallPlayer.h"
+#include "CJS/SessionGameInstance.h"
 
 
 // Sets default values
@@ -39,6 +40,18 @@ void AHttpActor::BeginPlay()
 			  TestWidgetUI->AddToViewport();
 		  }
 	  }*/
+
+
+    // SessionGameInstance 할당
+    SessionGM = Cast<USessionGameInstance>(GetGameInstance());
+    if (SessionGM)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+    }
 }
 
 // Called every frame
@@ -68,6 +81,8 @@ void AHttpActor::LoginReqPost(FString url, FString json)
 
 void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost()"));
+
     if (!Response.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
@@ -78,9 +93,20 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
     {
         // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
-        UJsonParseLib::Login_Convert_JsonToStruct(result);
+        FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- 추가
+        FString uesrid = LoginData.userId;
+        if (SessionGM)
+        {
+            SessionGM->InitSessionName(uesrid);
+            UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGM->MySessionName);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AHttpActor::LoginResPost():: No SessionGM"));
+        }
+
         
-        UE_LOG(LogTemp, Log, TEXT("Login Post Request Success: %s"), *result);
+        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
     }
     else
     {
