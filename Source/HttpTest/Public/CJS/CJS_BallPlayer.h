@@ -155,4 +155,9 @@ public:
 	//FString URL = "192.168.0.4:3326/api/auth/getRoomData";
 	FString URL = "https://jsonplaceholder.typicode.com/posts";
 
+
+	// 월페이퍼 파이썬 자동 실행 ========================================================================
+	UFUNCTION(BlueprintCallable, Category = "Python")
+	void ExecuteWallPaperPython();
+
 };
