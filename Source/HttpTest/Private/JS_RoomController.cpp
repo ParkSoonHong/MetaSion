@@ -68,11 +68,8 @@ void AJS_RoomController::BeginPlay()
     InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // 占쏙옙占쎌스占쏙옙 占쏙옙占쏙옙占?占쏙옙占쏙옙
     SetInputMode(InputMode);
 
-    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
-
-    if (LevelName == TEXT("Main_Sky")) {
-        SpawnAndSwitchToCamera();
-    }
+    // 타이머 설정: 1초 간격으로 SpawnAndSwitchToCamera 호출
+    GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 1.0f, true);
 }
 
 void AJS_RoomController::SetupInputComponent()
@@ -94,7 +91,8 @@ void AJS_RoomController::SetupInputComponent()
 
 void AJS_RoomController::InitializeUIWidgets()
 {
-    if (LoginUIFactory) {
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+    if (LoginUIFactory && LevelName == "Main_Sky") {
         LoginUI = CreateWidget<UHttpWidget>(this, LoginUIFactory);
         if (LoginUI) {
             LoginUI->AddToViewport();
@@ -333,20 +331,40 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
 void AJS_RoomController::SpawnAndSwitchToCamera()
 {
-    // 원하는 위치와 회전을 지정
-    FVector CameraLocation(-470047.589317, 643880.898148, 648118.610643);
-    FRotator CameraRotation(9.157953, 200.435537, 0.000001);
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+    FVector CameraLocation;
+    FRotator CameraRotation;
+
+    if (LevelName == "Main_Sky")
+    {
+        // 하늘 레벨 위치와 회전 설정
+        CameraLocation = FVector(-470047.589317, 643880.898148, 648118.610643);
+        CameraRotation = FRotator(9.157953, 200.435537, 0.000001);
+    }
+    else if (LevelName == "Main_Room")
+    {
+        // 방 레벨 위치와 회전 설정
+        CameraLocation = FVector(3004.710844, -40.193309, 83.381573);
+        CameraRotation = FRotator(4.510870, 1980.785016, 0);
+    }
+    else
+    {
+        return;  // 조건에 맞지 않으면 반환
+    }
 
     // 카메라 액터를 스폰
     FActorSpawnParameters SpawnParams;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     ACameraActor* TargetCamera = GetWorld()->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), CameraLocation, CameraRotation, SpawnParams);
 
-    // 카메라가 정상적으로 생성되었는지 확인 후 뷰 타겟으로 전환
     if (TargetCamera)
     {
         SetViewTarget(TargetCamera);
         UE_LOG(LogTemp, Log, TEXT("Camera view switched to target camera successfully."));
+
+        // 카메라 전환이 완료되면 타이머 종료
+        GetWorldTimerManager().ClearTimer(LevelCheckTimerHandle);
     }
     else
     {

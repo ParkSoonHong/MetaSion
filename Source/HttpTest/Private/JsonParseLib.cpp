@@ -182,7 +182,7 @@ FRoomData UJsonParseLib::RoomData_Convert_JsonToStruct(const FString& JsonString
 }
 // MyCreateRoomInfo End ----------------------------------------------------------------------------
 
-FString UJsonParseLib::MakeJson(const TMap<FString, FString> source)
+FString UJsonParseLib::MakeJson(const TMap<FString, FString>& source)
 {
 	// source를 JsonObject 형식으로 만든다.
 	TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());

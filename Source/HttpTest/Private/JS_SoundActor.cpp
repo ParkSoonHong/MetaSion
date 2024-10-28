@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "HttpActor.h"
 #include "JsonParseLib.h"
+#include "CJS/SessionGameInstance.h"
 
 // Sets default values
 AJS_SoundActor::AJS_SoundActor()
@@ -26,11 +27,17 @@ void AJS_SoundActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
+	/*HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
 	if (HttpActor) {
 		FRoomData RoomData = HttpActor->GetRoomData();
-		FString FileName = RoomData.RecommendedMusic;
+		FString FileName = RoomData.userMusic;
 		SetBackgroundSoundByFileName(FileName);
+	}*/
+	SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
+	if (HttpActor)
+	{
+		OnRoomDataInitialized();
 	}
 }
 
@@ -61,5 +68,11 @@ void AJS_SoundActor::SetBackgroundSoundByFileName(const FString& FileName)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to load sound: %s"), *AssetPath);
 	}
+}
+
+void AJS_SoundActor::OnRoomDataInitialized()
+{
+	FString FileName = SessionGI->RoomMusicData;
+	SetBackgroundSoundByFileName(FileName);
 }
 
