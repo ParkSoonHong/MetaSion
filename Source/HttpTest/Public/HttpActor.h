@@ -72,7 +72,7 @@ public:
 	void ReqPostChoice(FString url, FString json);
 	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	// UI »ý¼º ¹× È­¸é¿¡ Ãß°¡ÇÏ´Â ÇÔ¼ö
+	// UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È­ï¿½é¿¡ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
 	void ShowQuestionUI();
 
 	UFUNCTION(BlueprintCallable, Category = "JSON")
@@ -81,4 +81,9 @@ public:
 
 	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
 	FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
+
+
+	//ë¡œë¹„ -> ë©€í‹°ë°© ìž…ìž¥ ì‹œ í†µì‹ 
+	void ReqPostClickMultiRoom(FString url, FString json);
+	void OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };
