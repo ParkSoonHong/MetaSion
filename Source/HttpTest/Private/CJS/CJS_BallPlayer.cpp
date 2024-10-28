@@ -65,14 +65,27 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	InitJsonData(Json);
+	//InitJsonData(Json);
 }
+	
 
 
 // Called when the game starts or when spawned
 void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// SessionGameInstance 할당
+	SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	if (SessionGI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
+		InitJsonData(SessionGI->GetNetInfoCharacterTOLobby());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+	}
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -812,7 +825,7 @@ void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, 
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
 	JsonData = LocalJsonData;
-	UE_LOG(LogTemp, Warning, TEXT("JsonData initialized with value: %s"), *JsonData);
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitJsonData()::JsonData initialized with value: %s"), *JsonData);
 }
 
 void ACJS_BallPlayer::ExecuteWallPaperPython()
