@@ -64,6 +64,9 @@ public:
 	void OnMyActionClick(const FInputActionValue& Value);
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
 
+	UPROPERTY(EditAnywhere, Category = "INPUT")
+	float RollSpeed;
+
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
