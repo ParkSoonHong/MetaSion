@@ -230,7 +230,7 @@ void USessionGameInstance::OnMyJoinSessionComplete(FName SessionName, EOnJoinSes
 		FString url;
 		if (SessionInterface->GetResolvedConnectString(SessionName, url))
 		{
-			PRINTLOG(TEXT("Travelling to session URL: %s"), *url);
+			PRINTLOG(TEXT("Travelling to session MultiRoomURL: %s"), *url);
 			pc->ClientTravel(url, ETravelType::TRAVEL_Absolute);
 		}
 		else

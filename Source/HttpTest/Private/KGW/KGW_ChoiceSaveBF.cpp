@@ -79,7 +79,7 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     // JSON ���ڿ� Ȯ�� (������ �α�)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
 
-    // ���� URL ����
+    // ���� MultiRoomURL ����
     //FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
     FString ServerURL = TEXT("https://jsonplaceholder.typicode.com/posts");
 

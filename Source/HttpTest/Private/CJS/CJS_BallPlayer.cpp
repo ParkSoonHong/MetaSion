@@ -479,10 +479,10 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					// 로그 출력 (디버깅용)
 					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
-					UE_LOG(LogTemp, Warning, TEXT("userId: %s, roomNum: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *RoomNum);
 					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
 
-					HttpActor->ReqPostClickMultiRoom(URL, json);
+					HttpActor->ReqPostClickMultiRoom(MultiRoomURL, json);
 					UE_LOG(LogTemp, Warning, TEXT("----------  post reqeust done"));
 				}
 				else
@@ -517,7 +517,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					UE_LOG(LogTemp, Warning, TEXT("Json Request: %s"), *JsonRequest);
 
 					// 서버로 요청 전송
-					HttpActor->ReqPostClickMyRoom(URL, JsonRequest);
+					HttpActor->ReqPostClickMyRoom(HttpActor->MyRoomURL, JsonRequest);
 				}
 				else
 				{

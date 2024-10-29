@@ -160,10 +160,9 @@ public:
 	UPROPERTY()
 	//class ACJS_HttpActor* HttpActor;
 	class AHttpActor* HttpActor;
-	//FString URL = "192.168.0.4:3326/api/auth/getRoomData";
-	//FString URL = "https://jsonplaceholder.typicode.com/posts";
-	//FString URL = "125.132.216.190:3326/api/auth/getRoomData";
-	FString URL = "http://125.132.216.190:3326/api/auth/userRooms";
+	//FString CallBackURL = "https://jsonplaceholder.typicode.com/posts";
+	FString MultiRoomURL = "125.132.216.190:3326/api/auth/getRoomData";
+	//FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
 
 
 	// 월페이퍼 파이썬 자동 실행 ========================================================================

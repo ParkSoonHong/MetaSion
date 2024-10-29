@@ -47,7 +47,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "JSON Data")
 	FString StoredJsonResponse;
 
-	FString StoredJsonResponsetest = TEXT("{\"UserId\":\"123\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString StoredJsonResponsetest = TEXT("{\"UserId\":\"testuser\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
 
 	// Login
 	void LoginReqPost(FString url, FString json);
@@ -87,12 +87,10 @@ public:
     FString StoreJsonResponse();
 
 
-	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
-	//FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
-	//FString ServerURL = "http://125.132.216.190:3326/api/auth/login";
-	//FString ServerURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
-	//FString ServerURL = "http://125.132.216.190:3326/api/auth/userRooms";
-	FString ServerURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
+	FString LoginURL = "http://125.132.216.190:3326/api/auth/login";
+	FString EnteryLobbyURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
+	FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
+	FString WallPaperURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
 
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
