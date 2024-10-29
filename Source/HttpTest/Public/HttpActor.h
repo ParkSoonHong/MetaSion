@@ -91,7 +91,8 @@ public:
 	//FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
 	//FString ServerURL = "http://125.132.216.190:3326/api/auth/login";
 	//FString ServerURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
-	FString ServerURL = "http://125.132.216.190:3326/api/auth/userRooms";
+	//FString ServerURL = "http://125.132.216.190:3326/api/auth/userRooms";
+	FString ServerURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
 
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
@@ -109,5 +110,8 @@ public:
 	//다른 클래스에서 파싱된 RoomData를 사용하기 위한 Getter함수
 	FRoomData GetRoomData() const;
 	FRoomData RoomData;
+
+	//RoomUI Timer
+	FTimerHandle RoomUIWaitTimerHandle;
 
 };

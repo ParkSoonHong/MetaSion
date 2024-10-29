@@ -282,7 +282,7 @@ void AHttpActor::ChangeIndexResPost(FHttpRequestPtr Request, FHttpResponsePtr Re
         FChangeIndex ChangerIndexData = UJsonParseLib::ChangeIndex_Convert_JsonToStruct(result);
 
         // �������� ��ȯ�� �����͸� �α׷� ���
-        UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s, index = %d"), *ChangerIndexData.userId, ChangerIndexData.index);
+        UE_LOG(LogTemp, Warning, TEXT("Response Received : roomNum = %s"), *ChangerIndexData.roomNum);
 
         // ���� �������� RoomWidget�� ã��
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
@@ -292,7 +292,10 @@ void AHttpActor::ChangeIndexResPost(FHttpRequestPtr Request, FHttpResponsePtr Re
             if (RoomController && RoomController->R_UI)
             {
                 // ���� Index ������ UI�� ������Ʈ
-                RoomController->R_UI->SetIndex(ChangerIndexData.index, 100);
+                RoomController->R_UI->SetIndex(ChangerIndexData.roomNum, 100);
+                //찍고 나서 배경에 뜨면 UI 생성 후 타이머로 1초 뒤에 사라지게 구현
+                // AJS_RoomController의 HideRoomUI 함수를 타이머로 호출하도록 RoomController에서 설정
+                RoomController->GetWorldTimerManager().SetTimer(RoomUIWaitTimerHandle, RoomController, &AJS_RoomController::HideRoomUI, 1.0f, false);
             }
         }
 

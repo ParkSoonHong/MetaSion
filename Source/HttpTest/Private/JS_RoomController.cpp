@@ -18,6 +18,7 @@
 #include "HighResScreenshot.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
+#include "Camera/CameraComponent.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -206,6 +207,7 @@ void AJS_RoomController::OnMouseClick()
                     ShowRoomUI();
                     PlayUIAnimation();
                     ScreenCapture();
+                    R_UI->SendChangeIndexData();
                // }
             }
             else if (HitActor->ActorHasTag(TEXT("Lobby")))
@@ -358,6 +360,9 @@ void AJS_RoomController::SpawnAndSwitchToCamera()
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
     ACameraActor* TargetCamera = GetWorld()->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), CameraLocation, CameraRotation, SpawnParams);
 
+    if (LevelName == "Main_Room") {
+        TargetCamera->GetCameraComponent()->SetFieldOfView(43);
+    }
     if (TargetCamera)
     {
         SetViewTarget(TargetCamera);
