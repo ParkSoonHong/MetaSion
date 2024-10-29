@@ -96,5 +96,5 @@ void UJS_CreateRoomWidget::SendSetPrivateRoom(bool bRoom_pp)
 
 	FString json = UJsonParseLib::MyRoomInfo_Convert_StructToJson(MyRoomInfo);
 
-	httpActor->MyRoomInfoReqPost(httpActor->ServerURL, json);
+	httpActor->MyRoomInfoReqPost(httpActor->MyRoomURL, json);
 }

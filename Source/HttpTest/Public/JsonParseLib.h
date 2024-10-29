@@ -174,10 +174,11 @@ struct FChangeIndex //ChangeIndex
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
-	FString roomNum;
-
+	FString room_num;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
+    FString updatedWallpaperNum;
 	//기본 생성자
-	FChangeIndex() : roomNum(TEXT("")){}
+	FChangeIndex() : room_num(TEXT("")), updatedWallpaperNum(TEXT("")) {}
 };
 
 USTRUCT(BlueprintType) 

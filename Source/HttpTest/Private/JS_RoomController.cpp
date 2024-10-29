@@ -212,18 +212,15 @@ void AJS_RoomController::OnMouseClick()
             }
             else if (HitActor->ActorHasTag(TEXT("Lobby")))
             {
-
 				UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
-                if (bShowUI) {
-                    UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
-                }
+                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
             }
             else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
             {
 
                 UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
 
-                UGameplayStatics::OpenLevel(this, FName("JS_Lobby"));
+                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
 
             }
 
