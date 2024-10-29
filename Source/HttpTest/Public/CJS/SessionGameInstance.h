@@ -60,6 +60,8 @@ public:
 	FString MySessionName = TEXT("User1");
 	//FString MySessionName;
 
+	UPROPERTY()
+	FString RoomMusicData = TEXT("Room1");
 	// 방 생성 요청 (새로운 세션을 생성하는 함수)
 	UFUNCTION()
 	void CreateMySession();
@@ -100,8 +102,8 @@ public:
 	// Lobby Ref MultiRoom Info 전달
 	//UPROPERTY()
 	//class ACJS_BallPlayer* Player;
-	UFUNCTION()
-	void SetRefMultiRoomInfo(FString json);
+	//UFUNCTION()
+	//void SetRefMultiRoomInfo(FString json);
 	FString NetInfoCharacterTOLobby;
 	void SetNetInfoCharacterTOLobby(FString info);
 	FString GetNetInfoCharacterTOLobby();

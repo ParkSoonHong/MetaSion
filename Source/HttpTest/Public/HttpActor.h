@@ -8,6 +8,9 @@
 #include "JsonParseLib.h"
 #include "HttpActor.generated.h"
 
+// RoomData가 초기화되었을 때 호출되는 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoomDataInitialized, const FRoomData&, RoomData);
+
 UCLASS()
 class HTTPTEST_API AHttpActor : public AActor
 {
@@ -24,6 +27,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// RoomData 초기화 시 호출되는 델리게이트
+    UPROPERTY(BlueprintAssignable, Category="Room Data")
+    FOnRoomDataInitialized OnRoomDataInitialized;
 
 	UPROPERTY(EditAnywhere)
 	class AJS_RoomController* pc;
@@ -82,8 +89,9 @@ public:
 
 	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
 	//FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
-	FString ServerURL = "http://125.132.216.190:3326/api/auth/login";
-
+	//FString ServerURL = "http://125.132.216.190:3326/api/auth/login";
+	//FString ServerURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
+	FString ServerURL = "http://125.132.216.190:3326/api/auth/userRooms";
 
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정

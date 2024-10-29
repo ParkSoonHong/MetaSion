@@ -91,9 +91,9 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
 
     //FString result1 = Response->GetContentAsString();
     //UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost() result: %s"), *result1);
-   
-
+   //
     // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+    UE_LOG(LogTemp, Warning, TEXT("Response code : %d"), Response->GetResponseCode());
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
         // ������ ���ڿ��� ��������
@@ -113,15 +113,15 @@ void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response
 
         
         UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+        if (pc) {
+            pc->HideLoginUI();
+            //���ʿ� ���� UI�� �Ѿ�� �� ����
+            ShowQuestionUI();
+        }
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("LoginResPost() Failed..."));
-    }
-    if (pc) {
-        pc->HideLoginUI();
-        //���ʿ� ���� UI�� �Ѿ�� �� ����
-        ShowQuestionUI();
     }
 }
 //Login End-------------------------------------------------------------
@@ -322,26 +322,46 @@ void AHttpActor::MyRoomInfoReqPost(FString url, FString json)
 
 void AHttpActor::MyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    //if (!Response.IsValid())
+    //{
+    //    UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+    //    return;
+    //}
+    //// ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+    //if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+    //{
+    //    // ������ ���ڿ��� ��������
+    //    FString result = Response->GetContentAsString();
+    //    FMyRoomInfo MyRoomInfoData = UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(result);
+
+    //    // �������� ��ȯ�� �����͸� �α׷� ���
+    //    UE_LOG(LogTemp, Log, TEXT("Response Received: RoomName = %s, room_pp = %s"),
+    //        *MyRoomInfoData.RoomName,
+    //        MyRoomInfoData.room_pp ? TEXT("true") : TEXT("false"));
+    //}
+    //else
+    //{
+    //    UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+    //}
     if (!Response.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ������ ���ڿ��� ��������
-        FString result = Response->GetContentAsString();
-        FMyRoomInfo MyRoomInfoData = UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(result);
+        FString JsonResponse = Response->GetContentAsString();
+        RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
 
-        // �������� ��ȯ�� �����͸� �α׷� ���
-        UE_LOG(LogTemp, Log, TEXT("Response Received: RoomName = %s, room_pp = %s"),
-            *MyRoomInfoData.RoomName,
-            MyRoomInfoData.room_pp ? TEXT("true") : TEXT("false"));
+        UE_LOG(LogTemp, Warning, TEXT("RoomData initialized: %s"), *RoomData.userMusic);
+
+        // RoomData가 초기화되었음을 알리기 위해 델리게이트 호출
+        OnRoomDataInitialized.Broadcast(RoomData);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+        UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
     }
 }
 //MyRoomInfo End-------------------------------------------------------------
@@ -613,22 +633,16 @@ void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr 
         // 응답에서 JSON 문자열 얻기
         FString JsonResponse = Response->GetContentAsString();
         UE_LOG(LogTemp, Warning, TEXT("Response JSON: %s"), *JsonResponse);
-
+       
         // FRoomData 구조체로 변환
         RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
-
-        RoomData.RecommendedMusic = TEXT("Music_02");
-		UE_LOG(LogTemp, Warning, TEXT("Room Data Parsed Successfully"));
-		UE_LOG(LogTemp, Warning, TEXT("Question_03: %s"), *RoomData.question_03);
-		UE_LOG(LogTemp, Warning, TEXT("RoomNum: %d"), RoomData.RoomNum);
-		UE_LOG(LogTemp, Warning, TEXT("RoomName: %s"), *RoomData.RoomName);
-		UE_LOG(LogTemp, Warning, TEXT("RecommendedMusic: %s"), *RoomData.RecommendedMusic);
-		UE_LOG(LogTemp, Warning, TEXT("EmotionImage: %s"), *RoomData.EmotionImage);
-		UE_LOG(LogTemp, Warning, TEXT("Analysiscontent: %s"), *RoomData.Analysiscontent);
+        SessionGI->RoomMusicData = RoomData.userMusic;
+		UE_LOG(LogTemp, Warning, TEXT("RecommendedMusic: %s"), *SessionGI->RoomMusicData);
 
         //MyRoom으로 이동
-        if (pc) {
-            pc->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+        APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+        if (PlayerController) {
+            PlayerController->ClientTravel("/Game/Main/Maps/Main_Room", ETravelType::TRAVEL_Absolute);
         }
     }
     else
@@ -639,6 +653,8 @@ void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr 
 //Getter 함수
 FRoomData AHttpActor::GetRoomData() const
 {
+    FString Rdata = RoomData.userMusic;
+    UE_LOG(LogTemp, Warning, TEXT("RoomData music : %s"), *Rdata);
     return RoomData;
 }
 //MyCreateRoomInfo End-------------------------------------------------------------

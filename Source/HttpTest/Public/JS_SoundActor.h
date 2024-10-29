@@ -23,6 +23,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY()
+	class USessionGameInstance* SessionGI;
 	UPROPERTY(EditAnywhere)
 	class AHttpActor* HttpActor;
 
@@ -31,4 +33,8 @@ public:
 
 	// 서버에서 받은 파일 이름을 통해 배경음을 변경하는 함수
 	void SetBackgroundSoundByFileName(const FString& FileName);
+
+	UFUNCTION()
+    void OnRoomDataInitialized(); // RoomData 초기화 시 호출되는 함수
+
 };

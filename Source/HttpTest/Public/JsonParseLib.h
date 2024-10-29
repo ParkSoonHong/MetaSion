@@ -241,31 +241,16 @@ struct FRoomData
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    FString question_03;
+public:
+    // 방 번호
+    UPROPERTY(BlueprintReadWrite, Category="Room Data")
+    FString userMusic;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    int32 RoomNum;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    FString RoomName;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    FString RecommendedMusic;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    FString EmotionImage;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoomData")
-    FString Analysiscontent;
-
-    FRoomData() : question_03(TEXT("")),
-				  RoomNum(0),
-				  RoomName(TEXT("")),
-				  RecommendedMusic(TEXT("")),
-				  EmotionImage(TEXT("")),
-				  Analysiscontent(TEXT(""))
-				  {}
+    // 기본 생성자
+    FRoomData()
+        : userMusic(TEXT(""))
+    {}
 };
 
 /**
@@ -278,7 +263,7 @@ class HTTPTEST_API UJsonParseLib : public UBlueprintFunctionLibrary
 	
 public:
 
-	static FString MakeJson(const TMap<FString, FString> source);
+	static FString MakeJson(const TMap<FString, FString>& source);
 
 	//Struct To Json : Req
 	static FString Login_Convert_StructToJson(const FLogin& LoginStrcut);

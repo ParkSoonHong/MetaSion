@@ -65,7 +65,7 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	//InitJsonData(Json);
+	InitJsonData(Json);
 }
 	
 
@@ -76,7 +76,7 @@ void ACJS_BallPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	// SessionGameInstance 할당
-	SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
 	if (SessionGI)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
@@ -85,7 +85,7 @@ void ACJS_BallPlayer::BeginPlay()
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
-	}
+	}*/
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -496,7 +496,8 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
 					if (GameInstance)
 					{
-						UserId = GameInstance->MySessionName;
+						//UserId = GameInstance->MySessionName;
+						UserId = "testuser";
 						UE_LOG(LogTemp, Warning, TEXT("Assigned UserId from MySessionName: %s"), *UserId);
 					}
 
