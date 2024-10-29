@@ -46,7 +46,7 @@ class HTTPTEST_API UKGW_ChoiceSaveBF : public UBlueprintFunctionLibrary
 
     public:
 UFUNCTION(BlueprintCallable, Category = "Save")
-    static void SaveChoicesToJsonFile(UObject* WorldContextObject);
+    void SaveChoicesToJsonFile(UObject* WorldContextObject);
     UFUNCTION(BlueprintCallable, Category = "Save")
     static void AddChoice(const FChoiceData& ChoiceData);
 
@@ -54,10 +54,12 @@ UFUNCTION(BlueprintCallable, Category = "Save")
     static TArray<FColorData> ParseJsonToRGB(const FString& JsonString);
 
     UFUNCTION(BlueprintCallable, Category = "Save")
-    static void StoreChoice(FString Question, int32 SelectedValue);
+    static void StoreChoice(FString Question, FString SelectedValue);
     //static void StoreChoice(FString Question, FString SelectedValue);
 
-    
+    UPROPERTY()
+	class USessionGameInstance* SessionID;
+
 
     
 	static TArray<FChoiceData> ChoiceList;
