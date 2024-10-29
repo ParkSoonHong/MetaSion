@@ -40,7 +40,10 @@ void UHttpWidget::SendLoginData()
 
 	FString json = UJsonParseLib::Login_Convert_StructToJson(loginData);
 	//Login��û
-	HttpActor->LoginReqPost(HttpActor->ServerURL, json);
+	if (HttpActor) {
+		HttpActor->LoginReqPost(HttpActor->ServerURL, json);
+	}
+	
 }
 
 void UHttpWidget::SendSignUpData()
@@ -52,7 +55,9 @@ void UHttpWidget::SendSignUpData()
 	//�����ͺ� textblock���� �������� ������� ����
 	FString json = UJsonParseLib::SignUp_Convert_StructToJson(SingupData);
 	//Login��û
-	HttpActor->SignUpReqPost(HttpActor->ServerURL, json);
+	if (HttpActor) {
+		HttpActor->SignUpReqPost(HttpActor->ServerURL, json);
+	}
 }
 
 //User

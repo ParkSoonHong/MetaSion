@@ -60,6 +60,8 @@ public:
 	FString MySessionName = TEXT("User1");
 	//FString MySessionName;
 
+	UPROPERTY()
+	FString RoomMusicData = TEXT("Room1");
 	// 방 생성 요청 (새로운 세션을 생성하는 함수)
 	UFUNCTION()
 	void CreateMySession();
