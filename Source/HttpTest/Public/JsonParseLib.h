@@ -174,15 +174,10 @@ struct FChangeIndex //ChangeIndex
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
-	FString userId;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallPaper/Struct")
-	int32 index;
+	FString roomNum;
 
 	//기본 생성자
-	FChangeIndex() 
-			: userId(TEXT("")),
-			  index(0)
-	{}
+	FChangeIndex() : roomNum(TEXT("")){}
 };
 
 USTRUCT(BlueprintType) 
@@ -235,6 +230,24 @@ struct FMyCreateRoomInfo
 		, Analysiscontent(TEXT("No Analysis"))
 	{}
 };
+
+USTRUCT(BlueprintType)
+struct FRoomData
+{
+    GENERATED_BODY()
+
+public:
+    // 방 번호
+    UPROPERTY(BlueprintReadWrite, Category="Room Data")
+    FString userMusic;
+
+
+    // 기본 생성자
+    FRoomData()
+        : userMusic(TEXT(""))
+    {}
+};
+
 /**
  * 
  */
@@ -245,7 +258,7 @@ class HTTPTEST_API UJsonParseLib : public UBlueprintFunctionLibrary
 	
 public:
 
-	static FString MakeJson(const TMap<FString, FString> source);
+	static FString MakeJson(const TMap<FString, FString>& source);
 
 	//Struct To Json : Req
 	static FString Login_Convert_StructToJson(const FLogin& LoginStrcut);
@@ -281,4 +294,7 @@ public:
 	static FString FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo);
 	//Json To Struct : Response
 	static FMyCreateRoomInfo FMyCreateRoomInfo_Convert_JsonToStruct(const FString& JsonString);
+
+	//Json To Struct : Response
+	static FRoomData RoomData_Convert_JsonToStruct(const FString& JsonString);
 };
