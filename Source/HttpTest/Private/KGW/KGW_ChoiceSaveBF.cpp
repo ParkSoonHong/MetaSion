@@ -14,7 +14,7 @@
 
 TArray<FChoiceData> UKGW_ChoiceSaveBF::ChoiceList;
 
-TMap<FString, int32> SelectedChoices;
+TMap<FString, FString> SelectedChoices;
 //TMap<FString, FString> SelectedChoices;  <-- 수정 필요
 
 // void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
@@ -66,10 +66,10 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
     TMap<FString, FString> ChoiceMap;
 
     // ������ TMap<FString, int32> �����͸� FString���� ��ȯ�ؼ� ����
-    for (const TPair<FString, int32>& Pair : SelectedChoices)
+    for (const TPair<FString, FString>& Pair : SelectedChoices)
     //for (const TPair<FString, FString>& Pair : SelectedChoices)
     {
-        ChoiceMap.Add(Pair.Key, FString::FromInt(Pair.Value));  // int32 ���� FString���� ��ȯ
+        ChoiceMap.Add(Pair.Key, FString::FString(Pair.Value));  // int32 ���� FString���� ��ȯ
         //ChoiceMap.Add(Pair.Key, FString::FString(Pair.Value));  // int32 ���� FString���� ��ȯ
     }
 
@@ -78,26 +78,35 @@ void UKGW_ChoiceSaveBF::SaveChoicesToJsonFile(UObject* WorldContextObject)
 
     // JSON ���ڿ� Ȯ�� (������ �α�)
     UE_LOG(LogTemp, Warning, TEXT("Generated JSON: %s"), *JsonString);
-
     // ���� URL ����
     //FString ServerURL = TEXT("192.168.0.4:3326/api/auth/processAndSendData");
-    FString ServerURL = TEXT("https://jsonplaceholder.typicode.com/posts");
+    
+
+    USessionGameInstance* SessionGI = Cast<USessionGameInstance>(WorldContextObject->GetWorld()->GetGameInstance());
+    if (!SessionGI)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SessionGI is nullptr. Make sure USessionGameInstance is set as the GameInstance in Project Settings."));
+        return; // 함수 종료
+    }
+
+    // MySessionName(userID)을 가져옵니다.
+    FString userID = SessionGI->GetMySessionName();
+    FString ServerURL = FString::Printf(TEXT("http://125.132.216.190:3326/api/auth/update/%s"), *userID);
+
+    UE_LOG(LogTemp, Warning, TEXT("Generated Server URL: %s"), *ServerURL);
+
+    AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(WorldContextObject->GetWorld(), AHttpActor::StaticClass()));
+    if (PostChoice)
+    {
+        PostChoice->ReqPostChoice(ServerURL, JsonString);
+        UE_LOG(LogTemp, Warning, TEXT("ReqPostChoice called successfully with userID: %s"), *userID);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to find AHttpActor instance."));
+    }
 
 //      WorldContextObject�� ���� ���� �ν��Ͻ��� ������
-    AHttpActor* PostChoice = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(WorldContextObject->GetWorld(), AHttpActor::StaticClass()));
-
-    // ���� �ν��Ͻ��� ��ȿ�ϸ� ReqPostChoice �Լ� ȣ��
-	 if (PostChoice)
-	 {
-        // POST ��û ������
-        PostChoice->ReqPostChoice(ServerURL, JsonString);
-        UE_LOG(LogTemp, Warning, TEXT("ReqPostChoice called successfully."));
-	 }
-	 else
-	 {
-// 		 ���� �ν��Ͻ��� �������� ���� ��� ��� �޽��� ���
-			 UE_LOG(LogTemp, Warning, TEXT("Failed Response"));
-	 }
 }
 
 
@@ -193,7 +202,7 @@ TArray<FColorData> UKGW_ChoiceSaveBF::ParseJsonToRGB(const FString& JsonString)
     return Colors;
 }
 
-void UKGW_ChoiceSaveBF::StoreChoice(FString Question, int32 SelectedValue)
+void UKGW_ChoiceSaveBF::StoreChoice(FString Question, FString SelectedValue)
 //void UKGW_ChoiceSaveBF::StoreChoice(FString Question, FString SelectedValue)  <-- 수정 필요
 {
     UE_LOG(LogTemp, Warning, TEXT("UKGW_ChoiceSaveBF::StoreChoice()"));
