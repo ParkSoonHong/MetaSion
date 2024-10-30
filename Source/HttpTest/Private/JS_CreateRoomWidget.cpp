@@ -27,22 +27,22 @@ void UJS_CreateRoomWidget::NativeConstruct()
 void UJS_CreateRoomWidget::SwitchToWidget(int32 index)
 {
 	if (CR_WidgetSwitcher) {
-		// ÀÎµ¦½º¿¡ µû¶ó È°¼ºÈ­ÇÒ À§Á¬ ÀüÈ¯
+		// ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È°ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 		CR_WidgetSwitcher->SetActiveWidgetIndex(index);
 	}
 }
-//¹æ ²Ù¹Ì±â ¿Ï·á ½Ã SwitchToWidget(0)À» È£ÃâÇÏ°Ô ¸¸µé¾î¾ßÇÔ.
+//ï¿½ï¿½ ï¿½Ù¹Ì±ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ SwitchToWidget(0)ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 void UJS_CreateRoomWidget::CreateRoomChooseYes()
 {
-	// ¹æ ²Ù¹Ì±â ¿Ï·á ½Ã ³Ö¾î¾ß ÇÒ °Í
-	// ¹æ »ý¼º 2¹ø Â° Áú¹® UI º¸ÀÌ±â
+	// ï¿½ï¿½ ï¿½Ù¹Ì±ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ Â° ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½Ì±ï¿½
 	SwitchToWidget(1);
 }
 
 void UJS_CreateRoomWidget::CreateRoomChooseNo()
 {
-	// ¹æ ²Ù¹Ì±â ¾Æ´Ï¿ä ½Ã ³Ö¾î¾ß ÇÒ °Í
-	// ¹æ ²Ù¹Ì±â ¿Ï·á UI ¼û±â±â
+	// ï¿½ï¿½ ï¿½Ù¹Ì±ï¿½ ï¿½Æ´Ï¿ï¿½ ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
+	// ï¿½ï¿½ ï¿½Ù¹Ì±ï¿½ ï¿½Ï·ï¿½ UI ï¿½ï¿½ï¿½ï¿½ï¿½
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 
@@ -56,7 +56,7 @@ void UJS_CreateRoomWidget::CompleteCreateRoom()
 
 void UJS_CreateRoomWidget::SetPrivate()
 {
-	//¹æ °ø°³/ºñ°ø°³ ¼³Á¤
+	//ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bPrivate = !bPrivate;
 	SendSetPrivateRoom(bPrivate);
 }
