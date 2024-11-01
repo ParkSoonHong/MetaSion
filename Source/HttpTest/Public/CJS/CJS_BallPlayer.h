@@ -64,6 +64,9 @@ public:
 	void OnMyActionClick(const FInputActionValue& Value);
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
 
+	UPROPERTY(EditAnywhere, Category = "INPUT")
+	float RollSpeed;
+
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -141,9 +144,14 @@ public:
 	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
 
 
-	// <----- 경원아 아래 JsonData 변수에 값이 할당될 수 있도록 InitJsonData()를 호촐하면 돼!!!
+	
+	// 캐릭터생성 -> 로비 통신 정보 설정
 	//FString JsonData = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
-	FString Json = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+
+	FString Json = TEXT("{\"UserId\":\"testuser\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+
+	UPROPERTY()
+	class USessionGameInstance* SessionGI;
 	FString JsonData;
 	void InitJsonData(FString LocalJsonData);
 
@@ -152,8 +160,9 @@ public:
 	UPROPERTY()
 	//class ACJS_HttpActor* HttpActor;
 	class AHttpActor* HttpActor;
-	//FString URL = "192.168.0.4:3326/api/auth/getRoomData";
-	FString URL = "https://jsonplaceholder.typicode.com/posts";
+	//FString CallBackURL = "https://jsonplaceholder.typicode.com/posts";
+	FString MultiRoomURL = "125.132.216.190:3326/api/auth/getRoomData";
+	//FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
 
 
 	// 월페이퍼 파이썬 자동 실행 ========================================================================

@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HttpFwd.h"
+#include "JsonParseLib.h"
 #include "HttpActor.generated.h"
+
+// RoomData가 초기화되었을 때 호출되는 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoomDataInitialized, const FRoomData&, RoomData);
 
 UCLASS()
 class HTTPTEST_API AHttpActor : public AActor
@@ -24,6 +28,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// RoomData 초기화 시 호출되는 델리게이트
+    UPROPERTY(BlueprintAssignable, Category="Room Data")
+    FOnRoomDataInitialized OnRoomDataInitialized;
+
 	UPROPERTY(EditAnywhere)
 	class AJS_RoomController* pc;
 
@@ -39,7 +47,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "JSON Data")
 	FString StoredJsonResponse;
 
-	FString StoredJsonResponsetest = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	FString StoredJsonResponsetest = TEXT("{\"UserId\":\"testuser\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
 
 	// Login
 	void LoginReqPost(FString url, FString json);
@@ -79,11 +87,29 @@ public:
     FString StoreJsonResponse();
 
 
-	//FString ServerURL = "https://webhook.site/a0cbc113-e54b-4c1b-a92a-acb925a13d24";
-	FString ServerURL = "https://jsonplaceholder.typicode.com/posts";
+	FString LoginURL = "http://125.132.216.190:3326/api/auth/login";
+	FString EnteryLobbyURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
+	FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
+	FString WallPaperURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
 
+	/* Sunny */
+	//캐릭터생성 -> 로비 입장 시 초기 설정
+	UPROPERTY()
+	class USessionGameInstance* SessionGI;
 
 	//로비 -> 멀티방 입장 시 통신
 	void ReqPostClickMultiRoom(FString url, FString json);
 	void OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	//로비 -> 내방으로 입장 시 통신
+	void ReqPostClickMyRoom(FString url, FString json);
+	void OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	//다른 클래스에서 파싱된 RoomData를 사용하기 위한 Getter함수
+	FRoomData GetRoomData() const;
+	FRoomData RoomData;
+
+	//RoomUI Timer
+	FTimerHandle RoomUIWaitTimerHandle;
+
 };

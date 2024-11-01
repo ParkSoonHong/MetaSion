@@ -55,6 +55,8 @@ public:
 	// UI���� �Լ�
     bool bShowUI = false;
 
+    FTimerHandle LevelCheckTimerHandle;  // 타이머 핸들러
+
     // UI �ʱ�ȭ
     void InitializeUIWidgets();
 

@@ -15,6 +15,7 @@
 #include "JS_TestWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "CJS/CJS_BallPlayer.h"
+#include "CJS/SessionGameInstance.h"
 
 
 // Sets default values
@@ -39,6 +40,18 @@ void AHttpActor::BeginPlay()
 			  TestWidgetUI->AddToViewport();
 		  }
 	  }*/
+
+
+    // SessionGameInstance 할당
+    SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+    if (SessionGI)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+    }
 }
 
 // Called every frame
@@ -68,28 +81,49 @@ void AHttpActor::LoginReqPost(FString url, FString json)
 
 void AHttpActor::LoginResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost()"));
+
     if (!Response.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
+
+    //FString result1 = Response->GetContentAsString();
+    //UE_LOG(LogTemp, Warning, TEXT("AHttpActor::LoginResPost() result: %s"), *result1);
+   //
     // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+    UE_LOG(LogTemp, Warning, TEXT("Response code : %d"), Response->GetResponseCode());
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
         // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
-        UJsonParseLib::Login_Convert_JsonToStruct(result);
-        
-        UE_LOG(LogTemp, Log, TEXT("Login Post Request Success: %s"), *result);
+        //FString result = "{\"userId\": \"testuser\", \"userpass\": \"testpassword\"}";  <--- 올바른 JSON 형식
+        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+
+        //UJsonParseLib::Login_Convert_JsonToStruct(result);
+        FLogin LoginData = UJsonParseLib::Login_Convert_JsonToStruct(result); // <---- 추가
+        FString userid = LoginData.userId;
+        UE_LOG(LogTemp, Warning, TEXT("LoginData.userid: %s"), *userid);
+        if (SessionGI)
+        {
+            SessionGI->InitSessionName(userid);
+            UE_LOG(LogTemp, Warning, TEXT("Session Name set to UserId: %s"), *SessionGI->MySessionName);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("AHttpActor::LoginResPost():: No SessionGM"));
+        }
+        UE_LOG(LogTemp, Warning, TEXT("Login Post Request Success: %s"), *result);
+        if (pc) {
+            pc->HideLoginUI();
+            //���ʿ� ���� UI�� �Ѿ�� �� ����
+            ShowQuestionUI();
+        }
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
-    }
-    if (pc) {
-        pc->HideLoginUI();
-        //���ʿ� ���� UI�� �Ѿ�� �� ����
-        ShowQuestionUI();
+        UE_LOG(LogTemp, Warning, TEXT("LoginResPost() Failed..."));
     }
 }
 //Login End-------------------------------------------------------------
@@ -240,25 +274,26 @@ void AHttpActor::ChangeIndexResPost(FHttpRequestPtr Request, FHttpResponsePtr Re
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+    FString ResponseString = Response->GetContentAsString();
+    UE_LOG(LogTemp, Warning, TEXT("%s"), *ResponseString);
+
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
+        UE_LOG(LogTemp, Warning, TEXT("Server Response: %s"), *result);
+        
         FChangeIndex ChangerIndexData = UJsonParseLib::ChangeIndex_Convert_JsonToStruct(result);
+        UE_LOG(LogTemp, Warning, TEXT("Parsed room_num: %s"), *ChangerIndexData.room_num);
 
-        // �������� ��ȯ�� �����͸� �α׷� ���
-        UE_LOG(LogTemp, Log, TEXT("Response Received: userId = %s, index = %d"), *ChangerIndexData.userId, ChangerIndexData.index);
-
-        // ���� �������� RoomWidget�� ã��
+        
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
         if (PlayerController)
         {
             AJS_RoomController* RoomController = Cast<AJS_RoomController>(PlayerController);
             if (RoomController && RoomController->R_UI)
             {
-                // ���� Index ������ UI�� ������Ʈ
-                RoomController->R_UI->SetIndex(ChangerIndexData.index, 100);
+                RoomController->R_UI->SetIndex(ChangerIndexData.updatedWallpaperNum, 100);
+                RoomController->GetWorldTimerManager().SetTimer(RoomUIWaitTimerHandle, RoomController, &AJS_RoomController::HideRoomUI, 1.0f, false);
             }
         }
 
@@ -290,26 +325,46 @@ void AHttpActor::MyRoomInfoReqPost(FString url, FString json)
 
 void AHttpActor::MyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    //if (!Response.IsValid())
+    //{
+    //    UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+    //    return;
+    //}
+    //// ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+    //if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+    //{
+    //    // ������ ���ڿ��� ��������
+    //    FString result = Response->GetContentAsString();
+    //    FMyRoomInfo MyRoomInfoData = UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(result);
+
+    //    // �������� ��ȯ�� �����͸� �α׷� ���
+    //    UE_LOG(LogTemp, Log, TEXT("Response Received: RoomName = %s, room_pp = %s"),
+    //        *MyRoomInfoData.RoomName,
+    //        MyRoomInfoData.room_pp ? TEXT("true") : TEXT("false"));
+    //}
+    //else
+    //{
+    //    UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+    //}
     if (!Response.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
+
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ������ ���ڿ��� ��������
-        FString result = Response->GetContentAsString();
-        FMyRoomInfo MyRoomInfoData = UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(result);
+        FString JsonResponse = Response->GetContentAsString();
+        RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
 
-        // �������� ��ȯ�� �����͸� �α׷� ���
-        UE_LOG(LogTemp, Log, TEXT("Response Received: RoomName = %s, room_pp = %s"),
-            *MyRoomInfoData.RoomName,
-            MyRoomInfoData.room_pp ? TEXT("true") : TEXT("false"));
+        UE_LOG(LogTemp, Warning, TEXT("RoomData initialized: %s"), *RoomData.userMusic);
+
+        // RoomData가 초기화되었음을 알리기 위해 델리게이트 호출
+        OnRoomDataInitialized.Broadcast(RoomData);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+        UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
     }
 }
 //MyRoomInfo End-------------------------------------------------------------
@@ -382,8 +437,23 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
         // ���������� ������ �޾��� ��
         FString ResponseContent = Response->GetContentAsString();
         UE_LOG(LogTemp, Log, TEXT("POST Response: %s"), *ResponseContent);
-        StoredJsonResponse = ResponseContent;
+        //StoredJsonResponse = ResponseContent;
         UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
+        StoredJsonResponse = StoredJsonResponsetest;    // <-------------------------------------------- 여기부터 수정
+        if (SessionGI)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
+            SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
+            SessionGI->FindSessions();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
+        }
+
+        
+
+
         // JSON ���信�� RGB ������ �Ľ�
 //         ParsedColors = UKGW_ChoiceSaveBF::ParseJsonToRGB(ResponseContent);
         //         // �Ľ̵� RGB ���� ���� ��� ó��
@@ -492,8 +562,8 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
         UE_LOG(LogTemp, Warning, TEXT("OnResPosLogin OK... %d"), Response->GetResponseCode());
 
         int32 res = Response->GetResponseCode();
-        /*if (res == 200)
-        {*/
+        if (res == 200)
+        {
             UE_LOG(LogTemp, Warning, TEXT("Response ... OK!! "));
             FString str = Response->GetContentAsString();
             UE_LOG(LogTemp, Warning, TEXT(" %s"), *str);
@@ -516,11 +586,11 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
             {
                 UE_LOG(LogTemp, Error, TEXT("Failed to get PlayerController."));
             }
-       /* }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Response ... not OK!! "));
-        }*/
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response ... not OK!! "));
+		}
     }
     else
     {
@@ -528,6 +598,68 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
     }
 }
 
+//JS ReWrite 내방 통신 추가 부분
+void AHttpActor::ReqPostClickMyRoom(FString url, FString json)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::ReqPostClickMyRoom()"));
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+    req->SetTimeout(60.0f); // 타임아웃 설정
+
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostClickMyRoom);
+
+    if (req->ProcessRequest())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Http Request processed successfully"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Http Request failed to process"));
+    }
+}
+
+void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (!Response.IsValid())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+        return;
+    }
+
+    if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+    {
+        // 응답에서 JSON 문자열 얻기
+        FString JsonResponse = Response->GetContentAsString();
+        UE_LOG(LogTemp, Warning, TEXT("Response JSON: %s"), *JsonResponse);
+       
+        // FRoomData 구조체로 변환
+        RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
+        SessionGI->RoomMusicData = RoomData.userMusic;
+		UE_LOG(LogTemp, Warning, TEXT("RecommendedMusic: %s"), *SessionGI->RoomMusicData);
+
+        //MyRoom으로 이동
+        APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+        if (PlayerController) {
+            PlayerController->ClientTravel("/Game/Main/Maps/Main_Room", ETravelType::TRAVEL_Absolute);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
+    }
+}
+//Getter 함수
+FRoomData AHttpActor::GetRoomData() const
+{
+    FString Rdata = RoomData.userMusic;
+    UE_LOG(LogTemp, Warning, TEXT("RoomData music : %s"), *Rdata);
+    return RoomData;
+}
 //MyCreateRoomInfo End-------------------------------------------------------------
 
 

@@ -50,6 +50,6 @@ public:
 	UFUNCTION()
 	void SendUserLikeData();*/
 
-	//FString URL = "https://apis.data.go.kr/4050000/libnewbk/getLibnewbk";
+	//FString MultiRoomURL = "https://apis.data.go.kr/4050000/libnewbk/getLibnewbk";
 	//FString Key = "1B4jOfk0801JYukDA2FApT%2Bs0VOwrTVSE5qPJFlZ1mgXYs1UhkQ53Zj23EbsaJAITIcsaLGVB2gDGEMSk6IaDA%3D%3D";
 };

@@ -17,9 +17,6 @@ class HTTPTEST_API UJS_RoomWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	UPROPERTY(meta=(BindWidget))
-	class UButton* btn_SignComplete;
-
 	UPROPERTY(Meta=(BindWidget))
     class UTextBlock* txt_index;
 
@@ -36,5 +33,5 @@ public:
 	UFUNCTION()
 	void SendChangeIndexData();
 
-	void SetIndex(int WallPaperIndex, int absWallPaperIndex);
+	void SetIndex(FString roomNumber, int absWallPaperIndex);
 };

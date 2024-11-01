@@ -60,6 +60,8 @@ public:
 	FString MySessionName = TEXT("User1");
 	//FString MySessionName;
 
+	UPROPERTY()
+	FString RoomMusicData = TEXT("Room1");
 	// 방 생성 요청 (새로운 세션을 생성하는 함수)
 	UFUNCTION()
 	void CreateMySession();
@@ -74,6 +76,7 @@ public:
 	void FindSessions();
 	// 방 찾기 응답 (션 검색이 완료되었을 때 호출되는 콜백 함수)
 	void OnMyFindSessionCompleteDelegate(bool bWasSuccessful);
+	bool bIsSearching;
 
 	// 방 조인 요청 (특정 인덱스의 세션에 참가하는 함수)
 	UFUNCTION()
@@ -86,12 +89,41 @@ public:
 
 	
 	
+
+	/* --------------------------------------------------------------------------------------------------------------------------- */
 	// UserId 할당
 	//UPROPERTY()
 	//class ACJS_BallPlayerState* PlayerState;
 	// PlayerState의 UserId를 받아서 MySessionName에 지정
 	void AssignSessionNameFromPlayerState();
 	bool ValidateSessionInterfaceAndSearch() const;
+	void InitSessionName(FString name);
+	FString GetMySessionName();
+
+	// Lobby Ref MultiRoom Info 전달
+	//UPROPERTY()
+	//class ACJS_BallPlayer* Player;
+	//UFUNCTION()
+	//void SetRefMultiRoomInfo(FString json);
+	FString NetInfoCharacterTOLobby;
+	void SetNetInfoCharacterTOLobby(FString info);
+	FString GetNetInfoCharacterTOLobby();
+	/* --------------------------------------------------------------------------------------------------------------------------- */
+
+	/* --------------------------------------------------------------------------------------------------------------------------- */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerController")
+	TSubclassOf<APlayerController> LobbyControllerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PlayerController")
+	TSubclassOf<APlayerController> RoomControllerClass;
+
+	bool bIsChangingController = false; // 컨트롤러 변경 중 여부 확인 변수
+
+	UFUNCTION()
+	void ChangePlayerController(UWorld* World, TSubclassOf<APlayerController> NewControllerClass);
+	UFUNCTION()
+	void HandleMapChange(UWorld* World);
+
 
 };
 

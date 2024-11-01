@@ -12,6 +12,7 @@
 #include "GenericPlatform/GenericPlatformMisc.h"
 #include "Kismet/GameplayStatics.h"
 #include "string"
+#include "CJS/CJS_BallPlayer.h"
 
 
 
@@ -19,10 +20,6 @@ void USessionGameInstance::Init()	// 게임 인스턴스 초기화 함수로, �
 {
 	Super::Init();
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::Init()"));
-
-	// UserId로 방이름 초기화
-	//MySessionName = PlayerState->GetUserId();
-	//GetWorld()->GetTimerManager().SetTimerForNextTick(this, &USessionGameInstance::AssignSessionNameFromPlayerState);
 
 	IOnlineSubsystem* subSystem = IOnlineSubsystem::Get();
 
@@ -112,7 +109,7 @@ void USessionGameInstance::OnCreateSessionComplete(FName sessionName, bool bWasS
 	{
 		PRINTLOG(TEXT("OnCreateSessionComplete is Successes"));
 		PRINTLOG(TEXT("Session created successfully with name: %s"), *sessionName.ToString());
-		GetWorld()->ServerTravel(TEXT("/Game/CJS/Maps/CJS_LobbyMap?listen"));
+		GetWorld()->ServerTravel(TEXT("/Game/Main/Maps/Main_Lobby?listen"));  
 	}
 	else
 	{
@@ -127,6 +124,12 @@ void USessionGameInstance::FindSessions()
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::FindSessions()"));
 	PRINTLOG(TEXT("SessionInterface valid: %s"), SessionInterface.IsValid() ? TEXT("True") : TEXT("False"));
 
+	if (bIsSearching)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FindSessions() - A search request is already pending."));
+		return;
+	}
+
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 
 	if (!SessionSearch.IsValid())
@@ -135,10 +138,13 @@ void USessionGameInstance::FindSessions()
 		return;
 	}
 
+	bIsSearching = true;
 	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 	SessionSearch->QuerySettings.Set(FName("HOST_NAME"), MySessionName, EOnlineComparisonOp::Equals);
-	SessionSearch->bIsLanQuery = true;
-	SessionSearch->MaxSearchResults = 40;
+	//SessionSearch->QuerySettings.Set(SEARCH_KEYWORDS, FString(TEXT("testuser")), EOnlineComparisonOp::Equals); // 세션 이름 추가 조건 설정
+	//SessionSearch->bIsLanQuery = true;
+	SessionSearch->bIsLanQuery = false;
+	SessionSearch->MaxSearchResults = 50;
 
 
 	if (!SessionInterface->FindSessions(0, SessionSearch.ToSharedRef()))
@@ -158,47 +164,87 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::OnMyFindSessionCompleteDelegate()"));
 
-	if (!SessionSearch.IsValid())
+	bIsSearching = false;
+
+	if (SessionSearch.IsValid() && bWasSuccessful)
 	{
-		PRINTLOG(TEXT("OnMyFindSessionCompleteDelegate: SessionSearch is not valid!"));
-		return;
+		PRINTLOG(TEXT("Found %d sessions"), SessionSearch->SearchResults.Num());
+
+		for (const auto& Result : SessionSearch->SearchResults)
+		{
+			FString HostName;
+			Result.Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
+			PRINTLOG(TEXT("Session Found - HostName: %s, SessionName: %s"), *HostName, *Result.Session.OwningUserName);
+		}
+	}
+	else
+	{
+		PRINTLOG(TEXT("No sessions found or session search failed."));
 	}
 
-	if (bWasSuccessful)
+	//if (bWasSuccessful)
+	//{
+	//	TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;
+	//	PRINTLOG(TEXT("Found %d sessions"), results.Num());
+	//	bool bJoinSession = false;
+
+	//	for (int32 i = 0; i < results.Num(); ++i) // i < results.Num() 으로 수정
+	//	{
+	//		FOnlineSessionSearchResult& ret = results[i]; // 참조를 사용하여 불필요한 복사를 피함
+	//		if (!ret.IsValid())
+	//		{
+	//			continue;
+	//		}
+	//		FString HostName;
+	//		ret.Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
+	//		PRINTLOG(TEXT("Session %d: HostName=%s"), i, *HostName);
+
+	//		if (HostName == MySessionName)
+	//		{
+	//			PRINTLOG(TEXT("Join Session Call"));
+	//			JoinSession(i);
+	//			bJoinSession = true;
+	//			break;
+	//		}
+	//	}
+	//	if (!bJoinSession)
+	//	{
+	//		CreateMySession();
+	//	}
+	//}
+	//else
+	//{
+	//	PRINTLOG(TEXT("UNetTPSGameInstance::OnMyFindSessionCompleteDelegate()::bWasSuccessful is false"));
+	//}
+
+	if (bWasSuccessful && SessionSearch->SearchResults.Num() > 0)
 	{
-		TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;
-		PRINTLOG(TEXT("Found %d sessions"), results.Num());
 		bool bJoinSession = false;
 
-		for (int32 i = 0; i < results.Num(); ++i) // i < results.Num() 으로 수정
+		for (int32 i = 0; i < SessionSearch->SearchResults.Num(); ++i)
 		{
-			FOnlineSessionSearchResult& ret = results[i]; // 참조를 사용하여 불필요한 복사를 피함
-			if (!ret.IsValid())
-			{
-				continue;
-			}
+			const FOnlineSessionSearchResult& Result = SessionSearch->SearchResults[i];
 
 			FString HostName;
-			ret.Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
-			PRINTLOG(TEXT("Session %d: HostName=%s"), i, *HostName);
+			Result.Session.SessionSettings.Get(FName("HOST_NAME"), HostName);
 
-			if (HostName == MySessionName)
+			if (HostName == "testuser")  // 정확한 세션 이름 확인
 			{
-				PRINTLOG(TEXT("Join Session Call"));
-				JoinSession(i);
+				JoinSession(i);  // 인덱스를 전달
 				bJoinSession = true;
 				break;
 			}
 		}
-
 		if (!bJoinSession)
 		{
+			PRINTLOG(TEXT("No session with the name 'testuser' found, creating a new session."));
 			CreateMySession();
 		}
 	}
 	else
 	{
-		PRINTLOG(TEXT("UNetTPSGameInstance::OnMyFindSessionCompleteDelegate()::bWasSuccessful is false"));
+		PRINTLOG(TEXT("Failed to find any sessions, creating a new session."));
+		CreateMySession();
 	}
 }
 
@@ -233,7 +279,7 @@ void USessionGameInstance::OnMyJoinSessionComplete(FName SessionName, EOnJoinSes
 		FString url;
 		if (SessionInterface->GetResolvedConnectString(SessionName, url))
 		{
-			PRINTLOG(TEXT("Travelling to session URL: %s"), *url);
+			PRINTLOG(TEXT("Travelling to session MultiRoomURL: %s"), *url);
 			pc->ClientTravel(url, ETravelType::TRAVEL_Absolute);
 		}
 		else
@@ -300,4 +346,112 @@ bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
 	}
 
 	return true;
+}
+
+void USessionGameInstance::InitSessionName(FString name)
+{
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName()"));
+	MySessionName = name;
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName() MySessionName : %s"), *MySessionName);
+}
+
+FString USessionGameInstance::GetMySessionName()
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %s"), *MySessionName);
+	return MySessionName;
+}
+	
+	
+//void USessionGameInstance::SetRefMultiRoomInfo(FString json)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetRefMultiRoomInfo()"));
+//
+//	// World 객체에서 첫 번째 PlayerController 가져오기
+//		UWorld * World = GetWorld();
+//	if (!World)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("World is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	APlayerController* PlayerController = World->GetFirstPlayerController();
+//	if (!PlayerController)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("PlayerController is null in SetRefMultiRoomInfo"));
+//		return;
+//	}
+//
+//	// PlayerController에서 현재 Pawn을 가져와 ACJS_BallPlayer로 캐스팅
+//	ACJS_BallPlayer* Player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
+//	if (Player)
+//	{
+//		Player->InitJsonData(json);
+//		UE_LOG(LogTemp, Warning, TEXT("Player cast successful and InitJsonData called"));
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("Failed to cast to ACJS_BallPlayer"));
+//	}
+//}
+
+void USessionGameInstance::SetNetInfoCharacterTOLobby(FString info)
+{	
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby()"));
+	NetInfoCharacterTOLobby = info;
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby() : %s"), *NetInfoCharacterTOLobby);
+}
+
+FString USessionGameInstance::GetNetInfoCharacterTOLobby()
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetNetInfoCharacterTOLobby()"));
+	return NetInfoCharacterTOLobby;
+}
+
+void USessionGameInstance::ChangePlayerController(UWorld* World, TSubclassOf<APlayerController> NewControllerClass)
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::ChangePlayerController()"));
+
+	// 현재 로컬 플레이어인지 확인
+	APlayerController* CurrentController = World->GetFirstPlayerController();
+	if (!CurrentController || !CurrentController->IsLocalController()) return;
+
+	// 이미 변경 중이라면 중단
+	if (bIsChangingController || !NewControllerClass) return;
+
+	bIsChangingController = true;
+
+	// 기존 컨트롤러가 존재하면 파괴
+	APawn* CurrentPawn = CurrentController->GetPawn();
+	CurrentController->UnPossess();
+	CurrentController->Destroy();
+
+	// 새로운 컨트롤러 스폰
+	FActorSpawnParameters SpawnParams;
+	APlayerController* NewController = World->SpawnActor<APlayerController>(NewControllerClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+	// 로컬 플레이어 컨트롤러인지 확인 후 기존 Pawn을 조종하게 설정
+	if (NewController && NewController->IsLocalController() && CurrentPawn)
+	{
+		NewController->Possess(CurrentPawn);
+	}
+
+	bIsChangingController = false; // 플래그 초기화
+}
+
+void USessionGameInstance::HandleMapChange(UWorld* World)
+{
+	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::HandleMapChange()"));
+
+	APlayerController* LocalController = World->GetFirstPlayerController();
+	if (!LocalController || !LocalController->IsLocalController()) return;
+
+	FString MapName = World->GetMapName();
+	if (MapName.Contains("LobbyMap"))
+	{
+		ChangePlayerController(World, LobbyControllerClass);
+	}
+	else
+	{
+		ChangePlayerController(World, RoomControllerClass);
+	}
 }

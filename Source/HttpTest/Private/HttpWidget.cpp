@@ -33,14 +33,17 @@ void UHttpWidget::NativeConstruct()
 //Login
 void UHttpWidget::SendLoginData()
 {
-	// ±¸Á¶Ã¼¿¡ ÀÖ´Â º¯¼ö¿¡ UI ÅØ½ºÆ® °ªÀ» ³Ö¾îÁà¾ß ÇÔ.
+	// ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
 	FLogin loginData;
 	loginData.userId = userId->GetText().ToString();
 	loginData.userpass = userpass->GetText().ToString();
 
 	FString json = UJsonParseLib::Login_Convert_StructToJson(loginData);
-	//Login¿äÃ»
-	HttpActor->LoginReqPost(HttpActor->ServerURL, json);
+	//Loginï¿½ï¿½Ã»
+	if (HttpActor) {
+		HttpActor->LoginReqPost(HttpActor->LoginURL, json);
+	}
+	
 }
 
 void UHttpWidget::SendSignUpData()
@@ -49,16 +52,18 @@ void UHttpWidget::SendSignUpData()
 	SingupData.userId = TEXT("123456");
 	SingupData.userpass = TEXT("010010");
 
-	//¿¡µðÅÍºí textblock¿¡¼­ °¡Á®¿À´Â ¹æ½ÄÀ¸·Î ÁøÇà
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Íºï¿½ textblockï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString json = UJsonParseLib::SignUp_Convert_StructToJson(SingupData);
-	//Login¿äÃ»
-	HttpActor->SignUpReqPost(HttpActor->ServerURL, json);
+	//Loginï¿½ï¿½Ã»
+	if (HttpActor) {
+		//HttpActor->SignUpReqPost(HttpActor->MultiRoomURL, json);
+	}
 }
 
 //User
 //void UHttpWidget::SendUserData()
 //{
-//	// ±¸Á¶Ã¼¿¡ ÀÖ´Â º¯¼ö¿¡ UI ÅØ½ºÆ® °ªÀ» ³Ö¾îÁà¾ß ÇÔ.
+//	// ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
 //	FUser UserData;
 //	UserData.userId = TEXT("121212");
 //	UserData.LoginTime = FDateTime::Now();
@@ -78,14 +83,14 @@ void UHttpWidget::SendSignUpData()
 //	UserData.IsRecommended = true;
 //	
 //	FString json = UJsonParseLib::User_Convert_StructToJson(UserData);
-//	//Login¿äÃ»
+//	//Loginï¿½ï¿½Ã»
 //	//JS_gi->UserReqPost(ServerURL, json);
 //}
 //
 ////UserLike
 //void UHttpWidget::SendUserLikeData()
 //{
-//	// ±¸Á¶Ã¼¿¡ ÀÖ´Â º¯¼ö¿¡ UI ÅØ½ºÆ® °ªÀ» ³Ö¾îÁà¾ß ÇÔ.
+//	// ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½.
 //	FUser_like UserLikeData;
 //
 //	UserLikeData.FeedbackId = 1;
@@ -101,6 +106,6 @@ void UHttpWidget::SendSignUpData()
 //	UserLikeData.FloorMaterial = TEXT("stone");
 //	
 //	FString json = UJsonParseLib::UserLike_Convert_StructToJson(UserLikeData);
-//	//Login¿äÃ»
+//	//Loginï¿½ï¿½Ã»
 //	//JS_gi->UserLikeReqPost(ServerURL, json);
 //}

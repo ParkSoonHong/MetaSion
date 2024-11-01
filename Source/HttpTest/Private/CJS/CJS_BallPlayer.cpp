@@ -50,7 +50,7 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	CameraComp->bUsePawnControlRotation = true;
 
 	// 설정할 하트의 초기 위치를 위한 위치 값 (직접 값을 조정 가능)
-	HeartSpawnPosition = FVector(100.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정
+	HeartSpawnPosition = FVector(300.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정 
 
 	// 멀티 플레이 적용
 	bReplicates = true; // 네트워크 복제를 설정
@@ -67,12 +67,39 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 
 	InitJsonData(Json);
 }
+	
 
 
 // Called when the game starts or when spawned
 void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// SessionGameInstance 할당
+	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	if (SessionGI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance is set"));
+		InitJsonData(SessionGI->GetNetInfoCharacterTOLobby());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+	}*/
+
+	// SessionGameInstance 할당 + 컨트롤러 변경
+	//SessionGI = Cast<USessionGameInstance>(GetGameInstance());
+	//if (SessionGI)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay()::USessionGameInstance is set"));
+	//	//InitJsonData(SessionGI->GetNetInfoCharacterTOLobby());
+	//	SessionGI->HandleMapChange(GetWorld());
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
+	//}
+
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -189,6 +216,7 @@ void ACJS_BallPlayer::BeginPlay()
 	bAimPointUIShowing = false;
 
 
+
 	// HttpActor 초기화 시도
 	//HttpActor = Cast<ACJS_HttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ACJS_HttpActor::StaticClass()));
 	HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
@@ -212,10 +240,11 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HttpActor found and cast successfully."));
 	}
-
 	
 	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
 	sgi->AssignSessionNameFromPlayerState();*/
+
+	RollSpeed = 80.0f;
 }
 
 // Called every frame
@@ -229,7 +258,15 @@ void ACJS_BallPlayer::Tick(float DeltaTime)
 	Direction.Z = 0;
 	Direction.Normalize();
 	AddMovementInput(Direction);
+
+	// 입력이 없을 때 회전 초기화
+	if (Direction.SizeSquared() == 0)
+	{
+		// 회전 값을 (0, 0, 0)으로 초기화
+		SetActorRotation(FRotator::ZeroRotator);
+	}
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::Tick() - Moving in Direction: X=%f, Y=%f, Z=%f"), Direction.X, Direction.Y, Direction.Z);
+	
 	Direction = FVector::ZeroVector;  // Reset direction after movement input is added
 }
 
@@ -294,7 +331,27 @@ void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 	FVector2D v = Value.Get<FVector2D>();
 	Direction.X = v.X;
 	Direction.Y = v.Y;
-	Direction.Normalize();
+	//Direction.Normalize();
+
+	if (Direction.SizeSquared() > 0)
+	{
+		// 방향을 정규화하여 이동 벡터 계산
+		Direction.Normalize();
+
+		// 이동 벡터에 따른 이동 설정
+		FVector MoveDirection = FVector(Direction.X, Direction.Y, 0.0f); // X, Y 평면에서의 이동 방향
+		float MoveSpeed = 100.0f; // 이동 속도 (필요에 따라 조정 가능)
+		AddMovementInput(MoveDirection, MoveSpeed * GetWorld()->GetDeltaSeconds());
+
+		// 이동 방향에 따라 공의 회전을 설정 (Roll 값 추가)
+		FRotator NewRotation;
+		// W/S 키 입력 (앞뒤 이동)에 따라 Y 축 회전 (앞뒤 회전)
+		NewRotation.Pitch = RollSpeed * Direction.X;
+		// A/D 키 입력 (좌우 이동)에 따라 X 축 회전 (좌우 회전)
+		NewRotation.Roll = -RollSpeed * Direction.Y;
+		// 로컬 회전을 적용
+		AddActorLocalRotation(NewRotation * GetWorld()->GetDeltaSeconds());
+	}
 
 	// Log to check if the input value is being received
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionMove():: Move Direction: X=%f, Y=%f"), Direction.X, Direction.Y);
@@ -401,7 +458,7 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					// GameInstance에서 MySessionName 값을 가져옴
 					FString UserId;
 					int32 ActorIndex;
-					//FString RoomOwner;
+					FString RoomOwner;
 					FString RoomNum;
 					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
 					if (GameInstance)
@@ -418,11 +475,11 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						TSharedPtr<FJsonObject> UserObject = AllUsersArray[ActorIndex]->AsObject();
 						if (UserObject.IsValid())
 						{
-							//RoomOwner = UserObject->GetStringField(TEXT("UserId"));
+							RoomOwner = UserObject->GetStringField(TEXT("UserId"));
 							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
 							RoomNum = "3";
 							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
-							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomNum: %s"), *RoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
 						}
 						else
 						{
@@ -436,7 +493,11 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					// 사용자 데이터를 맵에 추가
 					TMap<FString, FString> MultiRoomData;
+
+					//MyRoomData.Add("userId", UserId);
 					//MultiRoomData.Add("userId", UserId);
+					//MultiRoomData.Add("room_num", "3");
+
 					MultiRoomData.Add("room_num", RoomNum);
 					
 					// JSON 형식으로 변환
@@ -444,10 +505,10 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					// 로그 출력 (디버깅용)
 					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
-					UE_LOG(LogTemp, Warning, TEXT("userId: %s, roomNum: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *RoomNum);
 					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
 
-					HttpActor->ReqPostClickMultiRoom(URL, json);
+					HttpActor->ReqPostClickMultiRoom(MultiRoomURL, json);
 					UE_LOG(LogTemp, Warning, TEXT("----------  post reqeust done"));
 				}
 				else
@@ -460,7 +521,29 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 				UE_LOG(LogTemp, Warning, TEXT("BP_CJS_MyRoom Clicked"));
 				if (PC)
 				{
-					PC->ClientTravel("/Game/CJS/Maps/CJS_MyRoomMap", ETravelType::TRAVEL_Absolute);
+					//JS ReWrite 이쪽에 방 데이터 송수신 하는 부분 넣고 수신 하는 부분에서 방 이동
+					FString UserId;
+					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
+					if (GameInstance)
+					{
+						//UserId = GameInstance->MySessionName;
+						UserId = "testuser";
+						UE_LOG(LogTemp, Warning, TEXT("Assigned UserId from MySessionName: %s"), *UserId);
+					}
+
+					// 사용자 데이터를 맵에 추가
+					TMap<FString, FString> MyRoomData;
+					MyRoomData.Add("userId", UserId);
+
+					// JSON 형식으로 변환
+					FString JsonRequest = UJsonParseLib::MakeJson(MyRoomData);
+
+					// 로그 출력 (디버깅용)
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s"), *UserId);
+					UE_LOG(LogTemp, Warning, TEXT("Json Request: %s"), *JsonRequest);
+
+					// 서버로 요청 전송
+					HttpActor->ReqPostClickMyRoom(HttpActor->MyRoomURL, JsonRequest);
 				}
 				else
 				{
@@ -614,6 +697,7 @@ void ACJS_BallPlayer::MulticastRPC_ThrowHeart_Implementation()
 	// 실제 하트를 던지는 로직 (기존의 OnMyActionThrow 로직을 여기로 옮기기)
 	if (HeartItemFactory)
 	{
+		// 일정한 방향으로 던지기
 		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * HeartSpawnPosition.X + GetActorUpVector() * HeartSpawnPosition.Z;
 		FRotator SpawnRotation = GetActorRotation();
 
@@ -625,7 +709,7 @@ void ACJS_BallPlayer::MulticastRPC_ThrowHeart_Implementation()
 		{
 			FVector LaunchDirection = SpawnRotation.Vector();
 			SpawnedHeart->ProjectileMovementComp->Velocity = LaunchDirection * SpawnedHeart->ProjectileMovementComp->InitialSpeed;
-		}
+		}	
 	}
 	else
 	{
@@ -791,7 +875,7 @@ void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, 
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
 	JsonData = LocalJsonData;
-	UE_LOG(LogTemp, Warning, TEXT("JsonData initialized with value: %s"), *JsonData);
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitJsonData()::JsonData initialized with value: %s"), *JsonData);
 }
 
 void ACJS_BallPlayer::ExecuteWallPaperPython()

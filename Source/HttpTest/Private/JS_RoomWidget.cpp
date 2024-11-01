@@ -11,8 +11,6 @@
 
 void UJS_RoomWidget::NativeConstruct()
 {
-	btn_SignComplete->OnClicked.AddDynamic(this, &UJS_RoomWidget::SendChangeIndexData);
-
     httpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
 }
 //index 요청
@@ -26,16 +24,18 @@ void UJS_RoomWidget::SendChangeIndexData()
 
     FChangeIndex ChangeIndexData;
     //지금은 서버가 없어서 임시로 임의의 값을 넣음.
-    ChangeIndexData.index = 1;
+    ChangeIndexData.room_num = "3";
 
     FString json = UJsonParseLib::ChangeIndex_Convert_StructToJson(ChangeIndexData);
-    
+    UE_LOG(LogTemp, Warning, TEXT("JSON Request Sent: %s"), *json);
 
-    httpActor->ChangeIndexReqPost(httpActor->ServerURL, json);
+    httpActor->ChangeIndexReqPost(httpActor->WallPaperURL, json);
 }
 
-void UJS_RoomWidget::SetIndex(int WallPaperIndex, int absWallPaperIndex)
+void UJS_RoomWidget::SetIndex(FString roomNumber, int absWallPaperIndex)
 {
-	txt_index->SetText(FText::AsNumber(WallPaperIndex));
-	txt_absindex->SetText(FText::AsNumber(absWallPaperIndex));
+    // roomNumber는 이미 FString이므로 바로 설정합니다.
+    txt_index->SetText(FText::FromString(roomNumber));
+    // absWallPaperIndex를 FString으로 변환한 후 설정합니다.
+    txt_absindex->SetText(FText::FromString(FString::FromInt(absWallPaperIndex)));
 }
