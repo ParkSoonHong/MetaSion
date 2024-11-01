@@ -33,6 +33,8 @@ bool UKGW_SaveLevel::SaveGameData(AActor* SkyActor, AActor* WeatherActor)
             {
                 float LocalCloudCoverage = NumericProperty->GetFloatingPointPropertyValue(CloudCoverageProperty->ContainerPtrToValuePtr<void>(WeatherActor));
                 SaveGameInstance->CloudCoverage = LocalCloudCoverage;
+                UE_LOG(LogTemp, Warning, TEXT("Generated Server URL: %f"), LocalCloudCoverage);
+
             }
 
             // 다른 속성들에 대해서도 같은 방식으로 설정
