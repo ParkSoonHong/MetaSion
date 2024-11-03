@@ -10,6 +10,7 @@
 #include "HttpActor.h"
 #include "JsonParseLib.h"
 
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -32,6 +33,7 @@
 
 
 
+
 // Sets default values
 ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 {
@@ -39,15 +41,23 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->SetRelativeLocation(FVector(0, 0, 8.5));
-	SpringArmComp->TargetArmLength = 400.f;
-	SpringArmComp->TargetOffset = FVector(0.f, 0.f, 100.0f);
+	//SpringArmComp->SetupAttachment(RootComponent);
+	//SpringArmComp->SetupAttachment(GetCapsuleComponent());
+	SpringArmComp->SetupAttachment(GetMesh());
+	//SpringArmComp->SetRelativeLocation(FVector(0, 0, 0));
+	SpringArmComp->TargetArmLength = 3000.f;
+	SpringArmComp->SocketOffset = FVector(0.f, 0.f, 100.0f);
 	SpringArmComp->bUsePawnControlRotation = true;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
-	CameraComp->bUsePawnControlRotation = true;
+	//CameraComp->bUsePawnControlRotation = true;
+	CameraComp->bUsePawnControlRotation = false;
+
+	// 컨트롤러 회전 사용 설정
+	bUseControllerRotationYaw = true;
+	// 캐릭터가 이동 방향을 따르지 않도록 설정
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	// 설정할 하트의 초기 위치를 위한 위치 값 (직접 값을 조정 가능)
 	HeartSpawnPosition = FVector(300.f, 0.f, 50.f); // 적당히 초기 위치 오프셋 지정 
@@ -111,14 +121,14 @@ void ACJS_BallPlayer::BeginPlay()
 		if (MaterialInterface)
 		{
 			// Dynamic Material Instance 생성
-			UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(MaterialInterface, this);
-			if (DynamicMaterial)
+			//UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(MaterialInterface, this);
+			DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInterface, this);
+			if (DynamicMaterialInstance)
 			{
-				GetMesh()->SetMaterial(0, DynamicMaterial);
+				GetMesh()->SetMaterial(0, DynamicMaterialInstance);
 
 				// InitColorValue를 사용하여 TransmitB 파라미터 설정
-				DynamicMaterial->SetVectorParameterValue(FName("TransmitB"), InitColorValue);
-
+				DynamicMaterialInstance->SetVectorParameterValue(FName("TransmitB"), InitColorValue);
 				UE_LOG(LogTemp, Warning, TEXT("SkeletalMesh Material color set using 'TransmitB' parameter to R: %f, G: %f, B: %f"), InitColorValue.R, InitColorValue.G, InitColorValue.B);
 			}
 			else
@@ -135,6 +145,10 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
 	}
+	// 초기 회전값을 Identity로 설정
+	MaterialRotationQuat = FQuat::Identity;
+	TargetYaw = 0.0f; // 초기 목표 Yaw 값
+
 
 	// 추천방 정보 초기화
 	//SetInitMultiRoomInfo(1, 5, "SunnyWorld", 87);
@@ -244,7 +258,30 @@ void ACJS_BallPlayer::BeginPlay()
 	/*USessionGameInstance* sgi = Cast<USessionGameInstance>(GetGameInstance());
 	sgi->AssignSessionNameFromPlayerState();*/
 
-	RollSpeed = 80.0f;
+
+	// 물리 시뮬레이션 활성화
+	if (GetMesh())
+	{
+		// 물리 시뮬레이션 및 중력 활성화
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetEnableGravity(true);
+		
+		// 축 고정 해제
+		/*GetMesh()->BodyInstance.bLockXRotation = false;
+		GetMesh()->BodyInstance.bLockYRotation = false;
+		GetMesh()->BodyInstance.bLockZRotation = false;
+		GetMesh()->BodyInstance.bLockXTranslation = false;
+		GetMesh()->BodyInstance.bLockYTranslation = false;
+		GetMesh()->BodyInstance.bLockZTranslation = false;*/
+
+		// 움직임 멈춤을 위해 물리 속도 감쇠 적용
+		GetMesh()->SetLinearDamping(3.0f); // 값이 높을수록 빠르게 감속
+		GetMesh()->SetAngularDamping(3.0f); // 값이 높을수록 회전 감속이 빠름
+	
+	}
+
+	// 기본 이동 힘 설정
+	MoveForce = 150.0f;
 }
 
 // Called every frame
@@ -252,22 +289,28 @@ void ACJS_BallPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Ensure direction is updated and normalized before applying movement
-	FTransform dir = FTransform(GetControlRotation());
-	Direction = dir.TransformVector(Direction);
-	Direction.Z = 0;
-	Direction.Normalize();
-	AddMovementInput(Direction);
 
-	// 입력이 없을 때 회전 초기화
-	if (Direction.SizeSquared() == 0)
+	// 카메라 Yaw를 따라 캐릭터 Yaw 회전을 업데이트
+	if (Controller)
 	{
-		// 회전 값을 (0, 0, 0)으로 초기화
-		SetActorRotation(FRotator::ZeroRotator);
+		FRotator NewRotation = GetActorRotation();
+		NewRotation.Yaw = Controller->GetControlRotation().Yaw;
+		SetActorRotation(NewRotation);
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::Tick() - Moving in Direction: X=%f, Y=%f, Z=%f"), Direction.X, Direction.Y, Direction.Z);
-	
-	Direction = FVector::ZeroVector;  // Reset direction after movement input is added
+
+	// 디버그 로그로 Direction 확인
+	//UE_LOG(LogTemp, Warning, TEXT("Direction: X=%f, Y=%f, Z=%f"), Direction.X, Direction.Y, Direction.Z);
+
+	// 방향에 힘을 적용하여 이동
+	if (!Direction.IsNearlyZero())
+	{
+		FVector Force = Direction * MoveForce;
+		//GetMesh()->AddForce(Force, NAME_None, true);
+		GetMesh()->AddImpulse(Force, NAME_None, true);
+
+		// 방향을 리셋
+		Direction = FVector::ZeroVector;
+	}
 }
 
 
@@ -314,8 +357,6 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 				UE_LOG(LogTemp, Error, TEXT("IA_NumKeys[%d] is null"), i);
 			}
 		}
-
-
 		// Log to check if input actions are bound
 		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent() - Input actions are bound"));
 	}
@@ -324,36 +365,51 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent():: EnhancedInputComponent is null"));
 	}
 }
+
+void ACJS_BallPlayer::UpdateMaterialRotation(float DeltaTime)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::UpdateMaterialRotation()"));
+
+	if (!DynamicMaterialInstance) return;
+
+	// 목표 회전 쿼터니언 설정
+	FQuat TargetRotationQuat = FQuat(FRotator(0.0f, TargetYaw, 0.0f));
+	//UE_LOG(LogTemp, Warning, TEXT("TargetYaw: %f, TargetRotationQuat: X=%f, Y=%f, Z=%f, W=%f"), TargetYaw, TargetRotationQuat.X, TargetRotationQuat.Y, TargetRotationQuat.Z, TargetRotationQuat.W);
+
+	// 현재 회전 쿼터니언을 목표 회전값으로 보간하여 점진적으로 회전
+	MaterialRotationQuat = FQuat::Slerp(MaterialRotationQuat, TargetRotationQuat, DeltaTime * 5.0f); // 회전 속도 조절
+	//UE_LOG(LogTemp, Warning, TEXT("MaterialRotationQuat after Slerp: X=%f, Y=%f, Z=%f, W=%f"), MaterialRotationQuat.X, MaterialRotationQuat.Y, MaterialRotationQuat.Z, MaterialRotationQuat.W);
+
+	// 머터리얼에 회전값 전달
+	FRotator Rotation = MaterialRotationQuat.Rotator();
+	//UE_LOG(LogTemp, Warning, TEXT("Rotation applied to material - Pitch: %f, Yaw: %f, Roll: %f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll);
+
+	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleX"), Rotation.Pitch);
+	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleY"), Rotation.Yaw);
+	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleZ"), Rotation.Roll);
+
+	float SetPitchRotation, SetYawRotation, SetRollRotation;
+	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleX"), SetPitchRotation);
+	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleY"), SetYawRotation);
+	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleZ"), SetRollRotation);
+	//UE_LOG(LogTemp, Warning, TEXT("After Set Rotation to material - Pitch: %f, Yaw: %f, Roll: %f"), SetPitchRotation, SetYawRotation, SetRollRotation);
+
+}
+
 void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::OnMyActionMove()"));
 
 	FVector2D v = Value.Get<FVector2D>();
-	Direction.X = v.X;
-	Direction.Y = v.Y;
-	//Direction.Normalize();
 
-	if (Direction.SizeSquared() > 0)
-	{
-		// 방향을 정규화하여 이동 벡터 계산
-		Direction.Normalize();
+	// 카메라의 Yaw를 기준으로 방향을 변환
+	FRotator CameraYawRotation = FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+	FVector ForwardDirection = FRotationMatrix(CameraYawRotation).GetUnitAxis(EAxis::X) * v.X;
+	FVector RightDirection = FRotationMatrix(CameraYawRotation).GetUnitAxis(EAxis::Y) * v.Y;
 
-		// 이동 벡터에 따른 이동 설정
-		FVector MoveDirection = FVector(Direction.X, Direction.Y, 0.0f); // X, Y 평면에서의 이동 방향
-		float MoveSpeed = 100.0f; // 이동 속도 (필요에 따라 조정 가능)
-		AddMovementInput(MoveDirection, MoveSpeed * GetWorld()->GetDeltaSeconds());
+	// 이동 방향을 카메라 기준으로 설정
+	Direction = (ForwardDirection + RightDirection).GetSafeNormal();
 
-		// 이동 방향에 따라 공의 회전을 설정 (Roll 값 추가)
-		FRotator NewRotation;
-		// W/S 키 입력 (앞뒤 이동)에 따라 Y 축 회전 (앞뒤 회전)
-		NewRotation.Pitch = RollSpeed * Direction.X;
-		// A/D 키 입력 (좌우 이동)에 따라 X 축 회전 (좌우 회전)
-		NewRotation.Roll = -RollSpeed * Direction.Y;
-		// 로컬 회전을 적용
-		AddActorLocalRotation(NewRotation * GetWorld()->GetDeltaSeconds());
-	}
-
-	// Log to check if the input value is being received
 	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionMove():: Move Direction: X=%f, Y=%f"), Direction.X, Direction.Y);
 }
 void ACJS_BallPlayer::OnMyActionLook(const FInputActionValue& Value)
@@ -591,7 +647,7 @@ void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 
 void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
+	//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnNumberKeyPressed() - Key %d pressed"), KeyIndex + 1);
 	//PlayAnimationByIndex(KeyIndex);
 
 	// 서버에 애니메이션 재생을 요청합니다.
@@ -606,10 +662,38 @@ void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 K
 }
 void ACJS_BallPlayer::PlayAnimationByIndex(int32 Index)
 {
+	// 유효한 애니메이션 인덱스와 Mesh 여부 확인
 	if (AnimSequences.IsValidIndex(Index) && AnimSequences[Index] && GetMesh())
 	{
+		// 물리적 속도 및 회전 초기화 (움직임을 멈추기 위함)
+		GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);   // 선형 속도 초기화
+		GetMesh()->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector); // 각속도 초기화
+
+		// Actor와 메시의 전체 회전을 (0, 0, 0)으로 초기화
+		SetActorRotation(FRotator::ZeroRotator);
+
+		// 메시의 로컬 회전을 (0, 0, 0)으로 설정하여 Actor와 메시 회전을 동기화 (Teleport 플래그 사용)
+		/*keletalMeshComponent가 물리 시뮬레이션을 활성화한 상태에서 회전이나 위치를 강제로 설정하려면, Teleport 플래그를 사용해야 함.
+		  ETeleportType::TeleportPhysics 플래그는 물리 시뮬레이션이 활성화된 메시에도 강제로 회전을 적용하도록 합*/
+		if (GetMesh())
+		{
+			GetMesh()->SetRelativeRotation(FRotator::ZeroRotator, false, nullptr, ETeleportType::TeleportPhysics);
+		}
+
+		// 메시 컴포넌트의 실제 회전 값 가져오기
+		//FRotator MeshRotation = GetMesh()->GetComponentRotation();
+		// 메시의 Pitch, Yaw, Roll 각도 출력
+		//UE_LOG(LogTemp, Warning, TEXT("Mesh Rotation - Pitch: %f, Yaw: %f, Roll: %f"), MeshRotation.Pitch, MeshRotation.Yaw, MeshRotation.Roll);
+
+		// 볼 플레이어의 현재 회전 각도 가져오기
+		//FRotator PlayerRotation = GetActorRotation();
+		// 로그로 볼 플레이어의 Pitch, Yaw, Roll 각도 출력
+		//UE_LOG(LogTemp, Warning, TEXT("Player Rotation - Pitch: %f, Yaw: %f, Roll: %f"), PlayerRotation.Pitch, PlayerRotation.Yaw, PlayerRotation.Roll);
+
+
+		// 애니메이션 재생
 		GetMesh()->PlayAnimation(AnimSequences[Index], false);
-		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Animation %d played"), Index + 1);
+		//UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::PlayAnimationByIndex() - Animation %d played"), Index + 1);
 	}
 	else
 	{
