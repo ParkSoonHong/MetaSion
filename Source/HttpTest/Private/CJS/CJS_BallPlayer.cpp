@@ -323,6 +323,8 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent"));
+			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(IMC_Player, 0);
 		}
 	}

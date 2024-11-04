@@ -6,6 +6,7 @@
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "JsonParseLib.h"
+#include "HttpActor.h"
 
 void UKGW_RoomList::AddSessionSlotWidget(const TArray<FString>& RoomNames)
 {
@@ -18,6 +19,8 @@ void UKGW_RoomList::AddSessionSlotWidget(const TArray<FString>& RoomNames)
 
 	FString json = UJsonParseLib::MakeJson(UserData);
 
+	HttpActor->MyCreateRoomInfoReqPost(ListURL,json);
+		
 
 	for (const FString& RoomName : RoomNames)
 	{

@@ -20,10 +20,6 @@ void UHttpWidget::NativeConstruct()
 	btn_Login->OnClicked.AddDynamic(this, &UHttpWidget::SendLoginData);
 	//sign_up
 	btn_SignUp->OnClicked.AddDynamic(this, &UHttpWidget::SendSignUpData);
-	////user
-	//btn_User->OnClicked.AddDynamic(this, &UHttpWidget::SendUserData);
-	////user_like
-	//btn_UserLike->OnClicked.AddDynamic(this, &UHttpWidget::SendUserLikeData);
 
 	pc = Cast<AJS_RoomController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 
@@ -59,53 +55,3 @@ void UHttpWidget::SendSignUpData()
 		//HttpActor->SignUpReqPost(HttpActor->MultiRoomURL, json);
 	}
 }
-
-//User
-//void UHttpWidget::SendUserData()
-//{
-//	// ����ü�� �ִ� ������ UI �ؽ�Ʈ ���� �־���� ��.
-//	FUser UserData;
-//	UserData.userId = TEXT("121212");
-//	UserData.LoginTime = FDateTime::Now();
-//	UserData.MoodScore = 1;
-//	UserData.EnergyScore = 2;
-//	UserData.StabilityScore = 3;
-//	UserData.WeatherChoice = TEXT("cloud");
-//	UserData.MainAsset = TEXT("Wood");
-//	UserData.SecondaryAsset = TEXT("Sky");
-//	UserData.BackgroundColor = TEXT("Green");
-//	UserData.FloorMaterial = TEXT("gress");
-//	UserData.ClusterId = 4;
-//	UserData.RecommendedRoomId = TEXT("RCOMID");
-//	UserData.Feedback = TEXT("True");
-//	UserData.FeedbackTime = FDateTime::Now();
-//	UserData.UpdateTime = FDateTime::Now();
-//	UserData.IsRecommended = true;
-//	
-//	FString json = UJsonParseLib::User_Convert_StructToJson(UserData);
-//	//Login��û
-//	//JS_gi->UserReqPost(ServerURL, json);
-//}
-//
-////UserLike
-//void UHttpWidget::SendUserLikeData()
-//{
-//	// ����ü�� �ִ� ������ UI �ؽ�Ʈ ���� �־���� ��.
-//	FUser_like UserLikeData;
-//
-//	UserLikeData.FeedbackId = 1;
-//	UserLikeData.UserId = TEXT("2323123");
-//	UserLikeData.VisitedRoomId = TEXT("VisitedRoomID");
-//	UserLikeData.VisitedUserId = TEXT("VisitedUserID");
-//	UserLikeData.Feedback = TEXT("Feedback");
-//	UserLikeData.FeedbackTime = FDateTime::Now();
-//	UserLikeData.Mood = TEXT("red");
-//	UserLikeData.Weather = TEXT("sunny");
-//	UserLikeData.MainAsset = TEXT("sky");
-//	UserLikeData.BackgroundColor = TEXT("yellow");
-//	UserLikeData.FloorMaterial = TEXT("stone");
-//	
-//	FString json = UJsonParseLib::UserLike_Convert_StructToJson(UserLikeData);
-//	//Login��û
-//	//JS_gi->UserLikeReqPost(ServerURL, json);
-//}
