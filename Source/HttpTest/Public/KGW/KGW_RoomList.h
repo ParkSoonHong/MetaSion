@@ -33,5 +33,11 @@ public:
 	TSubclassOf<class UKGW_UserRoomName> UserRoomNameFactory;
 
 
+		UPROPERTY()
+	class AHttpActor* HttpActor;
+
+	FString ListURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
+
+
 
 };
