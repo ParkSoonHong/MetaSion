@@ -148,12 +148,13 @@ public:
 	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
 	void SetInitColorValue(float r, float g, float b);
 	/* 추천방 정보 */
-	UPROPERTY()
-	class ACJS_MultiRoomActor* RefMultiRoom;
-	//void SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	//UPROPERTY()
+	//class ACJS_MultiRoomActor* RefMultiRoom;
+	UPROPERTY(EditDefaultsOnly, Category = "Lobby")
+	TSubclassOf<class ACJS_MultiRoomActor> RefMultiRoom;
 	TArray<ACJS_MultiRoomActor*> MultiRoomActors;
 	TArray<TSharedPtr<FJsonValue>> AllUsersArray;
-	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent);
 
 
 	

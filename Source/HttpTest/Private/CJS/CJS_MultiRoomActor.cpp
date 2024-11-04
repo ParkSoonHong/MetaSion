@@ -58,9 +58,14 @@ void ACJS_MultiRoomActor::Tick(float DeltaTime)
 	//HPComp->SetWorldRotation(rot);
 }
 
-void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_MultiRoomActor::InitRefRoomInfoWidget"));
+
+	// MultiRoomActor 클래스 내에서 InitRefRoomInfoWidget 함수의 시작 부분에 추가
+	UE_LOG(LogTemp, Warning, TEXT("Initializing Room Info Widget for Room: %s"), *RoomName);
+	UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor location: %s"), *GetActorLocation().ToString());
+
 	if (Txt_CurNumPlayer)
 	{
 		Txt_CurNumPlayer->SetText(FText::FromString(FString::FromInt(CurNumPlayer)));
@@ -100,8 +105,8 @@ void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNum
 	if (Txt_RefPercent)
 	{
 		// Percent 값을 텍스트로 변환하여 표시 (예: 50%)
-		FString PercentText = FString::Printf(TEXT("%.2f%%"), Percent);
-		Txt_RefPercent->SetText(FText::FromString(PercentText));
+		//FString PercentText = FString::Printf(TEXT("%.2f%"), Percent);
+		Txt_RefPercent->SetText(FText::FromString(Percent));
 	}
 }
 

@@ -858,22 +858,84 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		float B = JsonObject->GetNumberField(TEXT("B"));
 		SetInitColorValue(R, G, B);
 
-		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장
-		TArray<AActor*> FoundActors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
+		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장 <-- 기존
+		//TArray<AActor*> FoundActors;
+		//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
 
-		// 최대 5개만 저장
-		for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
+		//// 최대 5개만 저장
+		//for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
+		//{
+		//	ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
+		//	if (MultiRoomActor)
+		//	{
+		//		MultiRoomActors.Add(MultiRoomActor);
+		//	}
+		//}
+
+		// 2. 20개의 MultiRoomActor 생성 및 저장
+		TSet<FVector> SpawnedLocations; // 중복 위치 체크를 위한 Set
+
+		for (int32 i = 0; i < 20; i++)
 		{
-			ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
-			if (MultiRoomActor)
+			FVector SpawnLocation;
+			bool bValidLocation = false;
+
+			// 최대 10회 반복하여 유효한 위치 찾기
+			for (int32 j = 0; j < 10; j++)
 			{
-				MultiRoomActors.Add(MultiRoomActor);
+				// 랜덤 위치 생성
+				float X = FMath::RandRange(-15000.0f, 15000.0f);
+				float Y = FMath::RandRange(-15000.0f, 15000.0f);
+				SpawnLocation = FVector(X, Y, 400.0f);
+
+				// 간격 체크
+				bool bIsOverlapping = false;
+				for (const FVector& ExistingLocation : SpawnedLocations)
+				{
+					if (FVector::Dist(ExistingLocation, SpawnLocation) < 500.0f) // 800 이하일 경우 겹친다고 판단
+					{
+						bIsOverlapping = true;
+						break;
+					}
+				}
+
+				// 간섭이 없으면 위치를 등록하고 루프 종료
+				if (!bIsOverlapping)
+				{
+					bValidLocation = true;
+					SpawnedLocations.Add(SpawnLocation);
+					break;
+				}
+			}
+
+			// 유효한 위치가 발견되면 Actor 생성
+			if (bValidLocation)
+			{
+				FRotator SpawnRotation = FRotator::ZeroRotator;
+				UE_LOG(LogTemp, Warning, TEXT("Trying to spawn MultiRoomActor %d at location: %s"), i, *SpawnLocation.ToString());
+				//ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(ACJS_MultiRoomActor::StaticClass(), SpawnLocation, SpawnRotation);
+				ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(RefMultiRoom, SpawnLocation, SpawnRotation);
+				if (NewMultiRoomActor)
+				{
+					MultiRoomActors.Add(NewMultiRoomActor);
+					UE_LOG(LogTemp, Warning, TEXT("Successfully spawned MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
+					// 추가적인 상태 확인
+					UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor %d is located at %s, Visibility: %s"), i, *NewMultiRoomActor->GetActorLocation().ToString(), NewMultiRoomActor->IsHidden() ? TEXT("Hidden") : TEXT("Visible"));
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Failed to spawn MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to find valid spawn location for MultiRoomActor %d"), i);
 			}
 		}
 
 		// 저장된 MultiRoomActor의 개수 출력
 		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
+
 
 		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장                            <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
 		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
@@ -890,16 +952,16 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 			if (UserObject.IsValid())
 			{
 				// EmotionScore와 RoomName을 가져와 설정
-				float Message = UserObject->GetNumberField(TEXT("Message"));
+				FString Message = UserObject->GetStringField(TEXT("Message"));
 				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
 
 				// 현재 사용자 수와 최대 수 설정 (예시)
 				int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
 				int32 MaxNumPlayer = 5;
-				float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+				//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
 
 				// 각 MultiRoomActor에 정보 설정
-				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Percent);
+				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
 			}
 		}
 	}
@@ -942,13 +1004,13 @@ void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
 //	}
 //}
 
-void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent)
+void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
 	if (MultiRoomActor)
 	{
 		MultiRoomActor->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
-		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized for Room: %s"), *RoomName);
+		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized for Room: %s, Percent: %s"), *RoomName, *Percent);
 	}
 	else
 	{
