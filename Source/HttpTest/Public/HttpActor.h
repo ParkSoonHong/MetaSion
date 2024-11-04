@@ -87,11 +87,11 @@ public:
     FString StoreJsonResponse();
 
 
-	FString LoginURL = "http://125.132.216.190:3326/api/auth/login";
-	FString EnteryLobbyURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
-	FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
-	FString WallPaperURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
-
+	FString LoginURL = "mirrora.duckdns.org:3326/api/auth/login";
+	FString EnteryLobbyURL = "mirrora.duckdns.org:3326/api/auth/processAndSendData";
+	FString MyRoomURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
+	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
+	
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
 	UPROPERTY()
@@ -111,5 +111,16 @@ public:
 
 	//RoomUI Timer
 	FTimerHandle RoomUIWaitTimerHandle;
+
+	//image
+		UPROPERTY()
+	class UWBP_Image* ImageUI;
+	void ReqGetWebImage(FString url);
+
+	void OnResGetWebImage(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqPostTest(FString url, FString json);
+
+	void OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 };

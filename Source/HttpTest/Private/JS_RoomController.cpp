@@ -321,6 +321,7 @@ void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
                         if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // �̹� �ִϸ��̼��� ��� ������ Ȯ��
                         {
                             WBPImage->PlayShowImageAnimation();
+                            WBPImage->GetImage();
                             UE_LOG(LogTemp, Log, TEXT("play Showlist "));
 
                         }

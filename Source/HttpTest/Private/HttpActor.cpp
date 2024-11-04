@@ -16,6 +16,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "CJS/CJS_BallPlayer.h"
 #include "CJS/SessionGameInstance.h"
+#include "Engine/Texture2D.h"
+#include "KGW_Wbp_WebImage.h"
+#include "ImageUtils.h"
+#include "KGW/WBP_Image.h"
 
 
 // Sets default values
@@ -662,4 +666,84 @@ FRoomData AHttpActor::GetRoomData() const
 }
 //MyCreateRoomInfo End-------------------------------------------------------------
 
+void AHttpActor::ReqGetWebImage(FString url)
+{
+    // HTTP 모듈 인스턴스 가져오기
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    // 요청 설정
+    req->SetURL(url);
+    req->SetVerb(TEXT("Post"));
+    req->SetHeader(TEXT("Content-Type"), TEXT("image/jpeg"));
+
+    // 응답 처리 함수 바인딩
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResGetWebImage);
+
+    // 요청 실행
+    req->ProcessRequest();
+}
+
+void AHttpActor::OnResGetWebImage(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (bConnectedSuccessfully && Response.IsValid())
+    {
+        // 이미지 데이터를 가져옴
+        TArray<uint8> data = Response->GetContent();
+
+        // 이미지 파일 저장 경로 설정
+        FString imagePath = FPaths::ProjectPersistentDownloadDir() + "/DownloadedImage.jpg";
+        FFileHelper::SaveArrayToFile(data, *imagePath);
+
+        // 데이터를 텍스처로 변환
+        UTexture2D* realTexture = FImageUtils::ImportBufferAsTexture2D(data);
+
+        // UI에 텍스처 설정
+        if (ImageUI && realTexture)
+        {
+            ImageUI->SetImage(realTexture);
+        }
+
+        // 로그 출력
+        UE_LOG(LogTemp, Log, TEXT("Image successfully downloaded and set to UI."));
+    }
+    else
+    {
+        // 실패한 경우 로그 출력
+        UE_LOG(LogTemp, Warning, TEXT("Failed to download image from server."));
+    }
+}
+void AHttpActor::ReqPostTest(FString url, FString json)
+{
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    // 요청할 정보를 설정
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+
+    // 응답받을 함수를 연결
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostTest);
+    // 서버에 요청
+
+    req->ProcessRequest();
+}
+
+void AHttpActor::OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (bConnectedSuccessfully)
+    {
+        // 성공
+        FString result = Response->GetContentAsString();
+
+        // 필요한 정보만 뽑아서 화면에 출력하고싶다.
+        ImageUI->SetTextLog(result);
+    }
+    else {
+        // 실패
+        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
+    }
+}
 
