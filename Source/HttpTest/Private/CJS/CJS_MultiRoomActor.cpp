@@ -46,16 +46,6 @@ void ACJS_MultiRoomActor::BeginPlay()
 void ACJS_MultiRoomActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//// 사용자의 카메라를 찾고
-	//FVector target = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetCameraLocation();
-	//// 그 카메라를 바라보는 방향을 만들어서
-	//FVector dir = target - HPComp->GetComponentLocation();
-	//dir.Normalize();
-
-	//// HPComp를 회전하고싶다.(Billboard 기법)
-	//FRotator rot = dir.ToOrientationRotator();
-	//HPComp->SetWorldRotation(rot);
 }
 
 void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
@@ -108,5 +98,12 @@ void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNum
 		//FString PercentText = FString::Printf(TEXT("%.2f%"), Percent);
 		Txt_RefPercent->SetText(FText::FromString(Percent));
 	}
+
+
+	// 메시지 값으로 메쉬 크기 조정
+	int32 MessageValue = FCString::Atoi(*Percent); // Percent에서 메시지 값 가져오기 (문자열을 정수로 변환)
+	float ScaleFactor = FMath::GetMappedRangeValueClamped(FVector2D(0, 100), FVector2D(2.0f, 10.0f), MessageValue); // 예: 0~100의 메시지를 0.5~2.0의 범위로 변환
+	// 스케일 적용
+	SphereMesh->SetWorldScale3D(FVector(ScaleFactor)); // 메쉬 크기 조정
 }
 
