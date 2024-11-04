@@ -46,6 +46,16 @@ void ACJS_MultiRoomActor::BeginPlay()
 void ACJS_MultiRoomActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// 사용자의 카메라를 찾고
+	FVector target = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetCameraLocation();
+	// 그 카메라를 바라보는 방향을 만들어서
+	FVector dir = target - RefRoomInfoWidgetComp->GetComponentLocation();
+	dir.Normalize();
+
+	// HPComp를 회전하고싶다.(Billboard 기법)
+	FRotator rot = dir.ToOrientationRotator();
+	RefRoomInfoWidgetComp->SetWorldRotation(rot);
 }
 
 void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
