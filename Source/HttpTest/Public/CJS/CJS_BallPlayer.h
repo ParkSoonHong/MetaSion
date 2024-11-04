@@ -72,6 +72,8 @@ public:
 	class UInputAction* IA_Click;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_AimPoint;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_QuitGame;
 	
 	void OnMyActionMove(const FInputActionValue& Value);
 	void OnMyActionLook(const FInputActionValue& Value);
@@ -79,6 +81,8 @@ public:
 	void OnMyActionThrow(const FInputActionValue& Value);
 	void OnMyActionClick(const FInputActionValue& Value);
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
+	void OnMyActionQuitGame(const FInputActionValue& Value);
+
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")

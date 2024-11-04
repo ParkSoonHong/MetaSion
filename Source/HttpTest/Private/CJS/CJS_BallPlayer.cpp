@@ -344,6 +344,8 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		input->BindAction(IA_Click, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionClick);
 		// 토글 조준점
 		input->BindAction(IA_AimPoint, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionToggleAimPointUI);
+		// 게임 종료
+		input->BindAction(IA_QuitGame, ETriggerEvent::Started, this, &ACJS_BallPlayer::OnMyActionQuitGame);
 		// 숫자키 애니메이션 (인덱스 사용해 바인딩)
 		for (int32 i = 0; i < 8; i++)
 		{
@@ -624,7 +626,6 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionToggleAimPointUI()"));
-
 	if (AimPointUI)
 	{
 		if (!bAimPointUIShowing)
@@ -646,6 +647,18 @@ void ACJS_BallPlayer::OnMyActionToggleAimPointUI(const FInputActionValue& Value)
 	}
 }
 
+void ACJS_BallPlayer::OnMyActionQuitGame(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::OnMyActionQuitGame()"));
+	if (GEngine) // Check if GEngine is valid
+	{
+		// Display a log message (optional)
+		UE_LOG(LogTemp, Warning, TEXT("ESC key pressed. Exiting game..."));
+
+		// Quit the game
+		FGenericPlatformMisc::RequestExit(false);
+	}
+}
 
 void ACJS_BallPlayer::OnNumberKeyPressed(const FInputActionValue& Value, int32 KeyIndex)
 {
