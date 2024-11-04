@@ -5,21 +5,11 @@
 #include "KGW/KGW_UserRoomName.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
-#include "JsonParseLib.h"
 #include "HttpActor.h"
 
 void UKGW_RoomList::AddSessionSlotWidget(const TArray<FString>& RoomNames)
 {
 
-	TMap<FString, FString> UserData;
-	FLogin UserIDData;
-
-	FString TextID = UserIDData.userId;
-	UserData.Add("userId", TextID);
-
-	FString json = UJsonParseLib::MakeJson(UserData);
-
-	HttpActor->MyCreateRoomInfoReqPost(ListURL,json);
 		
 
 	for (const FString& RoomName : RoomNames)
