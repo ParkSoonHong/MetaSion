@@ -13,5 +13,16 @@ UCLASS()
 class HTTPTEST_API UKGW_WBP_Question : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(meta=(BindWidget))
+	class UButton* BT_Select;
+
 	
+	virtual void NativeConstruct() override;
+
+		UFUNCTION()
+	void OnClickSelect();
+
+
 };
