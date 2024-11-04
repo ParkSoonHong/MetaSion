@@ -41,7 +41,23 @@ public:
 	class UCameraComponent* CameraComp;
 	FVector Direction; 
 
-	// 인풋 동작 ===============================================================================================
+	// 머터리얼 ===============================================================================================
+	UPROPERTY()
+    UMaterialInstanceDynamic* DynamicMaterialInstance;
+	// Material Rotation Quaternion
+	FQuat MaterialRotationQuat;
+	// Rotation angles for each key input
+	float TargetYaw;
+	// Control rotation
+	FVector2D ControlInput;
+	// Method to update material rotation
+	void UpdateMaterialRotation(float DeltaTime);
+
+	// 움직임을 위한 힘의 크기
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float MoveForce;
+
+	// 인풋 동작 ==============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputMappingContext* IMC_Player;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -63,10 +79,6 @@ public:
 	void OnMyActionThrow(const FInputActionValue& Value);
 	void OnMyActionClick(const FInputActionValue& Value);
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
-
-	UPROPERTY(EditAnywhere, Category = "INPUT")
-	float RollSpeed;
-
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
