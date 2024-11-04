@@ -42,6 +42,6 @@ public:
 	class UTextBlock* Txt_RefPercent;
 
 	// Function to update the widget text values
-	void InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	void InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent);
 
 };

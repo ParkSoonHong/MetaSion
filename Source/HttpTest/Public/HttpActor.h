@@ -91,7 +91,7 @@ public:
 	FString EnteryLobbyURL = "mirrora.duckdns.org:3326/api/auth/processAndSendData";
 	FString MyRoomURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
 	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
-	
+
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
 	UPROPERTY()
