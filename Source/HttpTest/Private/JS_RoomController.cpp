@@ -67,22 +67,14 @@ void AJS_RoomController::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
     }*/
 
-    // ���콺 ���� ����
-    bShowMouseCursor = true;
-    bEnableClickEvents = true;
-    bEnableMouseOverEvents = true;
-
     // UI�ʱ�ȭ
     InitializeUIWidgets();
 
-    // ���Ӱ� UI �� �� ��ǲ�� ���� �� �ֵ��� ����
-    FInputModeGameAndUI InputMode;
-    InputMode.SetHideCursorDuringCapture(false); // ĸó �߿� ���콺 Ŀ���� ������ ����
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ���콺�� �����?����
-    SetInputMode(InputMode);
+    CheckDate();
+    SetInputMode(FInputModeGameOnly());
 
     // Ÿ�̸� ����: 1�� �������� SpawnAndSwitchToCamera ȣ��
-    GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 1.0f, true);
+    GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 0.01f, true);
 }
 
 void AJS_RoomController::SetupInputComponent()
@@ -95,6 +87,8 @@ void AJS_RoomController::SetupInputComponent()
         //Subsystem->ClearAllMappings();
         if (Subsystem)  // 예외 처리 추가
         {
+            UE_LOG(LogTemp, Warning, TEXT("AJS_RoomController::SetupPlayerInputComponent"));
+            Subsystem->ClearAllMappings();
             Subsystem->AddMappingContext(IMC_Controller, 0);
         }
         else
@@ -109,14 +103,41 @@ void AJS_RoomController::SetupInputComponent()
     }
 }
 
+void AJS_RoomController::CheckDate()
+{
+    FDateTime CurrentTime = FDateTime::Now();
+    FDateTime MidnightToday = FDateTime(CurrentTime.GetYear(), CurrentTime.GetMonth(), CurrentTime.GetDay());
+
+
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+    if (LevelName != "Main_Lobby" && LevelName != "Main_Room" && LastCheckDate < MidnightToday) {
+		bShowMouseCursor = true;
+		bEnableClickEvents = true;
+		bEnableMouseOverEvents = true;
+        ShowLoginUI();
+        LastCheckDate = MidnightToday; 
+    }
+    else if(LevelName == "Main_Room" && LastCheckDate < MidnightToday) { // 방 이름이 메인 룸이고 처음 접속 했거나 00시가 지났을 경우
+        bShowMouseCursor = true;
+        bEnableClickEvents = true;
+        bEnableMouseOverEvents = true;
+    }
+    else{
+		bShowMouseCursor = false;
+		bEnableClickEvents = false;
+		bEnableMouseOverEvents = false;
+    }
+}
+
 void AJS_RoomController::InitializeUIWidgets()
 {
     FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
-    if (LoginUIFactory && LevelName == "Main_Sky") {
+    if (LoginUIFactory) {
         LoginUI = CreateWidget<UHttpWidget>(this, LoginUIFactory);
         if (LoginUI) {
             LoginUI->AddToViewport();
-            LoginUI->SetVisibility(ESlateVisibility::Visible);
+            LoginUI->SetVisibility(ESlateVisibility::Hidden);
         }
     }
     if (CR_UIFactory) {
@@ -215,11 +236,9 @@ void AJS_RoomController::OnMouseClick()
         if (HitActor)
         {
             UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s at Location: %s"), *HitActor->GetName(), *HitResult.Location.ToString());
-            // �±� üũ
             if (HitActor->ActorHasTag(TEXT("WallPaper")))
             {
                 UE_LOG(LogTemp, Warning, TEXT("-----------------------------"));
-                // ���⿡ ���� ���?���� �߰� 
                 //if (bShowUI) {
                     UE_LOG(LogTemp, Log, TEXT("bShowUI true"));
                     HideCreateRoomUI();

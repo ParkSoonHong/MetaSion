@@ -27,22 +27,16 @@ void UJS_CreateRoomWidget::NativeConstruct()
 void UJS_CreateRoomWidget::SwitchToWidget(int32 index)
 {
 	if (CR_WidgetSwitcher) {
-		// �ε����� ���� Ȱ��ȭ�� ���� ��ȯ
 		CR_WidgetSwitcher->SetActiveWidgetIndex(index);
 	}
 }
-//�� �ٹ̱� �Ϸ� �� SwitchToWidget(0)�� ȣ���ϰ� ��������.
 void UJS_CreateRoomWidget::CreateRoomChooseYes()
 {
-	// �� �ٹ̱� �Ϸ� �� �־�� �� ��
-	// �� ���� 2�� ° ���� UI ���̱�
 	SwitchToWidget(1);
 }
 
 void UJS_CreateRoomWidget::CreateRoomChooseNo()
 {
-	// �� �ٹ̱� �ƴϿ� �� �־�� �� ��
-	// �� �ٹ̱� �Ϸ� UI �����
 	this->SetVisibility(ESlateVisibility::Hidden);
 }
 

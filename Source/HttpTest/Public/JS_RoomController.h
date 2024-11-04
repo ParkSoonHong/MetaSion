@@ -49,15 +49,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UJS_RoomWidget* R_UI;
 
-    // index ��û �� send�� �� ��� ó���� ���� ����
-    bool bOnlyIndexSend = false;
-    
-	// UI���� �Լ�
-    bool bShowUI = false;
 
     FTimerHandle LevelCheckTimerHandle;  // 타이머 핸들러
 
-    // UI �ʱ�ȭ
+    FDateTime LastCheckDate; // 마지막으로 확인한 날짜 (00:00 기준)
+    bool bShowLoginScreen = false; // 초기 값 설정
+    bool bOnlyIndexSend = false;
+    bool bShowUI = false;
+
+    void CheckDate();
+    // UI
     void InitializeUIWidgets();
 
     //LoginUI
