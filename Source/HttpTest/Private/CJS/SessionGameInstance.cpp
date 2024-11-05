@@ -348,13 +348,14 @@ bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
 	return true;
 }
 
+
+
 void USessionGameInstance::InitSessionName(FString name)
 {
 	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName()"));
 	MySessionName = name;
 	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName() MySessionName : %s"), *MySessionName);
 }
-
 FString USessionGameInstance::GetMySessionName()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %s"), *MySessionName);
@@ -369,7 +370,6 @@ void USessionGameInstance::InitRoomNameNum(TArray<FMyCreatedRoom> list)
 	UE_LOG(LogTemp, Error, TEXT("GameInstance->StoredRoomInfos size: %d"), RoomInfoList.Num());
 
 }
-
 TArray<FMyCreatedRoom> USessionGameInstance::GettRoomNameNum()
 {
 	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %d"), RoomInfoList.Num());
@@ -417,7 +417,6 @@ void USessionGameInstance::SetNetInfoCharacterTOLobby(FString info)
 	NetInfoCharacterTOLobby = info;
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby() : %s"), *NetInfoCharacterTOLobby);
 }
-
 FString USessionGameInstance::GetNetInfoCharacterTOLobby()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetNetInfoCharacterTOLobby()"));
