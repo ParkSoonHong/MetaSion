@@ -60,10 +60,6 @@ public:
 	// User
 	void UserReqPost(FString url, FString json);
 	void UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
-
-	// User_like
-	void UserLikeReqPost(FString url, FString json);
-	void UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 	
 	//ChangeIndex
 	void ChangeIndexReqPost(FString url, FString json);
@@ -80,7 +76,6 @@ public:
 	void ReqPostChoice(FString url, FString json);
 	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	// UI ���� �� ȭ�鿡 �߰��ϴ� �Լ�
 	void ShowQuestionUI();
 
 	UFUNCTION(BlueprintCallable, Category = "JSON")
