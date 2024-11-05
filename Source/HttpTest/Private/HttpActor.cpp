@@ -402,16 +402,16 @@ void AHttpActor::OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Respo
         //StoredJsonResponse = ResponseContent;
         UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
         StoredJsonResponse = StoredJsonResponsetest;    // <-------------------------------------------- 여기부터 수정
-        if (SessionGI)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
-            SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
-            SessionGI->FindSessions();
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
-        }
+//         if (SessionGI)
+//         {
+//             UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
+//             SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
+//             SessionGI->FindSessions();
+//         }
+//         else
+//         {
+//             UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
+//         }
 
         
 
@@ -704,4 +704,44 @@ void AHttpActor::OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Respons
         UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
     }
 }
+void AHttpActor::ReqPostRoomList(FString url, FString json)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AHttpActor::ReqPostClickMyRoom()"));
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
 
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+    req->SetTimeout(60.0f); // 타임아웃 설정
+
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostRoomList);
+
+    if (req->ProcessRequest())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Http Request processed successfully"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Http Request failed to process"));
+    }
+}
+void AHttpActor::OnResPostRoomList(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (bConnectedSuccessfully && Response.IsValid())
+    {
+        FString ResponseContent = Response->GetContentAsString();
+        UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ResponseContent);
+
+        // JSON 파싱 함수 호출 및 반환 값 저장
+        FString ParsedResult = UJsonParseLib::JsonParseRoomList(ResponseContent);
+
+        // 파싱된 결과 출력
+        UE_LOG(LogTemp, Log, TEXT("Parsed Room Data:\n%s"), *ParsedResult);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to receive a valid response from the server."));
+    }
+}

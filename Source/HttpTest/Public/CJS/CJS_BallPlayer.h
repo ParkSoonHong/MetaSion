@@ -72,6 +72,8 @@ public:
 	class UInputAction* IA_Click;
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
 	class UInputAction* IA_AimPoint;
+	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
+	class UInputAction* IA_QuitGame;
 	
 	void OnMyActionMove(const FInputActionValue& Value);
 	void OnMyActionLook(const FInputActionValue& Value);
@@ -79,6 +81,8 @@ public:
 	void OnMyActionThrow(const FInputActionValue& Value);
 	void OnMyActionClick(const FInputActionValue& Value);
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
+	void OnMyActionQuitGame(const FInputActionValue& Value);
+
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -148,19 +152,20 @@ public:
 	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
 	void SetInitColorValue(float r, float g, float b);
 	/* 추천방 정보 */
-	UPROPERTY()
-	class ACJS_MultiRoomActor* RefMultiRoom;
-	//void SetInitMultiRoomInfo(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	//UPROPERTY()
+	//class ACJS_MultiRoomActor* RefMultiRoom;
+	UPROPERTY(EditDefaultsOnly, Category = "Lobby")
+	TSubclassOf<class ACJS_MultiRoomActor> RefMultiRoom;
 	TArray<ACJS_MultiRoomActor*> MultiRoomActors;
 	TArray<TSharedPtr<FJsonValue>> AllUsersArray;
-	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent);
 
 
 	
 	// 캐릭터생성 -> 로비 통신 정보 설정
 	//FString JsonData = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
-
 	FString Json = TEXT("{\"UserId\":\"testuser\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");
+	//FString Json = TEXT("{\"UserId\":\"testuser\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_19\",\"Message\":12.0,\"RoomName\":\"user_19\"},{\"UserId\":\"user_1\",\"Message\":82.0,\"RoomName\":\"user_1\"},{\"UserId\":\"user_2\",\"Message\":51.0,\"RoomName\":\"user_2\"},{\"UserId\":\"user_3\",\"Message\":73.0,\"RoomName\":\"user_3\"},{\"UserId\":\"user_4\",\"Message\":48.0,\"RoomName\":\"user_4\"},{\"UserId\":\"user_5\",\"Message\":56.0,\"RoomName\":\"user_5\"},{\"UserId\":\"user_6\",\"Message\":69.0,\"RoomName\":\"user_6\"},{\"UserId\":\"user_7\",\"Message\":73.0,\"RoomName\":\"user_7\"},{\"UserId\":\"user_8\",\"Message\":88.0,\"RoomName\":\"user_8\"},{\"UserId\":\"user_9\",\"Message\":93.0,\"RoomName\":\"user_9\"},{\"UserId\":\"user_10\",\"Message\":86.0,\"RoomName\":\"user_10\"},{\"UserId\":\"user_11\",\"Message\":99.0,\"RoomName\":\"user_11\"}],\"OppositeUsers\":[{\"UserId\":\"user_20\",\"Message\":283.5,\"RoomName\":\"user_20\"},{ \"UserId\":\"user_12\",\"Message\":11.0,\"RoomName\":\"user_12\"},{\"UserId\":\"user_13\",\"Message\":34.0,\"RoomName\":\"user_13\"},{\"UserId\":\"user_14\",\"Message\":27.0,\"RoomName\":\"user_14\"},{\"UserId\":\"user_15\",\"Message\":39.0,\"RoomName\":\"user_15\"},{\"UserId\":\"user_16\",\"Message\":07.0,\"RoomName\":\"user_16\"},{\"UserId\":\"user_17\",\"Message\":43.0,\"RoomName\":\"user_17\"},{\"UserId\":\"user_18\",\"Message\":31.0,\"RoomName\":\"user_18\"}]}");
 
 	UPROPERTY()
 	class USessionGameInstance* SessionGI;

@@ -118,4 +118,8 @@ public:
 
 	void OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	void ReqPostRoomList(FString url, FString json);
+
+	void OnResPostRoomList(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
 };

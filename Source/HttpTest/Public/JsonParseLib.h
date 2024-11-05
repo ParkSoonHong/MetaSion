@@ -244,6 +244,8 @@ public:
 
 	static FString MakeJson(const TMap<FString, FString>& source);
 
+	static FString JsonParseRoomList(const FString& json);
+
 	//Struct To Json : Req
 	static FString Login_Convert_StructToJson(const FLogin& LoginStrcut);
 	//Json To Struct : Response

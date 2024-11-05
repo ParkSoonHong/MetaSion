@@ -176,3 +176,26 @@ FString UJsonParseLib::MakeJson(const TMap<FString, FString>& source)
 	// 반환한다.
 	return json;
 }
+
+FString UJsonParseLib::JsonParseRoomList(const FString& json)
+{
+	// 리더기를 만들고
+	TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(json);
+	// 파싱 결과를 담을 변수 선언
+	TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
+	// 해석을 한다.
+	FString returnValue;
+	if (FJsonSerializer::Deserialize(reader, result))
+	{
+		TArray<TSharedPtr<FJsonValue>> parseDataList = result->GetArrayField(TEXT("userRooms"));
+		for (TSharedPtr<FJsonValue> data : parseDataList)
+		{
+			
+			FString roomNum = data->AsObject()->GetStringField("roomNum");
+			FString roomName = data->AsObject()->GetStringField("roomName");
+			returnValue.Append(FString::Printf(TEXT("roomNum : %s / roomName : %s\n"), *roomNum, *roomName));
+		}
+	}
+	// 반환한다.
+	return returnValue;
+}
