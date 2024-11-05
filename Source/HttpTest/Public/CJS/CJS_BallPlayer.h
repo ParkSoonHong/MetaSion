@@ -44,18 +44,6 @@ public:
 	// 머터리얼 ===============================================================================================
 	UPROPERTY()
     UMaterialInstanceDynamic* DynamicMaterialInstance;
-	// Material Rotation Quaternion
-	FQuat MaterialRotationQuat;
-	// Rotation angles for each key input
-	float TargetYaw;
-	// Control rotation
-	FVector2D ControlInput;
-	// Method to update material rotation
-	void UpdateMaterialRotation(float DeltaTime);
-
-	// 움직임을 위한 힘의 크기
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float MoveForce;
 
 	// 인풋 동작 ==============================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -83,6 +71,9 @@ public:
 	void OnMyActionToggleAimPointUI(const FInputActionValue& Value);
 	void OnMyActionQuitGame(const FInputActionValue& Value);
 
+	// 움직임을 위한 힘의 크기
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float MoveForce;
 
 	// 인풋 애니메이션 =========================================================================================
 	UPROPERTY(EditDefaultsOnly, Category = "INPUT")
@@ -148,18 +139,35 @@ public:
 
 	// 로비 입장 시 초기 설정 ============================================================================
 	void InitializeFromJson(const FString& LocalJsonData);
+
 	/* 재질 색상 */
 	FLinearColor InitColorValue; // RGB 값을 저장하는 변수 (생성 시 초기화에 사용)
 	void SetInitColorValue(float r, float g, float b);
+
 	/* 추천방 정보 */
-	//UPROPERTY()
-	//class ACJS_MultiRoomActor* RefMultiRoom;
-	UPROPERTY(EditDefaultsOnly, Category = "Lobby")
-	TSubclassOf<class ACJS_MultiRoomActor> RefMultiRoom;
+	UPROPERTY(EditDefaultsOnly, Category = "Factory")
+	TSubclassOf<class ACJS_MultiRoomActor> RefMultiRoomClass;
 	TArray<ACJS_MultiRoomActor*> MultiRoomActors;
 	TArray<TSharedPtr<FJsonValue>> AllUsersArray;
 	void SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent);
+	
+	/* 오로라 색상 */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aurora")
+    TSubclassOf<class ACJS_UltraDynamicSkyActor> DynamicSkyClass;
+	UFUNCTION()
+	void ModifyAuroraColors();
 
+	/*UFUNCTION()
+	void SetModifyAuroraColors();
+	FLinearColor AuroraColor1;
+	FLinearColor AuroraColor2;
+	FLinearColor AuroraColor3;
+	UFUNCTION(BlueprintCallable, Category = "Aurora")
+	FLinearColor GetAuroraColor1();
+	UFUNCTION(BlueprintCallable, Category = "Aurora")
+	FLinearColor GetAuroraColor2();
+	UFUNCTION(BlueprintCallable, Category = "Aurora")
+	FLinearColor GetAuroraColor3();*/
 
 	
 	// 캐릭터생성 -> 로비 통신 정보 설정

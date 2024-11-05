@@ -40,4 +40,7 @@ class UBillboardComponent* BillboardComp;
 
 void PlayShowImageAnimation();
 
+void SetActorVisibilityHidden();
+void SetActorVisibilityVisible();
+
 };

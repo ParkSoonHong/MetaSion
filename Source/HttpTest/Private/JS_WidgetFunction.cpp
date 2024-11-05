@@ -46,7 +46,7 @@ AJS_WidgetFunction::AJS_WidgetFunction()
 void AJS_WidgetFunction::BeginPlay()
 {
 	Super::BeginPlay();
-	
+    SetActorVisibilityHidden();
 }
 
 // Called every frame
@@ -76,5 +76,15 @@ void AJS_WidgetFunction::PlayShowImageAnimation()
         }
     }
 
+}
+
+void AJS_WidgetFunction::SetActorVisibilityHidden()
+{
+    boxComp->SetVisibility(false);
+}
+
+void AJS_WidgetFunction::SetActorVisibilityVisible()
+{
+    boxComp->SetVisibility(true);
 }
 
