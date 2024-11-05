@@ -78,30 +78,6 @@ FUser UJsonParseLib::User_Convert_JsonToStruct(const FString& JsonString)
 }
 // User End----------------------------------------------------------------------------
 
-// User_Like ----------------------------------------------------------------------------
-FString UJsonParseLib::UserLike_Convert_StructToJson(const FUser_like& User_LikeStrcut)
-{
-	//Json 문자열을 저장할 변수
-	FString JsonString;
-
-	//구조체를 JSON 문자열로 변환
-	FJsonObjectConverter::UStructToJsonObjectString(User_LikeStrcut, JsonString, 0, 0);
-
-	//완성된 Json 반환
-	return JsonString;
-}
-
-FUser_like UJsonParseLib::UserLike_Convert_JsonToStruct(const FString& JsonString)
-{
-	FUser_like UserLikeJson;
-	//Json을 구조체로 변환
-	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &UserLikeJson, 0, 0);
-	//변환된 구조체를 반환
-	return UserLikeJson;
-}
-
-// User_Like End ----------------------------------------------------------------------------
-
 // ChangeIndex ----------------------------------------------------------------------------
 FString UJsonParseLib::ChangeIndex_Convert_StructToJson(const FChangeIndex& FWallPaperIndexStruct)
 {
@@ -124,6 +100,7 @@ FChangeIndex UJsonParseLib::ChangeIndex_Convert_JsonToStruct(const FString& Json
 	return WallPaperJson;
 }
 // ChangeIndex End ----------------------------------------------------------------------------
+
 // MyRoomInfo ----------------------------------------------------------------------------
 FString UJsonParseLib::MyRoomInfo_Convert_StructToJson(const FMyRoomInfo& MyRoomInfo)
 {

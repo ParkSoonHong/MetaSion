@@ -198,12 +198,10 @@ void AHttpActor::UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response,
         UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
         return;
     }
-    // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
     if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
     {
-        // ������ ���ڿ��� ��������
         FString result = Response->GetContentAsString();
-        UJsonParseLib::UserLike_Convert_JsonToStruct(result);
+        UJsonParseLib::User_Convert_JsonToStruct(result);
         UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
     }
     else
@@ -212,46 +210,6 @@ void AHttpActor::UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response,
     }
 }
 //User End-------------------------------------------------------------
-
-//User Like-------------------------------------------------------------
-void AHttpActor::UserLikeReqPost(FString url, FString json)
-{
-    FHttpModule& httpModule = FHttpModule::Get();
-    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
-
-    // ��û�� ������ ����
-    req->SetURL(url);
-    req->SetVerb(TEXT("POST"));
-    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
-    req->SetContentAsString(json);
-
-    // ������� �Լ��� ����
-    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::UserLikeResPost);
-    // ������ ��û
-    req->ProcessRequest();
-}
-
-void AHttpActor::UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-{
-    if (!Response.IsValid())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
-        return;
-    }
-    // ��û�� ���������� �Ϸ�Ǿ����� Ȯ��
-    if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
-    {
-        // ������ ���ڿ��� ��������
-        FString result = Response->GetContentAsString();
-        UJsonParseLib::UserLike_Convert_JsonToStruct(result);
-        UE_LOG(LogTemp, Log, TEXT("Post Request Success: %s"), *result);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("OnResPostTest Failed..."));
-    }
-}
-//User Like End-------------------------------------------------------------
 
 //ChangeIndex -------------------------------------------------------------
 void AHttpActor::ChangeIndexReqPost(FString url, FString json)
@@ -639,13 +597,13 @@ void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr 
     {
         // 응답에서 JSON 문자열 얻기
         FString JsonResponse = Response->GetContentAsString();
-        UE_LOG(LogTemp, Warning, TEXT("Response JSON: %s"), *JsonResponse);
+        UE_LOG(LogTemp, Warning, TEXT("MyRoom Response JSON: %s"), *JsonResponse);
        
         // FRoomData 구조체로 변환
         RoomData = UJsonParseLib::RoomData_Convert_JsonToStruct(JsonResponse);
         SessionGI->RoomMusicData = RoomData.userMusic;
 		UE_LOG(LogTemp, Warning, TEXT("RecommendedMusic: %s"), *SessionGI->RoomMusicData);
-
+     
         //MyRoom으로 이동
         APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
         if (PlayerController) {
