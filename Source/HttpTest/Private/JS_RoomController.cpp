@@ -34,20 +34,19 @@ void AJS_RoomController::Tick(float DeltaTime)
 
     AActor* HoveredActor = bHitSuccessful ? HitResult.GetActor() : nullptr;
 
-    // ���� ���ο� ���Ϳ� ���콺�� �����Ǿ��ٸ�, OnMouseHover ȣ��
     if (HoveredActor != CurrentHoveredActor)
     {
         if (CurrentHoveredActor)
         {
-            OnMouseHoverEnd(CurrentHoveredActor); // ���� ���Ϳ��� ���콺�� ���
+            OnMouseHoverEnd(CurrentHoveredActor);
         }
 
         if (HoveredActor)
         {
-            OnMouseHover(HoveredActor); // ���ο� ���Ϳ� ���콺�� ����
+            OnMouseHover(HoveredActor); 
         }
 
-        CurrentHoveredActor = HoveredActor; // ���� ������ ���� ������Ʈ
+        CurrentHoveredActor = HoveredActor;
     }
 
 }
@@ -73,7 +72,6 @@ void AJS_RoomController::BeginPlay()
     CheckDate();
     SetInputMode(FInputModeGameOnly());
 
-    // Ÿ�̸� ����: 1�� �������� SpawnAndSwitchToCamera ȣ��
     GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 0.01f, true);
 }
 
@@ -81,7 +79,6 @@ void AJS_RoomController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    // EnhancedInputLocalPlayerSubsystem���� InputMappingContext�� �߰��մϴ�.
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
         //Subsystem->ClearAllMappings();
@@ -193,7 +190,6 @@ void AJS_RoomController::HideCreateRoomUI()
 //CreateRoom --------------------------------------------------------------------------
 
 //Room --------------------------------------------------------------------------
-//��
 void AJS_RoomController::ShowRoomUI()
 {
     UE_LOG(LogTemp, Log, TEXT(" AJS_RoomController::ShowRoomUI()"));

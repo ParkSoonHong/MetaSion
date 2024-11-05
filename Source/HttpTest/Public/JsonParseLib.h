@@ -114,60 +114,6 @@ struct FUser // 유저 테이블
 	{}
 };
 
-USTRUCT(BlueprintType)
-struct FUser_like
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	int32 FeedbackId;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString UserId;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString VisitedRoomId;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString VisitedUserId;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString Feedback;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FDateTime FeedbackTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString Mood;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString Weather;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString MainAsset;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString BackgroundColor;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FeedbackData/Struct")
-	FString FloorMaterial;
-
-	// 기본 생성자
-	FUser_like()
-		: FeedbackId(0), 
-		  UserId(TEXT("")), 
-		  VisitedRoomId(TEXT("")), 
-		  VisitedUserId(TEXT("")), 
-		  Feedback(TEXT("")), 
-		  FeedbackTime(FDateTime::Now()), 
-		  Mood(TEXT("")), 
-		  Weather(TEXT("")), 
-		  MainAsset(TEXT("")), 
-		  BackgroundColor(TEXT("")), 
-		  FloorMaterial(TEXT("")) 
-	{}
-};
-
 USTRUCT(BlueprintType) 
 struct FChangeIndex //ChangeIndex
 {
@@ -186,16 +132,53 @@ struct FMyRoomInfo
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoomInfo/Struct")
-	FString RoomName;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoomInfo/Struct")
-	bool room_pp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraSky_TimeOfDay;
 
-	//기본 생성자
-	FMyRoomInfo() :
-				RoomName(TEXT("")),
-				room_pp(true)
-	{}
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_CloudCoverage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_Fog;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_Rain;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_Snow;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_Dust;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_WindIntensity;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString UltraWeather_Thunder;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString RoomName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString userDescription;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyRoom/Struct")
+    FString room_pp;
+
+    // 기본 생성자
+	FMyRoomInfo()
+        : UltraSky_TimeOfDay(TEXT(""))
+        , UltraWeather_CloudCoverage(TEXT(""))
+        , UltraWeather_Fog(TEXT(""))
+        , UltraWeather_Rain(TEXT(""))
+        , UltraWeather_Snow(TEXT(""))
+        , UltraWeather_Dust(TEXT(""))
+        , UltraWeather_WindIntensity(TEXT(""))
+        , UltraWeather_Thunder(TEXT(""))
+        , RoomName(TEXT(""))
+        , userDescription(TEXT(""))
+        , room_pp(TEXT(""))
+    {}
 };
 
 USTRUCT(BlueprintType)
@@ -277,11 +260,6 @@ public:
 	static FString User_Convert_StructToJson(const FUser& UserStrcut);
 	//Json To Struct : Response
 	static FUser User_Convert_JsonToStruct(const FString& JsonString);
-
-	//Struct To Json : Req
-	static FString UserLike_Convert_StructToJson(const FUser_like& User_LikeStrcut);
-	//Json To Struct : Response
-	static FUser_like UserLike_Convert_JsonToStruct(const FString& JsonString);
 
 	//Struct To Json : Req
 	static FString ChangeIndex_Convert_StructToJson(const FChangeIndex& FWallPaperIndexStruct);
