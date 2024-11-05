@@ -37,6 +37,18 @@ struct FRoomInfo								// 세션(방)의 정보를 저장하는 구조체로, �
 		return FString::Printf(TEXT("%d) [%s] [%s] %d / %d - ping : %dms"), index, *roomName, *hostName, currentPlayerCount, maxPlayerCount, pingMS);
 	}
 };
+USTRUCT(BlueprintType)							
+struct FMyCreatedRoom
+{
+	GENERATED_BODY()
+	
+	 UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FString RoomName;  // 방 이름
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString RoomNum;
+};
+
 
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSearchSignature, const struct FRoomInfo&, info);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSessionSearchComplete);
@@ -100,6 +112,10 @@ public:
 	void InitSessionName(FString name);
 	FString GetMySessionName();
 
+	void InitRoomNameNum(TArray<FMyCreatedRoom> list);
+
+	TArray<FMyCreatedRoom> GettRoomNameNum();
+
 	// Lobby Ref MultiRoom Info 전달
 	//UPROPERTY()
 	//class ACJS_BallPlayer* Player;
@@ -123,6 +139,10 @@ public:
 	void ChangePlayerController(UWorld* World, TSubclassOf<APlayerController> NewControllerClass);
 	UFUNCTION()
 	void HandleMapChange(UWorld* World);
+
+	 // 방 정보 저장용 구조체 배열
+    UPROPERTY()
+    TArray<FMyCreatedRoom> RoomInfoList; 
 
 
 };

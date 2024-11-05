@@ -24,12 +24,17 @@ public:
 		UFUNCTION()
 	void OnClickSelect();
 
+
 		UPROPERTY()
 	class UKGW_RoomList* Showlist;
 
 	FString ListURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
 			UPROPERTY()
 	class AHttpActor* HttpActor;
+
+				UPROPERTY()
+	class AKGW_RoomlistActor* ListActor;
+
 
 
 };

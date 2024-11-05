@@ -31,7 +31,7 @@ AJS_WidgetFunction::AJS_WidgetFunction()
 
     // 위젯 컴포넌트 생성 및 초기화
     WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
-    WidgetComponent->SetupAttachment(BillboardComp);
+    WidgetComponent->SetupAttachment(RootComponent);
 
 
     // 위젯 클래스 설정 (Blueprint에서 WBP_Image로 설정해주어야 함)
