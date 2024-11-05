@@ -7,6 +7,9 @@
 #include "CJS/CJS_AimPointWidget.h"
 #include "CJS/CJS_MultiRoomActor.h"
 #include "CJS/CJS_HttpActor.h"
+#include "CJS/SessionGameInstance.h"
+#include "CJS/CJS_UltraDynamicSkyActor.h"
+
 #include "HttpActor.h"
 #include "JsonParseLib.h"
 
@@ -17,20 +20,19 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimSequence.h"
+#include "Components/ArrowComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/ArrowComponent.h"
 #include "Blueprint/UserWidget.h"
 
 #include "JsonUtilities.h" // JSON 관련 유틸리티
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
-#include "CJS/SessionGameInstance.h"
-
 #include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"  // 파이썬 자동 실행
 
+#include "Math/Color.h"
 
 
 
@@ -76,6 +78,7 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
 	InitJsonData(Json);
+	//SetModifyAuroraColors();
 }
 	
 
@@ -84,6 +87,9 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 오로라 색상 변경
+	ModifyAuroraColors();
 
 	// SessionGameInstance 할당
 	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
@@ -146,8 +152,8 @@ void ACJS_BallPlayer::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
 	}
 	// 초기 회전값을 Identity로 설정
-	MaterialRotationQuat = FQuat::Identity;
-	TargetYaw = 0.0f; // 초기 목표 Yaw 값
+	//MaterialRotationQuat = FQuat::Identity;
+	//TargetYaw = 0.0f; // 초기 목표 Yaw 값
 
 
 	// 추천방 정보 초기화
@@ -282,6 +288,7 @@ void ACJS_BallPlayer::BeginPlay()
 
 	// 기본 이동 힘 설정
 	MoveForce = 150.0f;
+	
 }
 
 // Called every frame
@@ -368,36 +375,6 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent():: EnhancedInputComponent is null"));
 	}
-}
-
-void ACJS_BallPlayer::UpdateMaterialRotation(float DeltaTime)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::UpdateMaterialRotation()"));
-
-	if (!DynamicMaterialInstance) return;
-
-	// 목표 회전 쿼터니언 설정
-	FQuat TargetRotationQuat = FQuat(FRotator(0.0f, TargetYaw, 0.0f));
-	//UE_LOG(LogTemp, Warning, TEXT("TargetYaw: %f, TargetRotationQuat: X=%f, Y=%f, Z=%f, W=%f"), TargetYaw, TargetRotationQuat.X, TargetRotationQuat.Y, TargetRotationQuat.Z, TargetRotationQuat.W);
-
-	// 현재 회전 쿼터니언을 목표 회전값으로 보간하여 점진적으로 회전
-	MaterialRotationQuat = FQuat::Slerp(MaterialRotationQuat, TargetRotationQuat, DeltaTime * 5.0f); // 회전 속도 조절
-	//UE_LOG(LogTemp, Warning, TEXT("MaterialRotationQuat after Slerp: X=%f, Y=%f, Z=%f, W=%f"), MaterialRotationQuat.X, MaterialRotationQuat.Y, MaterialRotationQuat.Z, MaterialRotationQuat.W);
-
-	// 머터리얼에 회전값 전달
-	FRotator Rotation = MaterialRotationQuat.Rotator();
-	//UE_LOG(LogTemp, Warning, TEXT("Rotation applied to material - Pitch: %f, Yaw: %f, Roll: %f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll);
-
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleX"), Rotation.Pitch);
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleY"), Rotation.Yaw);
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleZ"), Rotation.Roll);
-
-	float SetPitchRotation, SetYawRotation, SetRollRotation;
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleX"), SetPitchRotation);
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleY"), SetYawRotation);
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleZ"), SetRollRotation);
-	//UE_LOG(LogTemp, Warning, TEXT("After Set Rotation to material - Pitch: %f, Yaw: %f, Roll: %f"), SetPitchRotation, SetYawRotation, SetRollRotation);
-
 }
 
 void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
@@ -873,125 +850,18 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		float B = JsonObject->GetNumberField(TEXT("B"));
 		SetInitColorValue(R, G, B);
 
-		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장 <-- 기존
-		//TArray<AActor*> FoundActors;
-		//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
+		// 2. 월드에 배치된 20개의 MultiRoomActor를 찾고 저장
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
 
-		//// 최대 5개만 저장
-		//for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
-		//{
-		//	ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
-		//	if (MultiRoomActor)
-		//	{
-		//		MultiRoomActors.Add(MultiRoomActor);
-		//	}
-		//}
-
-		// 2. 20개의 MultiRoomActor 생성 및 저장
-		TSet<FVector> SpawnedLocations; // 중복 위치 체크를 위한 Set
-
-		for (int32 i = 0; i < 20; i++)
+		// 최대 20개만 저장
+		for (int32 i = 0; i < FoundActors.Num() && i < 20; i++)
 		{
-			FVector SpawnLocation;
-			bool bValidLocation = false;
-
-			//// 최대 10회 반복하여 유효한 위치 찾기
-			//for (int32 j = 0; j < 10; j++)
-			//{
-			//	// 랜덤 위치 생성
-			//	float X = FMath::RandRange(-15000.0f, 15000.0f);
-			//	float Y = FMath::RandRange(-15000.0f, 15000.0f);
-			//	SpawnLocation = FVector(X, Y, 400.0f);
-
-			//	// 간격 체크
-			//	bool bIsOverlapping = false;
-			//	for (const FVector& ExistingLocation : SpawnedLocations)
-			//	{
-			//		if (FVector::Dist(ExistingLocation, SpawnLocation) < 500.0f) // 800 이하일 경우 겹친다고 판단
-			//		{
-			//			bIsOverlapping = true;
-			//			break;
-			//		}
-			//	}
-
-			//	// 간섭이 없으면 위치를 등록하고 루프 종료
-			//	if (!bIsOverlapping)
-			//	{
-			//		bValidLocation = true;
-			//		SpawnedLocations.Add(SpawnLocation);
-			//		break;
-			//	}
-			//}
-
-			 // 최대 10회 반복하여 유효한 위치 찾기
-			for (int32 j = 0; j < 10; j++)
+			ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
+			if (MultiRoomActor)
 			{
-				// 랜덤 위치 생성
-				float X = FMath::RandRange(-15000.0f, 15000.0f);
-				float Y = FMath::RandRange(-15000.0f, 15000.0f);
-				SpawnLocation = FVector(X, Y, 400.0f);
-
-				// 스폰 금지 지역 확인
-				bool bIsInRestrictedArea = false;
-
-				// 첫 번째 금지 영역 확인: X 0, Y 0, Z 0에서 X 1000, Y 1000, Z 0 사이
-				if (SpawnLocation.X >= 0 && SpawnLocation.X <= 1000 &&
-					SpawnLocation.Y >= 0 && SpawnLocation.Y <= 1000)
-				{
-					bIsInRestrictedArea = true;
-				}
-
-				// 두 번째 금지 영역 확인: X -8000, Y 4000, Z 0에서 1000 정도 범위
-				if (SpawnLocation.X >= -8000 && SpawnLocation.X <= -7000 &&
-					SpawnLocation.Y >= 4000 && SpawnLocation.Y <= 5000)
-				{
-					bIsInRestrictedArea = true;
-				}
-
-				// 금지 지역에 있지 않다면 간격 체크
-				if (!bIsInRestrictedArea)
-				{
-					bool bIsOverlapping = false;
-					for (const FVector& ExistingLocation : SpawnedLocations)
-					{
-						if (FVector::Dist(ExistingLocation, SpawnLocation) < 500.0f) // 500 이하일 경우 겹친다고 판단
-						{
-							bIsOverlapping = true;
-							break;
-						}
-					}
-
-					// 간섭이 없으면 위치를 등록하고 루프 종료
-					if (!bIsOverlapping)
-					{
-						bValidLocation = true;
-						SpawnedLocations.Add(SpawnLocation);
-						break;
-					}
-				}
-			}
-
-			// 유효한 위치가 발견되면 Actor 생성
-			if (bValidLocation)
-			{
-				FRotator SpawnRotation = FRotator::ZeroRotator;
-				UE_LOG(LogTemp, Warning, TEXT("Trying to spawn MultiRoomActor %d at location: %s"), i, *SpawnLocation.ToString());
-				//ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(ACJS_MultiRoomActor::StaticClass(), SpawnLocation, SpawnRotation);
-				ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(RefMultiRoom, SpawnLocation, SpawnRotation);
-				if (NewMultiRoomActor)
-				{
-					MultiRoomActors.Add(NewMultiRoomActor);
-					UE_LOG(LogTemp, Warning, TEXT("Successfully spawned MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
-					UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor %d is located at %s, Visibility: %s"), i, *NewMultiRoomActor->GetActorLocation().ToString(), NewMultiRoomActor->IsHidden() ? TEXT("Hidden") : TEXT("Visible"));
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("Failed to spawn MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Failed to find valid spawn location for MultiRoomActor %d"), i);
+				MultiRoomActors.Add(MultiRoomActor);
+				UE_LOG(LogTemp, Warning, TEXT("Found MultiRoomActor %d at location: %s"), i, *MultiRoomActor->GetActorLocation().ToString());
 			}
 		}
 		// 저장된 MultiRoomActor의 개수 출력
@@ -1095,6 +965,67 @@ void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, 
 		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
 	}
 }
+
+void ACJS_BallPlayer::ModifyAuroraColors()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ModifyAuroraColors()"));
+
+	// 현재 월드에 있는 ACJS_UltraDynamicSkyActor 인스턴스 찾기
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_UltraDynamicSkyActor::StaticClass(), FoundActors);
+
+	// 첫 번째 액터가 존재하는지 확인
+	if (FoundActors.Num() > 0)
+	{
+		ACJS_UltraDynamicSkyActor* DynamicSky = Cast<ACJS_UltraDynamicSkyActor>(FoundActors[0]);
+
+		// 색상 설정 (예: Aurora Color 1)
+		//FLinearColor AuroraColor1(1.0f, 0.0f, 0.0f, 1.0f); // 새로운 색상
+		//FLinearColor AuroraColor2(0.0f, 1.0f, 0.0f, 1.0f);
+		//FLinearColor AuroraColor3(0.0f, 0.0f, 1.0f, 1.0f);
+
+		// 각 색상의 R, G, B, A 값 출력
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor1: R=%f, G=%f, B=%f, A=%f"), AuroraColor1.R, AuroraColor1.G, AuroraColor1.B, AuroraColor1.A);
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor2: R=%f, G=%f, B=%f, A=%f"), AuroraColor2.R, AuroraColor2.G, AuroraColor2.B, AuroraColor2.A);
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor3: R=%f, G=%f, B=%f, A=%f"), AuroraColor3.R, AuroraColor3.G, AuroraColor3.B, AuroraColor3.A);
+
+		// 속성 변경 후 업데이트
+		//DynamicSky->UpdateAuroraColors(AuroraColor1, AuroraColor2, AuroraColor3);
+		DynamicSky->SetModifyAuroraColors();
+		//UE_LOG(LogTemp, Warning, TEXT("After Call DynamicSky->UpdateAuroraColors()"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ModifyAuroraColors()::Cannot Find DynamicSky!!!"));
+	}
+}
+
+
+//void ACJS_BallPlayer::SetModifyAuroraColors()
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetModifyAuroraColors()"));
+//
+//	AuroraColor1 = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); 
+//	AuroraColor2 = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f);
+//	AuroraColor3 = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);
+//
+//	// 각 색상의 R, G, B, A 값 출력
+//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor1: R=%f, G=%f, B=%f, A=%f"), AuroraColor1.R, AuroraColor1.G, AuroraColor1.B, AuroraColor1.A);
+//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor2: R=%f, G=%f, B=%f, A=%f"), AuroraColor2.R, AuroraColor2.G, AuroraColor2.B, AuroraColor2.A);
+//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor3: R=%f, G=%f, B=%f, A=%f"), AuroraColor3.R, AuroraColor3.G, AuroraColor3.B, AuroraColor3.A);
+//}
+//FLinearColor ACJS_BallPlayer::GetAuroraColor1()
+//{
+//	return AuroraColor1;
+//}
+//FLinearColor ACJS_BallPlayer::GetAuroraColor2()
+//{
+//	return AuroraColor2;
+//}
+//FLinearColor ACJS_BallPlayer::GetAuroraColor3()
+//{
+//	return AuroraColor3;
+//}
 
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
