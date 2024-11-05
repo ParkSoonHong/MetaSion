@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "CJS/SessionGameInstance.h"
 #include "JsonParseLib.generated.h"
 
 USTRUCT(BlueprintType) 
@@ -261,7 +262,7 @@ public:
 
 	static FString MakeJson(const TMap<FString, FString>& source);
 
-	static FString JsonParseRoomList(const FString& json);
+	static TArray<FMyCreatedRoom> JsonParseRoomList(const FString& json);
 
 	//Struct To Json : Req
 	static FString Login_Convert_StructToJson(const FLogin& LoginStrcut);

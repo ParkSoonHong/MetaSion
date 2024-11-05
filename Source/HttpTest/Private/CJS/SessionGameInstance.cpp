@@ -360,7 +360,24 @@ FString USessionGameInstance::GetMySessionName()
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %s"), *MySessionName);
 	return MySessionName;
 }
-	
+
+void USessionGameInstance::InitRoomNameNum(TArray<FMyCreatedRoom> list)
+{
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitRoomNameNum()"));
+
+	RoomInfoList = list;
+	UE_LOG(LogTemp, Error, TEXT("GameInstance->StoredRoomInfos size: %d"), RoomInfoList.Num());
+
+}
+
+TArray<FMyCreatedRoom> USessionGameInstance::GettRoomNameNum()
+{
+	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %d"), RoomInfoList.Num());
+
+	return RoomInfoList;
+
+}
+
 	
 //void USessionGameInstance::SetRefMultiRoomInfo(FString json)
 //{

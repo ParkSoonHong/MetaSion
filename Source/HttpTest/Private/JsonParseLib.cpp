@@ -5,6 +5,7 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonWriter.h"
 #include "JsonObjectConverter.h"
+#include "CJS/SessionGameInstance.h"
 // Login ----------------------------------------------------------------------------
 FString UJsonParseLib::Login_Convert_StructToJson(const FLogin& LoginStrcut)
 {
@@ -200,8 +201,9 @@ FString UJsonParseLib::MakeJson(const TMap<FString, FString>& source)
 	return json;
 }
 
-FString UJsonParseLib::JsonParseRoomList(const FString& json)
+TArray<FMyCreatedRoom>  UJsonParseLib::JsonParseRoomList(const FString& json)
 {
+	TArray<FMyCreatedRoom> RoomInfos;
 	// 리더기를 만들고
 	TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(json);
 	// 파싱 결과를 담을 변수 선언
@@ -217,8 +219,12 @@ FString UJsonParseLib::JsonParseRoomList(const FString& json)
 			FString roomNum = data->AsObject()->GetStringField("roomNum");
 			FString roomName = data->AsObject()->GetStringField("roomName");
 			returnValue.Append(FString::Printf(TEXT("roomNum : %s / roomName : %s\n"), *roomNum, *roomName));
+			FMyCreatedRoom RoomInfo;
+			RoomInfo.RoomNum = roomNum;
+			RoomInfo.RoomName = roomName;
+			RoomInfos.Add(RoomInfo);
 		}
 	}
 	// 반환한다.
-	return returnValue;
+	return RoomInfos;
 }

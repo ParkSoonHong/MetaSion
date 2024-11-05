@@ -7,41 +7,41 @@
 #include "Components/TextBlock.h"
 #include "HttpActor.h"
 
-void UKGW_RoomList::AddSessionSlotWidget(const TArray<FString>& RoomNames)
+void UKGW_RoomList::AddSessionSlotWidget(const TArray<FMyCreatedRoom>& RoomInfos)
 {
 
-		
-
-	for (const FString& RoomName : RoomNames)
-	{
-		// UKGW_UserRoomName 위젯 생성
-		auto* RoomSlot = CreateWidget<UKGW_UserRoomName>(this, UserRoomNameFactory);
-		if (RoomSlot)
-		{
-			// roomName 정보를 위젯에 업데이트
-// 			Slot->UpdateInfo(RoomName);
-
-			// ScrollBox에 위젯 추가
-			ScrollBox->AddChild(RoomSlot);
-		}
-	}
-	
-
+    if (!ScrollBox)
+    {
+        UE_LOG(LogTemp, Error, TEXT("ScrollBox is null! Make sure it is set correctly in the widget."));
+        return;
+    }
+//     ScrollBox->ClearChildren();
+    for (const FMyCreatedRoom& Room : RoomInfos)
+    {
+        auto* RoomSlot = CreateWidget<UKGW_UserRoomName>(this, UserRoomNameFactory);
+        if (RoomSlot)
+        {
+            // RoomWidget의 정보를 업데이트 (예: 방 이름 설정)
+            RoomSlot->UpdateInfo(Room);
+            ScrollBox->AddChild(RoomSlot);
+        }
+    }  
+    UE_LOG(LogTemp, Log, TEXT("Room list updated with %d rooms."), RoomInfos.Num());
 
 }
 
-void UKGW_RoomList::SetFindActive(bool value)
-{
-	//찾기가 끝나면 Empty 텍스트 안보이게 하고싶다.
-	if (value) {
-		Text_Finding->SetVisibility(ESlateVisibility::Visible);
-
-	}
-	else {
-		Text_Finding->SetVisibility(ESlateVisibility::Hidden);
-
-		
-	}
-
-
-}
+// void UKGW_RoomList::SetFindActive(bool value)
+// {
+// 	//찾기가 끝나면 Empty 텍스트 안보이게 하고싶다.
+// 	if (value) {
+// 		Text_Finding->SetVisibility(ESlateVisibility::Visible);
+// 
+// 	}
+// 	else {
+// 		Text_Finding->SetVisibility(ESlateVisibility::Hidden);
+// 
+// 		
+// 	}
+// 
+// 
+// }

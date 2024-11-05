@@ -20,6 +20,9 @@
 #include "KGW_Wbp_WebImage.h"
 #include "ImageUtils.h"
 #include "KGW/WBP_Image.h"
+#include "KGW/KGW_RoomlistActor.h"
+#include "Components/WidgetComponent.h"
+#include "KGW/KGW_RoomList.h"
 
 
 // Sets default values
@@ -771,19 +774,68 @@ void AHttpActor::ReqPostRoomList(FString url, FString json)
 }
 void AHttpActor::OnResPostRoomList(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
+    
     if (bConnectedSuccessfully && Response.IsValid())
     {
         FString ResponseContent = Response->GetContentAsString();
         UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ResponseContent);
+        	
 
         // JSON 파싱 함수 호출 및 반환 값 저장
-        FString ParsedResult = UJsonParseLib::JsonParseRoomList(ResponseContent);
+        TArray<FMyCreatedRoom> ParsedResult = UJsonParseLib::JsonParseRoomList(ResponseContent);
+
+        // 파싱된 결과를 문자열로 변환하여 출력
+        FString ParsedString;
+        for (const FMyCreatedRoom& Room : ParsedResult)
+        {
+            ParsedString.Append(FString::Printf(TEXT("roomNum: %s, roomName: %s\n"), *Room.RoomNum, *Room.RoomName));
+        }
 
         // 파싱된 결과 출력
-        UE_LOG(LogTemp, Log, TEXT("Parsed Room Data:\n%s"), *ParsedResult);
+        UE_LOG(LogTemp, Log, TEXT("Parsed Room Data:\n%s"), *ParsedString);
+
+        USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
+        if (GameInstance)
+        {
+            GameInstance->InitRoomNameNum(ParsedResult); // 데이터가 제대로 저장되었는지 로그로 확인
+            UE_LOG(LogTemp, Error, TEXT("GameInstance->InitRoomInfoList size: %d"), GameInstance->RoomInfoList.Num());
+            TArray<FMyCreatedRoom> Result;
+            Result=  GameInstance->GettRoomNameNum(); // 데이터가 제대로 저장되었는지 로그로 확인
+            UE_LOG(LogTemp, Error, TEXT("GameInstance->GEtRoomInfoList size: %d"), Result.Num());
+            AKGW_RoomlistActor* ListActor = Cast<AKGW_RoomlistActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AKGW_RoomlistActor::StaticClass()));
+            if (ListActor)
+            {
+                UWidgetComponent* WidgetComp = ListActor->FindComponentByClass<UWidgetComponent>();
+                if (WidgetComp)
+                {
+                    UKGW_RoomList* Showlist = Cast<UKGW_RoomList>(WidgetComp->GetUserWidgetObject());
+                    if (Showlist)
+                    {
+                        // RoomInfoList 데이터를 위젯에 추가
+                        Showlist->AddSessionSlotWidget(GameInstance->GettRoomNameNum());
+                        UE_LOG(LogTemp, Log, TEXT("Showlist updated successfully."));
+                    }
+                    else
+                    {
+                        UE_LOG(LogTemp, Error, TEXT("Showlist is null! Make sure the widget is correctly set in BP_ListActor."));
+                    }
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("WidgetComponent not found on BP_ListActor."));
+                }
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("GameInstance is null!"));
+        }
+
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to receive a valid response from the server."));
     }
+
+
 }
