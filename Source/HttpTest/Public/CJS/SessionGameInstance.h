@@ -93,7 +93,7 @@ public:
 
 	// 방 조인 요청 (특정 인덱스의 세션에 참가하는 함수)
 	UFUNCTION()
-	void JoinSession(int32 index);
+	void ReqJoinSession(int32 index);
 	// 방 조인 응답 (세션 참가가 완료되었을 때 호출되는 콜백 함수)
 	void OnMyJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type);
 

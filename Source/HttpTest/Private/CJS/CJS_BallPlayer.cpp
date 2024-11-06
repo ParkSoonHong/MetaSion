@@ -498,8 +498,8 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						if (UserObject.IsValid())
 						{
 							RoomOwner = UserObject->GetStringField(TEXT("UserId"));
-							//ClickedRoomNum = UserObject->GetStringField(TEXT("RoomNum"));
-							ClickedRoomNum = "3";  // <-- 미리 방 정보 추가로 다 가지고 있어야 함.
+							ClickedRoomNum = UserObject->GetStringField(TEXT("roomNum"));
+							//ClickedRoomNum = "3";  // <-- 미리 방 정보 추가로 다 가지고 있어야 함.
 							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
 							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
 						}
@@ -856,7 +856,7 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
 		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
 
-		TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+		//TArray<TSharedPtr<FJsonValue>> AllUsersArray;
 		AllUsersArray.Append(SimilarUsersArray);
 		AllUsersArray.Append(OppositeUsersArray);
 
@@ -873,7 +873,7 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 
 				// 현재 사용자 수와 최대 수 설정 (예시)
 				//int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
-				FString MaxNumPlayer = 5;
+				FString MaxNumPlayer = "5";
 				//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
 
 				// 각 MultiRoomActor에 정보 설정

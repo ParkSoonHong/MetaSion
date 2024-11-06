@@ -230,7 +230,7 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 
 			if (HostName == "testuser")  // 정확한 세션 이름 확인
 			{
-				JoinSession(i);  // 인덱스를 전달
+				ReqJoinSession(i);  // 인덱스를 전달
 				bJoinSession = true;
 				break;
 			}
@@ -249,7 +249,7 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 }
 
 // 방 조인 요청 (주어진 인덱스의 세션에 참가. 세션 검색 결과를 사용하여 해당 세션에 연결을 시도)
-void USessionGameInstance::JoinSession(int32 index)
+void USessionGameInstance::ReqJoinSession(int32 index)
 {
 	// SessionSearch
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::JoinSession()"));

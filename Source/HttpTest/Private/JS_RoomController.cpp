@@ -21,6 +21,7 @@
 #include "Camera/CameraComponent.h"
 #include "CJS/SessionGameInstance.h"
 #include "HttpActor.h"
+#include "CJS/CJS_JS_WidgetFunction.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -258,36 +259,27 @@ void AJS_RoomController::OnMouseClick()
             {
 				UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
                 UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
-
-                 // 서버가 있는 로비로 돌아가기 위한 ClientTravel 사용
-			   /* APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-				if (PlayerController)
-				{
-					PlayerController->ClientTravel("/Game/Main/Maps/Main_Lobby", ETravelType::TRAVEL_Relative);
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("AJS_RoomController::OnMouseClick():: No PlayerController"));
-				}*/
-
-                // GameInstance를 가져와서 JoinSession() 호출
-                //USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetGameInstance());
-                //if (GameInstance)
-                //{
-                //    GameInstance->FindSessions();  // 세션을 찾고, 성공 시 JoinSession을 호출
-                //}
-                //else
-                //{
-                //    UE_LOG(LogTemp, Error, TEXT("Failed to get SessionGameInstance"));
-                //}
             }
             else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
             {
 
                 UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
-//                 UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
+//              UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
                 OpenMultiWorld();
 
+            }
+            else if (HitActor->ActorHasTag(TEXT("ChatWidget")))  //  <-- 채팅 위젯 추가
+            {
+                UE_LOG(LogTemp, Warning, TEXT("ChatWidget Hit - Loading Chat Widget"));
+                if (ChatActorFactory)
+                {
+                    // ChatActorFactory가 ACJS_JS_WidgetFunction 타입임을 보장
+                    ACJS_JS_WidgetFunction* ChatFunction = Cast<ACJS_JS_WidgetFunction>(ChatActorFactory);
+                    if (ChatFunction)
+                    {
+                        ChatFunction->ToggleChatUIVisible();
+                    }
+                }
             }
 
         }

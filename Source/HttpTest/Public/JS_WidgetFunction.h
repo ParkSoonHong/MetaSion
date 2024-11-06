@@ -31,16 +31,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* meshComp;
 
-	 // À§Á¬ ÄÄÆ÷³ÍÆ® ¼±¾ð
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-class UWidgetComponent* WidgetComponent;
-UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-class UBillboardComponent* BillboardComp;
+	 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UWidgetComponent* WidgetComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UBillboardComponent* BillboardComp;
 
 
-void PlayShowImageAnimation();
+	void PlayShowImageAnimation();
 
-void SetActorVisibilityHidden();
-void SetActorVisibilityVisible();
+	void SetActorVisibilityHidden();
+	void SetActorVisibilityVisible();
 
 };

@@ -96,4 +96,9 @@ public:
     //Screen Capture + Wallpaper Python Auto Execute
     void ScreenCapture();
     void ExecuteWallPaperPython();
+
+
+    /* Chat Widget */
+    UPROPERTY(EditDefaultsOnly, Category = "Heart")
+	class ACJS_JS_WidgetFunction* ChatActorFactory;
 };
