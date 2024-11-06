@@ -530,11 +530,58 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
         if (res == 200)
         {
             UE_LOG(LogTemp, Warning, TEXT("Response ... OK!! "));
-            FString str = Response->GetContentAsString();
-            UE_LOG(LogTemp, Warning, TEXT(" %s"), *str);
+            FString LocalJsonData = Response->GetContentAsString();  // <-- 여기 통신에 값 들어오는 거 보고 수정 예정
+            UE_LOG(LogTemp, Warning, TEXT(" %s"), *LocalJsonData);
+
+
+            // 방 정보 처리 로직 <-- 추가 예정
+            /*
+            UltraSky_TimeOfDay
+			UltraWheather_CloudCoverage
+			UltraWheather_Fog
+			UltraWheather_Rain
+			UltraWheather_Snow
+			UltraWheather_Dust
+			UltraWheather_Thunder
+			Particle_num1
+			Particle_num2
+			Particle_num3
+			Particle_num4
+            */
+
+
+            // 체험자 수(playerNum) 처리 로직 
+            TSharedPtr<FJsonObject> JsonObject;
+            TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(LocalJsonData);
+
+            if (FJsonSerializer::Deserialize(Reader, JsonObject) && JsonObject.IsValid())
+            {
+                // JSON에서 playerNum을 FString으로 가져옵니다
+                FString playerNum = JsonObject->GetStringField(TEXT("playerNum")); // JSON에서 playerNum을 문자열로 가져옴
+                UE_LOG(LogTemp, Warning, TEXT("체험자 수: %s"), *playerNum);
+
+                if(APlayerController * PlayerController = GetWorld()->GetFirstPlayerController())
+                {
+                    ACJS_BallPlayer* player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
+                    if (player)
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer assigned"));
+                        player->FindMultiRoomList(player->ClickedRoomNum, playerNum);
+                    }
+                    else
+                    {
+                        UE_LOG(LogTemp, Error, TEXT("Failed to cast PlayerController's Pawn to ACJS_BallPlayer."));
+                    }
+                }
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Failed to get PlayerController."));
+				}
+            
+            }
 
             // 플레이어 캐스팅 및 RequestMoveMultiRoom 호출
-            if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+            /*if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
             {
                 ACJS_BallPlayer* player = Cast<ACJS_BallPlayer>(PlayerController->GetPawn());
                 if (player)
@@ -550,7 +597,7 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
             else
             {
                 UE_LOG(LogTemp, Error, TEXT("Failed to get PlayerController."));
-            }
+            }*/
 		}
 		else
 		{

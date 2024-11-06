@@ -58,7 +58,7 @@ void ACJS_MultiRoomActor::Tick(float DeltaTime)
 	RefRoomInfoWidgetComp->SetWorldRotation(rot);
 }
 
-void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
+void ACJS_MultiRoomActor::InitRefRoomInfoWidget(const FString& CurNumPlayer, const FString& MaxNumPlayer, const FString& RoomName, const FString& Percent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_MultiRoomActor::InitRefRoomInfoWidget"));
 
@@ -68,13 +68,23 @@ void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNum
 
 	if (Txt_CurNumPlayer)
 	{
+		Txt_CurNumPlayer->SetText(FText::FromString(CurNumPlayer));
+	}
+
+	if (Txt_MaxNumPlayer)
+	{
+		Txt_MaxNumPlayer->SetText(FText::FromString(MaxNumPlayer));
+	}
+
+	/*if (Txt_CurNumPlayer)
+	{
 		Txt_CurNumPlayer->SetText(FText::FromString(FString::FromInt(CurNumPlayer)));
 	}
 
 	if (Txt_MaxNumPlayer)
 	{
 		Txt_MaxNumPlayer->SetText(FText::FromString(FString::FromInt(MaxNumPlayer)));
-	}
+	}*/
 
 	if (Txt_RefRoomName)
 	{
@@ -115,5 +125,20 @@ void ACJS_MultiRoomActor::InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNum
 	float ScaleFactor = FMath::GetMappedRangeValueClamped(FVector2D(0, 100), FVector2D(2.0f, 10.0f), MessageValue); // 예: 0~100의 메시지를 0.5~2.0의 범위로 변환
 	// 스케일 적용
 	SphereMesh->SetWorldScale3D(FVector(ScaleFactor)); // 메쉬 크기 조정
+}
+
+void ACJS_MultiRoomActor::UpdateClickedRefRoomPlayerNum(const FString& CurNumPlayer, const FString& MaxNumPlayer)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_MultiRoomActor::UpdateClickedRefRoomPlayerNum"));
+
+	if (Txt_CurNumPlayer)
+	{
+		Txt_CurNumPlayer->SetText(FText::FromString(CurNumPlayer));
+	}
+
+	if (Txt_MaxNumPlayer)
+	{
+		Txt_MaxNumPlayer->SetText(FText::FromString(MaxNumPlayer));
+	}
 }
 

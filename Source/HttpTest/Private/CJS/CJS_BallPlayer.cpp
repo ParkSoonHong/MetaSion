@@ -482,7 +482,6 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					FString UserId;
 					int32 ActorIndex;
 					FString RoomOwner;
-					FString RoomNum;
 					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
 					if (GameInstance)
 					{
@@ -499,10 +498,10 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						if (UserObject.IsValid())
 						{
 							RoomOwner = UserObject->GetStringField(TEXT("UserId"));
-							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
-							RoomNum = "3";
-							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
-							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
+							//ClickedRoomNum = UserObject->GetStringField(TEXT("RoomNum"));
+							ClickedRoomNum = "3";  // <-- 미리 방 정보 추가로 다 가지고 있어야 함.
+							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
 						}
 						else
 						{
@@ -519,16 +518,15 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					//MyRoomData.Add("userId", UserId);
 					//MultiRoomData.Add("userId", UserId);
-					//MultiRoomData.Add("room_num", "3");
 
-					MultiRoomData.Add("room_num", RoomNum);
+					MultiRoomData.Add("room_num", ClickedRoomNum);
 					
 					// JSON 형식으로 변환
 					FString json = UJsonParseLib::MakeJson(MultiRoomData);
 
 					// 로그 출력 (디버깅용)
 					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
-					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *ClickedRoomNum);
 					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
 
 					HttpActor->ReqPostClickMultiRoom(MultiRoomURL, json);
@@ -855,49 +853,50 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 
 
 		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장   // <-- 통신 시 주석 해제                         <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
-		//TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
-		//TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
+		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
+		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
 
-		//TArray<TSharedPtr<FJsonValue>> AllUsersArray;
-		//AllUsersArray.Append(SimilarUsersArray);
-		//AllUsersArray.Append(OppositeUsersArray);
+		TArray<TSharedPtr<FJsonValue>> AllUsersArray;
+		AllUsersArray.Append(SimilarUsersArray);
+		AllUsersArray.Append(OppositeUsersArray);
 
-		// 최대 5개의 방 정보를 저장하고, MultiRoomActor에 설정
-		//for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
-		//{
-		//	TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
-		//	if (UserObject.IsValid())
-		//	{
-		//		// EmotionScore와 RoomName을 가져와 설정
-		//		FString Message = UserObject->GetStringField(TEXT("Message"));
-		//		FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
-
-		//		// 현재 사용자 수와 최대 수 설정 (예시)
-		//		int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
-		//		int32 MaxNumPlayer = 5;
-		//		//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
-
-		//		// 각 MultiRoomActor에 정보 설정
-		//		SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
-		//	}
-		//}
-
-
-		for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용 (통신 x)
+		// 최대 20개의 방 정보를 저장하고, MultiRoomActor에 설정
+		for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
 		{
-			// Message에 0부터 100까지의 랜덤 값 할당
-			FString Message = FString::Printf(TEXT("%d"), FMath::RandRange(0, 100));
-			// RoomName에 "user_"와 인덱스 결합하여 할당
-			FString RoomName = FString::Printf(TEXT("user_%d"), i);
+			TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+			if (UserObject.IsValid())
+			{
+				// EmotionScore와 RoomName을 가져와 설정
+				FString Message = UserObject->GetStringField(TEXT("Message"));
+				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
+				FString CurNumPlayer = UserObject->GetStringField(TEXT("playerNum"));  // <-- 자료형 모두 str
 
-			// 현재 사용자 수와 최대 수 설정 (예시)  <-- API 확정시 추가 수정하기
-			int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
-			int32 MaxNumPlayer = 5;
-			//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+				// 현재 사용자 수와 최대 수 설정 (예시)
+				//int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+				FString MaxNumPlayer = 5;
+				//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
 
-			// 각 MultiRoomActor에 정보 설정
-			SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+				// 각 MultiRoomActor에 정보 설정
+				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+			}
 		}
+
+
+		//for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용 (통신 x)
+		//{
+		//	// Message에 0부터 100까지의 랜덤 값 할당
+		//	FString Message = FString::Printf(TEXT("%d"), FMath::RandRange(0, 100));
+		//	// RoomName에 "user_"와 인덱스 결합하여 할당
+		//	FString RoomName = FString::Printf(TEXT("user_%d"), i);
+
+		//	// 현재 사용자 수와 최대 수 설정 (예시)  <-- API 확정시 추가 수정하기
+		//	int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+		//	int32 MaxNumPlayer = 5;
+		//	//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+
+		//	// 각 MultiRoomActor에 정보 설정
+		//	SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+		//}
 	}
 	else
 	{
@@ -938,13 +937,25 @@ void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
 //	}
 //}
 
-void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
+void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, const FString& CurNumPlayer, const FString& MaxNumPlayer, const FString& RoomName, const FString& Percent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
 	if (MultiRoomActor)
 	{
 		MultiRoomActor->InitRefRoomInfoWidget(CurNumPlayer, MaxNumPlayer, RoomName, Percent);
 		UE_LOG(LogTemp, Warning, TEXT("MultiRoom information initialized for Room: %s, Percent: %s"), *RoomName, *Percent);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
+	}
+}
+void ACJS_BallPlayer::UpdateMultiRoomPlayerNumInfo(ACJS_MultiRoomActor* MultiRoomActor, const FString& CurNumPlayer, const FString& MaxNumPlayer)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::UpdateMultiRoomPlayerNumInfo()"));
+	if (MultiRoomActor)
+	{
+		MultiRoomActor->UpdateClickedRefRoomPlayerNum(CurNumPlayer, MaxNumPlayer);
 	}
 	else
 	{
@@ -986,13 +997,59 @@ void ACJS_BallPlayer::ModifyAuroraColors()
 	}
 }
 
-
+// 로비 월드 초기 설정 (JSON 전달 부분)
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
 	JsonData = LocalJsonData;
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitJsonData()::JsonData initialized with value: %s"), *JsonData);
 }
 
+// 특정 MultiRoom 찾고 playerNum 업데이트하여 UI에 반영하기
+void ACJS_BallPlayer::FindMultiRoomList(FString roomNum, FString newPlayerNum)
+{
+	int32 multiRoomIndex;
+	// AllUsersArray에서 roomNum의 방 번호 찾기
+	for (int32 i = 0; i < AllUsersArray.Num(); i++)
+	{
+		TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+		if (UserObject.IsValid())
+		{
+			FString RoomNum = UserObject->GetStringField(TEXT("roomNum"));
+
+			// 만일 roomNum이 AllUsersArray에 있다면 
+			if(RoomNum == roomNum)
+			{
+				multiRoomIndex = i;
+				break;
+			}
+		}
+	}
+
+	// multiRoomIndex가 유효한지 확인
+	if (multiRoomIndex != -1)
+	{
+		// AllUsersArray에서 playerNum 값을 newPlayerNum으로 업데이트
+		TSharedPtr<FJsonObject> UserObject = StaticCastSharedPtr<FJsonObject>(AllUsersArray[multiRoomIndex]->AsObject());
+		if (UserObject.IsValid())
+		{
+			UserObject->SetStringField(TEXT("playerNum"), newPlayerNum); // playerNum 값을 새로 설정
+
+			// 업데이트된 playerNum 값을 로그로 출력
+			FString UpdatedPlayerNum = UserObject->GetStringField(TEXT("playerNum")); // JSON에서 새로 설정한 playerNum을 가져옵니다.
+			UE_LOG(LogTemp, Warning, TEXT("Updated playerNum for room %s: %s"), *roomNum, *UpdatedPlayerNum);
+
+			// UI에 업데이트 시키기
+			UpdateMultiRoomPlayerNumInfo(MultiRoomActors[multiRoomIndex], newPlayerNum, "5");
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Room number %s not found in AllUsersArray"), *roomNum);
+	}
+}
+
+
+// 월페이퍼 PC 적용
 void ACJS_BallPlayer::ExecuteWallPaperPython()
 {
 	// 파이썬 파일 경로 설정

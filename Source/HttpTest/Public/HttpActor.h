@@ -86,7 +86,7 @@ public:
 	FString EnteryLobbyURL = "mirrora.duckdns.org:3326/api/auth/processAndSendData";
 	FString MyRoomURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
 	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
-	FString EntryMultiWorldURL = "mirrora.duckdns.org:3326/api/auth/";  // <-- 추가하기
+	FString EntryMultiWorldURL = "mirrora.duckdns.org:3326/api/auth/";  // <-- BE 작업 완료 후 추가하기
 	
 
 	/* Sunny */
