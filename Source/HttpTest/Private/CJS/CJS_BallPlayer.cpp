@@ -77,8 +77,8 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	InitJsonData(Json);
-	//SetModifyAuroraColors();
+	InitJsonData(Json);  //<-- 테스트 시 (통신 x)
+
 }
 	
 
@@ -91,7 +91,7 @@ void ACJS_BallPlayer::BeginPlay()
 	// 오로라 색상 변경
 	ModifyAuroraColors();
 
-	// SessionGameInstance 할당
+	// SessionGameInstance 할당  // <--- 통신 적용 시 (생성자의 InitJsonData() 주석 처리하기)
 	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
 	if (SessionGI)
 	{
@@ -102,20 +102,6 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
 	}*/
-
-	// SessionGameInstance 할당 + 컨트롤러 변경
-	//SessionGI = Cast<USessionGameInstance>(GetGameInstance());
-	//if (SessionGI)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay()::USessionGameInstance is set"));
-	//	//InitJsonData(SessionGI->GetNetInfoCharacterTOLobby());
-	//	SessionGI->HandleMapChange(GetWorld());
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
-	//}
-
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -868,7 +854,7 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
 
 
-		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장                            <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
+		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장   // <-- 통신 시 주석 해제                         <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
 		//TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
 		//TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
 
@@ -897,14 +883,14 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		//}
 
 
-		for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용
+		for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용 (통신 x)
 		{
 			// Message에 0부터 100까지의 랜덤 값 할당
 			FString Message = FString::Printf(TEXT("%d"), FMath::RandRange(0, 100));
 			// RoomName에 "user_"와 인덱스 결합하여 할당
 			FString RoomName = FString::Printf(TEXT("user_%d"), i);
 
-			// 현재 사용자 수와 최대 수 설정 (예시)
+			// 현재 사용자 수와 최대 수 설정 (예시)  <-- API 확정시 추가 수정하기
 			int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
 			int32 MaxNumPlayer = 5;
 			//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
@@ -1000,32 +986,6 @@ void ACJS_BallPlayer::ModifyAuroraColors()
 	}
 }
 
-
-//void ACJS_BallPlayer::SetModifyAuroraColors()
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetModifyAuroraColors()"));
-//
-//	AuroraColor1 = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); 
-//	AuroraColor2 = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f);
-//	AuroraColor3 = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);
-//
-//	// 각 색상의 R, G, B, A 값 출력
-//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor1: R=%f, G=%f, B=%f, A=%f"), AuroraColor1.R, AuroraColor1.G, AuroraColor1.B, AuroraColor1.A);
-//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor2: R=%f, G=%f, B=%f, A=%f"), AuroraColor2.R, AuroraColor2.G, AuroraColor2.B, AuroraColor2.A);
-//	UE_LOG(LogTemp, Warning, TEXT("AuroraColor3: R=%f, G=%f, B=%f, A=%f"), AuroraColor3.R, AuroraColor3.G, AuroraColor3.B, AuroraColor3.A);
-//}
-//FLinearColor ACJS_BallPlayer::GetAuroraColor1()
-//{
-//	return AuroraColor1;
-//}
-//FLinearColor ACJS_BallPlayer::GetAuroraColor2()
-//{
-//	return AuroraColor2;
-//}
-//FLinearColor ACJS_BallPlayer::GetAuroraColor3()
-//{
-//	return AuroraColor3;
-//}
 
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {

@@ -157,18 +157,6 @@ public:
 	UFUNCTION()
 	void ModifyAuroraColors();
 
-	/*UFUNCTION()
-	void SetModifyAuroraColors();
-	FLinearColor AuroraColor1;
-	FLinearColor AuroraColor2;
-	FLinearColor AuroraColor3;
-	UFUNCTION(BlueprintCallable, Category = "Aurora")
-	FLinearColor GetAuroraColor1();
-	UFUNCTION(BlueprintCallable, Category = "Aurora")
-	FLinearColor GetAuroraColor2();
-	UFUNCTION(BlueprintCallable, Category = "Aurora")
-	FLinearColor GetAuroraColor3();*/
-
 	
 	// 캐릭터생성 -> 로비 통신 정보 설정
 	//FString JsonData = TEXT("{\"UserId\":\"1\",\"R\":1.0,\"G\":0.9225690792809692,\"B\":0.4,\"SimilarUsers\":[{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sunny World\"},{\"UserId\":\"user_8\",\"EmotionScore\":82.0,\"RoomName\":\"Sol World\"},{\"UserId\":\"abc11\",\"EmotionScore\":81.0,\"RoomName\":\"KW World\"}],\"OppositeUsers\":[{\"UserId\":\"user_1\",\"EmotionScore\":283.5,\"RoomName\":\"JW World\"},{\"UserId\":\"user_3\",\"EmotionScore\":321.0,\"RoomName\":\"DL World\"}]}");

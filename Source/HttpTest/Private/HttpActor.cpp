@@ -563,6 +563,7 @@ void AHttpActor::OnResPostClickMultiRoom(FHttpRequestPtr Request, FHttpResponseP
     }
 }
 
+
 //JS ReWrite 내방 통신 추가 부분
 void AHttpActor::ReqPostClickMyRoom(FString url, FString json)
 {
@@ -618,6 +619,69 @@ void AHttpActor::OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr 
         UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
     }
 }
+
+//마이월드 -> 멀티월드 버튼 클릭 시 통신
+void AHttpActor::StartHttpMultyWorld()
+{
+    //JS ReWrite 이쪽에 방 데이터 송수신 하는 부분 넣고 수신 하는 부분에서 방 이동
+    FString UserId;
+    if (SessionGI)
+    {
+        UserId = SessionGI->MySessionName;
+        UE_LOG(LogTemp, Warning, TEXT("Assigned UserId from MySessionName: %s"), *UserId);
+    }
+
+    // 사용자 데이터를 맵에 추가
+    TMap<FString, FString> MyRoomData;
+    MyRoomData.Add("userId", UserId);
+
+    // JSON 형식으로 변환
+    FString JsonRequest = UJsonParseLib::MakeJson(MyRoomData);
+
+    // 로그 출력 (디버깅용)
+    UE_LOG(LogTemp, Warning, TEXT("userId: %s"), *UserId);
+    UE_LOG(LogTemp, Warning, TEXT("Json Request: %s"), *JsonRequest);
+
+    // 서버로 요청 전송
+    ReqPostClickMyRoom(EntryMultiWorldURL, JsonRequest);
+}
+void AHttpActor::ReqPostClickMultiWorld(FString url, FString json)
+{
+    FHttpModule& httpModule = FHttpModule::Get();
+    TSharedRef<IHttpRequest> req = httpModule.CreateRequest();
+
+    req->SetURL(url);
+    req->SetVerb(TEXT("POST"));
+    req->SetHeader(TEXT("content-type"), TEXT("application/json"));
+    req->SetContentAsString(json);
+
+    req->OnProcessRequestComplete().BindUObject(this, &AHttpActor::OnResPostClickMultiWorld);
+
+    req->ProcessRequest();
+}
+void AHttpActor::OnResPostClickMultiWorld(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+    if (bConnectedSuccessfully && Response.IsValid())
+    {
+        FString ResponseContent = Response->GetContentAsString();
+        UE_LOG(LogTemp, Log, TEXT("POST Response: %s"), *ResponseContent);
+        //StoredJsonResponse = ResponseContent;  // <-- 실제 통신 시
+        UE_LOG(LogTemp, Warning, TEXT("Stored JSON Response: %s"), *StoredJsonResponse);
+        StoredJsonResponse = StoredJsonResponsetest;  // <-- 테스트 시   
+        if (SessionGI)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("SessionGM is OK"));
+            SessionGI->SetNetInfoCharacterTOLobby(StoredJsonResponse);
+            SessionGI->FindSessions();
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("SessionGM is NULL"));
+        }
+    }
+
+}
+
 //Getter 함수
 FRoomData AHttpActor::GetRoomData() const
 {
