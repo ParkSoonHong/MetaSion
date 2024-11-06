@@ -35,6 +35,10 @@ public:
 				UPROPERTY()
 	class AKGW_RoomlistActor* ListActor;
 
+					UPROPERTY()
+	class AKGW_EnterRoomActor* EnterRoomActor;
+
+
 
 
 };

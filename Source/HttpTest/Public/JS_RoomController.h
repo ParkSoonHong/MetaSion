@@ -84,6 +84,13 @@ public:
 
     void OnMouseHoverEnd(AActor* HoveredActor);
 
+    //myWorld -> MultiWorld:: Make Session
+    UPROPERTY()
+	class AHttpActor* HttpActor;
+
+    void OpenMultiWorld();
+
+
     AActor* CurrentHoveredActor = nullptr;
 
     //Screen Capture + Wallpaper Python Auto Execute

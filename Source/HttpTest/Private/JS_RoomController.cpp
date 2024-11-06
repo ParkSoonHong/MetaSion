@@ -20,6 +20,7 @@
 #include "Engine/Engine.h"
 #include "Camera/CameraComponent.h"
 #include "CJS/SessionGameInstance.h"
+#include "HttpActor.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -218,6 +219,15 @@ void AJS_RoomController::PlayUIAnimation()
 }
 //Room --------------------------------------------------------------------------
 
+//myWorld -> MultiWorld:: Make Session
+void AJS_RoomController::OpenMultiWorld()
+{
+    HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
+    HttpActor->StartHttpMultyWorld();
+}
+
+
+
 //Mouse Interaction --------------------------------------------------------------------------
 void AJS_RoomController::OnMouseClick()
 {
@@ -275,8 +285,8 @@ void AJS_RoomController::OnMouseClick()
             {
 
                 UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
-
-                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
+//                 UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
+                OpenMultiWorld();
 
             }
 
@@ -384,6 +394,7 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
     }
 }
+
 
 void AJS_RoomController::SpawnAndSwitchToCamera()
 {
