@@ -73,6 +73,10 @@ public:
 	void MyCreateRoomInfoReqPost(FString url, FString json);
 	void MyCreateRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	//RoomData
+	void RoomDataReqPost(FString url, FString json);
+	void RoomDataResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
 	void ReqPostChoice(FString url, FString json);
 	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
@@ -86,7 +90,7 @@ public:
 	FString EnteryLobbyURL = "mirrora.duckdns.org:3326/api/auth/processAndSendData";
 	FString MyRoomURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
 	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
-
+	FString HeartURL = "jsonplaceholder.typicode.com/posts";
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
 	UPROPERTY()

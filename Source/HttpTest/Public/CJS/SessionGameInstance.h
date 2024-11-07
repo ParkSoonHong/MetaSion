@@ -125,5 +125,7 @@ public:
 	void HandleMapChange(UWorld* World);
 
 
+	//JS
+	bool bSuccess = false; // 상태 유지 변수
 };
 
