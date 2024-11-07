@@ -40,7 +40,15 @@ public:
 
 
 	// Function to update Point Light colors and Niagara System
-	void UpdateMyWorldParticle(FLinearColor LightColor, int32 NiagaraAssetIndex);
-	//void UpdateInnerWorldPointLights(FLinearColor lightColor, int32 lightIndex);
-	//void UpdateInnerWorldNiagaraAsset(UNiagaraComponent* NiagaraSystemAsset);
+	void UpdateInnerWorldPointLights(FLinearColor lightColor, int32 lightIndex);
+	void UpdateInnerWorldNiagaraAsset(int32 NiagaraAssetIndex);
+
+
+
+	// 테스트용
+	float ElapsedTime = 0.0f;
+	int32 CurrentColorIndex = 0;
+	TArray<FLinearColor> Colors = { FLinearColor::Red, FLinearColor::Blue, FLinearColor::Green };
+
+	int32 CurrentNiagaraIndex = 0;
 };

@@ -45,7 +45,6 @@ void ACJS_InnerWorldParticleActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
 }
 
 // Called every frame
@@ -53,26 +52,78 @@ void ACJS_InnerWorldParticleActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+    // 테스트용
+    // Update elapsed time
+    //ElapsedTime += DeltaTime;
+
+    // Check if 2 seconds have passed
+    //if (ElapsedTime >= 2.0f)
+    //{
+        // Reset the elapsed time
+        //ElapsedTime = 0.0f;
+
+        
+        // 1. Update the color of the current Point Light
+        //if (PointLights.IsValidIndex(CurrentColorIndex) && PointLights[CurrentColorIndex])
+        //{
+        //    FLinearColor NewColor = Colors[CurrentColorIndex % Colors.Num()];
+        //    UpdateInnerWorldPointLights(NewColor, CurrentColorIndex);
+
+        //    // Log the color change
+        //    UE_LOG(LogTemp, Log, TEXT("PointLight%d color changed to (%f, %f, %f)"), CurrentColorIndex, NewColor.R, NewColor.G, NewColor.B);
+        //}
+
+        //// Move to the next Point Light and color
+        //CurrentColorIndex = (CurrentColorIndex + 1) % PointLights.Num();
+
+        // 2.Update the Niagara particle effect
+        //UpdateInnerWorldNiagaraAsset(CurrentNiagaraIndex);
+
+        // Move to the next Niagara asset index
+        //CurrentNiagaraIndex = (CurrentNiagaraIndex + 1) % 2; // Assuming there are 2 particle assets (Particle_Num1, Particle_Num2)
+    //}
 }
 
 
-void ACJS_InnerWorldParticleActor::UpdateMyWorldParticle(FLinearColor LightColor, int32 NiagaraAssetIndex)
+void ACJS_InnerWorldParticleActor::UpdateInnerWorldPointLights(FLinearColor lightColor, int32 lightIndex)
 {
-    // Set the Light Color for each Point Light
-    for (UPointLightComponent* PointLight : PointLights)
+    UE_LOG(LogTemp, Warning, TEXT("ACJS_InnerWorldParticleActor::UpdateInnerWorldPointLights()"));
+    if (PointLights.IsValidIndex(lightIndex) && PointLights[lightIndex])
     {
-        if (PointLight)
-        {
-            PointLight->SetLightColor(LightColor);
-        }
-    }
+        PointLights[lightIndex]->SetLightColor(lightColor);
 
-    // Set the Niagara System Asset based on the index
-    if (InnerWorldParticle && NiagaraSystemAssets.IsValidIndex(NiagaraAssetIndex))
+        // Log the color change
+        UE_LOG(LogTemp, Warning, TEXT("UpdateInnerWorldPointLights: PointLight%d color set to (%f, %f, %f)"), lightIndex, lightColor.R, lightColor.G, lightColor.B);
+    }
+    else
     {
-        UNiagaraSystem* SelectedNiagaraSystem = NiagaraSystemAssets[NiagaraAssetIndex];
-        InnerWorldParticle->SetAsset(SelectedNiagaraSystem); // Set the asset to the NiagaraComponent
-        InnerWorldParticle->Activate(); // Activate the Niagara system if needed
+        UE_LOG(LogTemp, Error, TEXT("Failed to Change light color"));
+    }
+}
+
+void ACJS_InnerWorldParticleActor::UpdateInnerWorldNiagaraAsset(int32 NiagaraAssetIndex)
+{
+    UE_LOG(LogTemp, Warning, TEXT("ACJS_InnerWorldParticleActor::UpdateInnerWorldNiagaraAsset()"));
+    if (InnerWorldParticle)
+    {
+        // Construct the asset path based on NiagaraAssetIndex
+        FString AssetPath = FString::Printf(TEXT("/Game/Main/Assets/Emotions/Particle_Num%d.Particle_Num%d"), NiagaraAssetIndex, NiagaraAssetIndex);
+
+        // Load the Niagara System dynamically from the constructed path
+        UNiagaraSystem* SelectedNiagaraSystem = Cast<UNiagaraSystem>(StaticLoadObject(UNiagaraSystem::StaticClass(), nullptr, *AssetPath));
+
+        // Check if the asset was loaded successfully
+        if (SelectedNiagaraSystem)
+        {
+            InnerWorldParticle->SetAsset(SelectedNiagaraSystem); // Set the asset to the NiagaraComponent
+            InnerWorldParticle->Activate(); // Activate the Niagara system if needed
+            UE_LOG(LogTemp, Warning, TEXT("Successfully set Niagara asset: %s"), *AssetPath);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to load Niagara asset at path: %s"), *AssetPath);
+        }
     }
 }
 
