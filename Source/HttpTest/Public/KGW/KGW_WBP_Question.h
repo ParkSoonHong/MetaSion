@@ -13,5 +13,32 @@ UCLASS()
 class HTTPTEST_API UKGW_WBP_Question : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(meta=(BindWidget))
+	class UButton* BT_Select;
+
 	
+	virtual void NativeConstruct() override;
+
+		UFUNCTION()
+	void OnClickSelect();
+
+
+		UPROPERTY()
+	class UKGW_RoomList* Showlist;
+
+	FString ListURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
+			UPROPERTY()
+	class AHttpActor* HttpActor;
+
+				UPROPERTY()
+	class AKGW_RoomlistActor* ListActor;
+
+					UPROPERTY()
+	class AKGW_EnterRoomActor* EnterRoomActor;
+
+
+
+
 };

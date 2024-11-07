@@ -31,7 +31,7 @@ AJS_WidgetFunction::AJS_WidgetFunction()
 
     // 위젯 컴포넌트 생성 및 초기화
     WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
-    WidgetComponent->SetupAttachment(BillboardComp);
+    WidgetComponent->SetupAttachment(RootComponent);
 
 
     // 위젯 클래스 설정 (Blueprint에서 WBP_Image로 설정해주어야 함)
@@ -46,7 +46,7 @@ AJS_WidgetFunction::AJS_WidgetFunction()
 void AJS_WidgetFunction::BeginPlay()
 {
 	Super::BeginPlay();
-	
+    SetActorVisibilityHidden();
 }
 
 // Called every frame
@@ -76,5 +76,15 @@ void AJS_WidgetFunction::PlayShowImageAnimation()
         }
     }
 
+}
+
+void AJS_WidgetFunction::SetActorVisibilityHidden()
+{
+    boxComp->SetVisibility(false);
+}
+
+void AJS_WidgetFunction::SetActorVisibilityVisible()
+{
+    boxComp->SetVisibility(true);
 }
 

@@ -20,6 +20,8 @@
 #include "Engine/Engine.h"
 #include "Camera/CameraComponent.h"
 #include "CJS/SessionGameInstance.h"
+#include "HttpActor.h"
+#include "CJS/CJS_JS_WidgetFunction.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -34,20 +36,19 @@ void AJS_RoomController::Tick(float DeltaTime)
 
     AActor* HoveredActor = bHitSuccessful ? HitResult.GetActor() : nullptr;
 
-    // ���� ���ο� ���Ϳ� ���콺�� �����Ǿ��ٸ�, OnMouseHover ȣ��
     if (HoveredActor != CurrentHoveredActor)
     {
         if (CurrentHoveredActor)
         {
-            OnMouseHoverEnd(CurrentHoveredActor); // ���� ���Ϳ��� ���콺�� ���
+            OnMouseHoverEnd(CurrentHoveredActor);
         }
 
         if (HoveredActor)
         {
-            OnMouseHover(HoveredActor); // ���ο� ���Ϳ� ���콺�� ����
+            OnMouseHover(HoveredActor); 
         }
 
-        CurrentHoveredActor = HoveredActor; // ���� ������ ���� ������Ʈ
+        CurrentHoveredActor = HoveredActor;
     }
 
 }
@@ -67,34 +68,26 @@ void AJS_RoomController::BeginPlay()
         UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
     }*/
 
-    // ���콺 ���� ����
-    bShowMouseCursor = true;
-    bEnableClickEvents = true;
-    bEnableMouseOverEvents = true;
-
     // UI�ʱ�ȭ
     InitializeUIWidgets();
 
-    // ���Ӱ� UI �� �� ��ǲ�� ���� �� �ֵ��� ����
-    FInputModeGameAndUI InputMode;
-    InputMode.SetHideCursorDuringCapture(false); // ĸó �߿� ���콺 Ŀ���� ������ ����
-    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); // ���콺�� �����?����
-    SetInputMode(InputMode);
+    CheckDate();
+    SetInputMode(FInputModeGameOnly());
 
-    // Ÿ�̸� ����: 1�� �������� SpawnAndSwitchToCamera ȣ��
-    GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 1.0f, true);
+    GetWorldTimerManager().SetTimer(LevelCheckTimerHandle, this, &AJS_RoomController::SpawnAndSwitchToCamera, 0.01f, true);
 }
 
 void AJS_RoomController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    // EnhancedInputLocalPlayerSubsystem���� InputMappingContext�� �߰��մϴ�.
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
         //Subsystem->ClearAllMappings();
         if (Subsystem)  // 예외 처리 추가
         {
+            UE_LOG(LogTemp, Warning, TEXT("AJS_RoomController::SetupPlayerInputComponent"));
+            Subsystem->ClearAllMappings();
             Subsystem->AddMappingContext(IMC_Controller, 0);
         }
         else
@@ -109,14 +102,41 @@ void AJS_RoomController::SetupInputComponent()
     }
 }
 
+void AJS_RoomController::CheckDate()
+{
+    FDateTime CurrentTime = FDateTime::Now();
+    FDateTime MidnightToday = FDateTime(CurrentTime.GetYear(), CurrentTime.GetMonth(), CurrentTime.GetDay());
+
+
+    FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+    if (LevelName != "Main_Lobby" && LevelName != "Main_Room" && LastCheckDate < MidnightToday) {
+		bShowMouseCursor = true;
+		bEnableClickEvents = true;
+		bEnableMouseOverEvents = true;
+        ShowLoginUI();
+        LastCheckDate = MidnightToday; 
+    }
+    else if(LevelName == "Main_Room" && LastCheckDate < MidnightToday) { // 방 이름이 메인 룸이고 처음 접속 했거나 00시가 지났을 경우
+        bShowMouseCursor = true;
+        bEnableClickEvents = true;
+        bEnableMouseOverEvents = true;
+    }
+    else{
+		bShowMouseCursor = false;
+		bEnableClickEvents = false;
+		bEnableMouseOverEvents = false;
+    }
+}
+
 void AJS_RoomController::InitializeUIWidgets()
 {
     FString LevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
-    if (LoginUIFactory && LevelName == "Main_Sky") {
+    if (LoginUIFactory) {
         LoginUI = CreateWidget<UHttpWidget>(this, LoginUIFactory);
         if (LoginUI) {
             LoginUI->AddToViewport();
-            LoginUI->SetVisibility(ESlateVisibility::Visible);
+            LoginUI->SetVisibility(ESlateVisibility::Hidden);
         }
     }
     if (CR_UIFactory) {
@@ -172,7 +192,6 @@ void AJS_RoomController::HideCreateRoomUI()
 //CreateRoom --------------------------------------------------------------------------
 
 //Room --------------------------------------------------------------------------
-//��
 void AJS_RoomController::ShowRoomUI()
 {
     UE_LOG(LogTemp, Log, TEXT(" AJS_RoomController::ShowRoomUI()"));
@@ -201,6 +220,15 @@ void AJS_RoomController::PlayUIAnimation()
 }
 //Room --------------------------------------------------------------------------
 
+//myWorld -> MultiWorld:: Make Session
+void AJS_RoomController::OpenMultiWorld()
+{
+    HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
+    HttpActor->StartHttpMultyWorld();
+}
+
+
+
 //Mouse Interaction --------------------------------------------------------------------------
 void AJS_RoomController::OnMouseClick()
 {
@@ -215,11 +243,9 @@ void AJS_RoomController::OnMouseClick()
         if (HitActor)
         {
             UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s at Location: %s"), *HitActor->GetName(), *HitResult.Location.ToString());
-            // �±� üũ
             if (HitActor->ActorHasTag(TEXT("WallPaper")))
             {
                 UE_LOG(LogTemp, Warning, TEXT("-----------------------------"));
-                // ���⿡ ���� ���?���� �߰� 
                 //if (bShowUI) {
                     UE_LOG(LogTemp, Log, TEXT("bShowUI true"));
                     HideCreateRoomUI();
@@ -233,36 +259,27 @@ void AJS_RoomController::OnMouseClick()
             {
 				UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
                 UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
-
-                 // 서버가 있는 로비로 돌아가기 위한 ClientTravel 사용
-			   /* APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-				if (PlayerController)
-				{
-					PlayerController->ClientTravel("/Game/Main/Maps/Main_Lobby", ETravelType::TRAVEL_Relative);
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("AJS_RoomController::OnMouseClick():: No PlayerController"));
-				}*/
-
-                // GameInstance를 가져와서 JoinSession() 호출
-                //USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetGameInstance());
-                //if (GameInstance)
-                //{
-                //    GameInstance->FindSessions();  // 세션을 찾고, 성공 시 JoinSession을 호출
-                //}
-                //else
-                //{
-                //    UE_LOG(LogTemp, Error, TEXT("Failed to get SessionGameInstance"));
-                //}
             }
             else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
             {
 
                 UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
+//              UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
+                OpenMultiWorld();
 
-                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
-
+            }
+            else if (HitActor->ActorHasTag(TEXT("ChatWidget")))  //  <-- 채팅 위젯 추가
+            {
+                UE_LOG(LogTemp, Warning, TEXT("ChatWidget Hit - Loading Chat Widget"));
+                if (ChatActorFactory)
+                {
+                    // ChatActorFactory가 ACJS_JS_WidgetFunction 타입임을 보장
+                    ACJS_JS_WidgetFunction* ChatFunction = Cast<ACJS_JS_WidgetFunction>(ChatActorFactory);
+                    if (ChatFunction)
+                    {
+                        ChatFunction->ToggleChatUIVisible();
+                    }
+                }
             }
 
         }
@@ -321,6 +338,7 @@ void AJS_RoomController::OnMouseHover(AActor* HoveredActor)
                         if (!WBPImage->IsAnimationPlaying(WBPImage->ShowImage)) // �̹� �ִϸ��̼��� ��� ������ Ȯ��
                         {
                             WBPImage->PlayShowImageAnimation();
+                            WBPImage->GetImage();
                             UE_LOG(LogTemp, Log, TEXT("play Showlist "));
 
                         }
@@ -368,6 +386,7 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
     }
 }
+
 
 void AJS_RoomController::SpawnAndSwitchToCamera()
 {

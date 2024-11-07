@@ -6,6 +6,45 @@
 #include "GameFramework/Actor.h"
 #include "CJS_MultiRoomActor.generated.h"
 
+
+//class AMultiRoom : public AActor
+//{
+//public:
+//	FString RoomNum;  
+//	FString RoomName;  
+//	FString Message;
+//	FString PlayerNum; 
+//
+//	// 방 정보를 업데이트하는 함수
+//	void UpdatePlayerNum(FString NewPlayerNum)
+//	{
+//		PlayerNum = NewPlayerNum;
+//	}
+//};
+
+//USTRUCT(BlueprintType) // 블루프린트에서 사용할 수 있도록 구조체를 정의
+//struct FMultiRoom // 방 정보를 저장하는 구조체
+//{
+//    GENERATED_BODY()
+//
+//    // 방 ID
+//    UPROPERTY(BlueprintReadOnly)
+//    FString RoomNum;
+//    // 방 이름
+//    UPROPERTY(BlueprintReadOnly)
+//    FString RoomName;
+//    // 현재 플레이어 수
+//    UPROPERTY(BlueprintReadOnly)
+//    FString PlayerNum;
+//
+//    // 체험자 수 업데이트 메서드
+//    void UpdatePlayerCount(FString NewPlayerCount)
+//    {
+//		PlayerNum = NewPlayerCount;
+//    }
+//};
+
+
 UCLASS()
 class HTTPTEST_API ACJS_MultiRoomActor : public AActor
 {
@@ -42,6 +81,9 @@ public:
 	class UTextBlock* Txt_RefPercent;
 
 	// Function to update the widget text values
-	void InitRefRoomInfoWidget(int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, float Percent);
+	void InitRefRoomInfoWidget(const FString& CurNumPlayer, const FString& MaxNumPlayer, const FString& RoomName, const FString& Percent);
+
+	// Update MultiRoom PlayerNum value
+	void UpdateClickedRefRoomPlayerNum(const FString& CurNumPlayer, const FString& MaxNumPlayer);
 
 };

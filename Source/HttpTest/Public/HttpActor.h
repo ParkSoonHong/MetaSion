@@ -60,10 +60,6 @@ public:
 	// User
 	void UserReqPost(FString url, FString json);
 	void UserResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
-
-	// User_like
-	void UserLikeReqPost(FString url, FString json);
-	void UserLikeResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 	
 	//ChangeIndex
 	void ChangeIndexReqPost(FString url, FString json);
@@ -80,17 +76,18 @@ public:
 	void ReqPostChoice(FString url, FString json);
 	void OnResPostChoice(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	// UI ���� �� ȭ�鿡 �߰��ϴ� �Լ�
 	void ShowQuestionUI();
 
 	UFUNCTION(BlueprintCallable, Category = "JSON")
     FString StoreJsonResponse();
 
 
-	FString LoginURL = "http://125.132.216.190:3326/api/auth/login";
-	FString EnteryLobbyURL = "http://125.132.216.190:3326//api/auth/processAndSendData";
-	FString MyRoomURL = "http://125.132.216.190:3326/api/auth/userRooms";
-	FString WallPaperURL = "http://125.132.216.190:3326/api/auth/wallpaperupdate";
+	FString LoginURL = "mirrora.duckdns.org:3326/api/auth/login";
+	FString EnteryLobbyURL = "mirrora.duckdns.org:3326/api/auth/processAndSendData";
+	FString MyRoomURL = "mirrora.duckdns.org:3326/api/auth/userRooms";
+	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
+	FString EntryMultiWorldURL = "mirrora.duckdns.org:3326/api/auth/";  // <-- BE 작업 완료 후 추가하기
+	
 
 	/* Sunny */
 	//캐릭터생성 -> 로비 입장 시 초기 설정
@@ -105,11 +102,33 @@ public:
 	void ReqPostClickMyRoom(FString url, FString json);
 	void OnResPostClickMyRoom(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	//마이월드 -> 멀티월드 버튼 클릭 시 통신
+	void StartHttpMultyWorld();
+	void ReqPostClickMultiWorld(FString url, FString json);
+	void OnResPostClickMultiWorld(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+
+
 	//다른 클래스에서 파싱된 RoomData를 사용하기 위한 Getter함수
 	FRoomData GetRoomData() const;
 	FRoomData RoomData;
 
 	//RoomUI Timer
 	FTimerHandle RoomUIWaitTimerHandle;
+
+	//image
+		UPROPERTY()
+	class UWBP_Image* ImageUI;
+	void ReqGetWebImage(FString url);
+
+	void OnResGetWebImage(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqPostTest(FString url, FString json);
+
+	void OnResPostTest(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqPostRoomList(FString url, FString json);
+
+	void OnResPostRoomList(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 };
