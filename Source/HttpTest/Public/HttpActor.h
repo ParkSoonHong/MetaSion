@@ -68,6 +68,7 @@ public:
 	//MyRoomInfo
 	void MyRoomInfoReqPost(FString url, FString json);
 	void MyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	/*void ReMyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);*/
 
 	//MyCreateRoomInfo
 	void MyCreateRoomInfoReqPost(FString url, FString json);
@@ -92,6 +93,7 @@ public:
 	FString WallPaperURL = "mirrora.duckdns.org:3326/api/auth/wallpaperupdate";
 	FString HeartURL = "jsonplaceholder.typicode.com/posts";
 	FString EntryMultiWorldURL = "mirrora.duckdns.org:3326/api/auth/";  // <-- BE 작업 완료 후 추가하기
+	FString TestMyRoomURL = "mirrora.duckdns.org:3326/api/auth/saveRoomData";
 	
 
 	/* Sunny */

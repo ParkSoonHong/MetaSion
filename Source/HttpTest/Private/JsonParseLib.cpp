@@ -122,8 +122,14 @@ FMyRoomInfo UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(const FString& JsonSt
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &MyRoomInfo, 0, 0);
 
 	//��ȯ�� ����ü�� ��ȯ
-	return MyRoomInfo;
-}
+	return MyRoomInfo;\ cvbnmn}
+//FReMyPageData UJsonParseLib::ReMyPageData_Convert_JsonToStruct(const FString& JsonString)
+//{
+//	FReMyPageData ReMyPageData;
+//
+//	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &ReMyPageData, 0, 0);
+//	return ReMyPageData;
+//}
 // MyRoomInfo End----------------------------------------------------------------------------
 
 // MyCreateRoomInfo ----------------------------------------------------------------------------

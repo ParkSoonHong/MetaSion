@@ -116,23 +116,23 @@ void UJS_CreateRoomWidget::SendCompleteRoomData()
 
 	MyRoomInfo.UserId = "testuser";
 	MyRoomInfo.UltraSky_TimeOfDay = "1200";
-	MyRoomInfo.UltraWheather_CloudCoverage = "true";
-	MyRoomInfo.UltraWheather_Fog = "true";
-	MyRoomInfo.UltraWheather_Rain = "true";
-	MyRoomInfo.UltraWheather_Snow = "true";
-	MyRoomInfo.UltraWheather_Dust = "true";
-	MyRoomInfo.UltraWheather_Thunder = "true";
-	MyRoomInfo.MainObject = "true";
-	MyRoomInfo.SubObject = "true";
-	MyRoomInfo.Background = "true";
-	MyRoomInfo.Particle_num = "true";
+	MyRoomInfo.UltraWheather_CloudCoverage = "1";
+	MyRoomInfo.UltraWheather_Fog = "1";
+	MyRoomInfo.UltraWheather_Rain = "1";
+	MyRoomInfo.UltraWheather_Snow = "1";
+	MyRoomInfo.UltraWheather_Dust = "1";
+	MyRoomInfo.UltraWheather_Thunder = "1";
+	MyRoomInfo.MainObject = "tree1";
+	MyRoomInfo.SubObject = "flower1";
+	MyRoomInfo.Background = "mountain1";
+	MyRoomInfo.Particle_num = "3";
 	MyRoomInfo.RoomName = ED_RoomName->GetText().ToString();
 	MyRoomInfo.RoomDescription = "this is hello worlds";
 	MyRoomInfo.RoomPP = FString::FromInt(bPrivate);
 
 	FString json = UJsonParseLib::MyRoomInfo_Convert_StructToJson(MyRoomInfo);
 
-	httpActor->MyRoomInfoReqPost(httpActor->MyRoomURL, json);
+	httpActor->MyRoomInfoReqPost(httpActor->TestMyRoomURL, json);
 }
 
 void UJS_CreateRoomWidget::OnTextChanged_SingleLine(const FText& Text)

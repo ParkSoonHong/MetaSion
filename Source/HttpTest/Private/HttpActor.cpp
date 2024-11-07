@@ -303,6 +303,28 @@ void AHttpActor::MyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Res
         UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
     }
 }
+
+//void AHttpActor::ReMyRoomInfoResPost(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+//{
+//    if (!Response.IsValid())
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("Invalid Response"));
+//        return;
+//    }
+//
+//    if (bConnectedSuccessfully && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+//    {
+//        FString JsonResponse = Response->GetContentAsString();
+//        FReMyPageData ReMyRoomData = UJsonParseLib::ReMyPageData_Convert_JsonToStruct(JsonResponse);
+//
+//        // 디버깅용 로그 출력
+//        UE_LOG(LogTemp, Warning, TEXT("UserId: %s, R: %f, EmotionDescription: %s"), *ReMyRoomData.UserId, ReMyRoomData.R, *ReMyRoomData.EmotionDescription);
+//    }
+//    else
+//    {
+//        UE_LOG(LogTemp, Warning, TEXT("Request Failed: %d"), Response->GetResponseCode());
+//    }
+//}
 //MyRoomInfo End-------------------------------------------------------------
 
 //MyCreateRoomInfo -------------------------------------------------------------

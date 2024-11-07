@@ -258,6 +258,70 @@ public:
     {}
 };
 
+//USTRUCT(BlueprintType)
+//struct FParticleRGB
+//{
+//    GENERATED_BODY()
+//
+//    UPROPERTY()
+//    float R;
+//
+//    UPROPERTY()
+//    float G;
+//
+//    UPROPERTY()
+//    float B;
+//
+//	FParticleRGB()
+//		: R(0.0f), 
+//		G(0.0f), 
+//		B(0.0f) 
+//		{}
+//};
+//
+//USTRUCT(BlueprintType)
+//struct FReMyPageData
+//{
+//    GENERATED_BODY()
+//
+//    UPROPERTY()
+//    FString UserId;
+//
+//    UPROPERTY()
+//    float R;
+//
+//    UPROPERTY()
+//    float G;
+//
+//    UPROPERTY()
+//    float B;
+//
+//    UPROPERTY()
+//    TArray<FParticleRGB> Particle_RGB;
+//
+//    UPROPERTY()
+//    FString RecommendedMusic;
+//
+//    UPROPERTY()
+//    int32 Quadrant;
+//
+//    UPROPERTY()
+//    int32 ParticleNum;
+//
+//    UPROPERTY()
+//    FString EmotionDescription;
+//
+//    // 기본 생성자
+//	FReMyPageData()
+//        : UserId(TEXT("")),
+//          R(0.0f),
+//          G(0.0f),
+//          B(0.0f),
+//          RecommendedMusic(TEXT("")),
+//          Quadrant(0),
+//          ParticleNum(0),
+//          EmotionDescription(TEXT("")) {}
+//};
 /**
  * 
  */
@@ -296,6 +360,8 @@ public:
 	static FString MyRoomInfo_Convert_StructToJson(const FMyRoomInfo& MyRoomInfo);
 	//Json To Struct : Response
 	static FMyRoomInfo MyRoomInfo_Convert_JsonToStruct(const FString& JsonString);
+
+	/*static FReMyPageData ReMyPageData_Convert_JsonToStruct(const FString& JsonString);*/
 
 	//Struct To Json : Req
 	static FString FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo);
