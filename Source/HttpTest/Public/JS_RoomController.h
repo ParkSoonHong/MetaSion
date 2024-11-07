@@ -88,8 +88,8 @@ public:
     void OnMouseHoverEnd(AActor* HoveredActor);
 
     //myWorld -> MultiWorld:: Make Session
-    UPROPERTY()
-	class AHttpActor* HttpActor;
+ /*   UPROPERTY()
+	class AHttpActor* HttpActor;*/
 
     void OpenMultiWorld();
 
