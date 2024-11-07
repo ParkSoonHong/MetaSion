@@ -111,6 +111,7 @@ public:
 	void AssignSessionNameFromPlayerState();
 	bool ValidateSessionInterfaceAndSearch() const;
 	void InitSessionName(FString name);
+	UFUNCTION(BlueprintCallable)
 	FString GetMySessionName();
 
 	void InitRoomNameNum(TArray<FMyCreatedRoom> list);
