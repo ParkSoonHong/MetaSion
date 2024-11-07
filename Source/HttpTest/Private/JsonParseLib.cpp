@@ -5,16 +5,17 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonWriter.h"
 #include "JsonObjectConverter.h"
+#include "CJS/SessionGameInstance.h"
 // Login ----------------------------------------------------------------------------
 FString UJsonParseLib::Login_Convert_StructToJson(const FLogin& LoginStrcut)
 {
-	//Json ¹®ÀÚ¿­À» ÀúÀåÇÒ º¯¼ö
+	//Json ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString JsonString;
 
-	//±¸Á¶Ã¼¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+	//ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(LoginStrcut, JsonString, 0, 0);
 
-	//¿Ï¼ºµÈ Json ¹ÝÈ¯
+	//ï¿½Ï¼ï¿½ï¿½ï¿½ Json ï¿½ï¿½È¯
 	return JsonString;
 }
 
@@ -23,10 +24,10 @@ FLogin UJsonParseLib::Login_Convert_JsonToStruct(const FString& JsonString)
 {
 	FLogin loginJson;
 
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &loginJson, 0, 0);
 
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return loginJson;
 }
 
@@ -36,18 +37,18 @@ FLogin UJsonParseLib::Login_Convert_JsonToStruct(const FString& JsonString)
 FString UJsonParseLib::SignUp_Convert_StructToJson(const FSign_up& SignUpStruct)
 {
 	FString JsonString;
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(SignUpStruct, JsonString, 0, 0);
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return JsonString;
 }
 
 FSign_up UJsonParseLib::SignUp_Convert_JsonToStruct(const FString& JsonString)
 {
 	FSign_up SingupStruct;
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &SingupStruct, 0, 0);
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return SingupStruct;
 }
 // Sign up End----------------------------------------------------------------------------
@@ -55,13 +56,13 @@ FSign_up UJsonParseLib::SignUp_Convert_JsonToStruct(const FString& JsonString)
 // User ----------------------------------------------------------------------------
 FString UJsonParseLib::User_Convert_StructToJson(const FUser& UserStrcut)
 {
-	//Json ¹®ÀÚ¿­À» ÀúÀåÇÒ º¯¼ö
+	//Json ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString JsonString;
 
-	//±¸Á¶Ã¼¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+	//ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(UserStrcut, JsonString, 0, 0);
 
-	//¿Ï¼ºµÈ Json ¹ÝÈ¯
+	//ï¿½Ï¼ï¿½ï¿½ï¿½ Json ï¿½ï¿½È¯
 	return JsonString;
 }
 
@@ -69,10 +70,10 @@ FUser UJsonParseLib::User_Convert_JsonToStruct(const FString& JsonString)
 {
 	FUser UserJson;
 
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &UserJson, 0, 0);
 
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return UserJson;
 
 }
@@ -81,22 +82,22 @@ FUser UJsonParseLib::User_Convert_JsonToStruct(const FString& JsonString)
 // ChangeIndex ----------------------------------------------------------------------------
 FString UJsonParseLib::ChangeIndex_Convert_StructToJson(const FChangeIndex& FWallPaperIndexStruct)
 {
-	//Json ¹®ÀÚ¿­À» ÀúÀåÇÒ º¯¼ö
+	//Json ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString JsonString;
 
-	//±¸Á¶Ã¼¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+	//ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(FWallPaperIndexStruct, JsonString, 0, 0);
 
-	//¿Ï¼ºµÈ Json ¹ÝÈ¯
+	//ï¿½Ï¼ï¿½ï¿½ï¿½ Json ï¿½ï¿½È¯
 	return JsonString;
 }
 
 FChangeIndex UJsonParseLib::ChangeIndex_Convert_JsonToStruct(const FString& JsonString)
 {
 	FChangeIndex WallPaperJson;
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &WallPaperJson, 0, 0);
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return WallPaperJson;
 }
 // ChangeIndex End ----------------------------------------------------------------------------
@@ -104,23 +105,23 @@ FChangeIndex UJsonParseLib::ChangeIndex_Convert_JsonToStruct(const FString& Json
 // MyRoomInfo ----------------------------------------------------------------------------
 FString UJsonParseLib::MyRoomInfo_Convert_StructToJson(const FMyRoomInfo& MyRoomInfo)
 {
-	//Json ¹®ÀÚ¿­À» ÀúÀåÇÒ º¯¼ö
+	//Json ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString JsonString;
 
-	//±¸Á¶Ã¼¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+	//ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(MyRoomInfo, JsonString, 0, 0);
 
-	//¿Ï¼ºµÈ Json ¹ÝÈ¯
+	//ï¿½Ï¼ï¿½ï¿½ï¿½ Json ï¿½ï¿½È¯
 	return JsonString;
 }
 FMyRoomInfo UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(const FString& JsonString)
 {
 	FMyRoomInfo MyRoomInfo;
 
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &MyRoomInfo, 0, 0);
 
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return MyRoomInfo;
 }
 // MyRoomInfo End----------------------------------------------------------------------------
@@ -128,23 +129,23 @@ FMyRoomInfo UJsonParseLib::MyRoomInfo_Convert_JsonToStruct(const FString& JsonSt
 // MyCreateRoomInfo ----------------------------------------------------------------------------
 FString UJsonParseLib::FMyCreateRoomInfo_Convert_StructToJson(const FMyCreateRoomInfo& MyCreateRoomInfo)
 {
-	//Json ¹®ÀÚ¿­À» ÀúÀåÇÒ º¯¼ö
+	//Json ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FString JsonString;
 
-	//±¸Á¶Ã¼¸¦ JSON ¹®ÀÚ¿­·Î º¯È¯
+	//ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ JSON ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::UStructToJsonObjectString(MyCreateRoomInfo, JsonString, 0, 0);
 
-	//¿Ï¼ºµÈ Json ¹ÝÈ¯
+	//ï¿½Ï¼ï¿½ï¿½ï¿½ Json ï¿½ï¿½È¯
 	return JsonString;
 }
 FMyCreateRoomInfo UJsonParseLib::FMyCreateRoomInfo_Convert_JsonToStruct(const FString& JsonString)
 {
 	FMyCreateRoomInfo MyCreateRoomInfo;
 
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &MyCreateRoomInfo, 0, 0);
 
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return MyCreateRoomInfo;
 }
 FString UJsonParseLib::RoomData_Convert_StructToJson(const FRoomData& RoomData)
@@ -162,17 +163,17 @@ FRoomData UJsonParseLib::RoomData_Convert_JsonToStruct(const FString& JsonString
 {
 	FRoomData RoomData;
 
-	//JsonÀ» ±¸Á¶Ã¼·Î º¯È¯
+	//Jsonï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &RoomData, 0, 0);
 
-	//º¯È¯µÈ ±¸Á¶Ã¼¸¦ ¹ÝÈ¯
+	//ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
 	return RoomData;
 }
 // MyCreateRoomInfo End ----------------------------------------------------------------------------
 
 FString UJsonParseLib::MakeJson(const TMap<FString, FString>& source)
 {
-	// source¸¦ JsonObject Çü½ÄÀ¸·Î ¸¸µç´Ù.
+	// sourceï¿½ï¿½ JsonObject ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 	TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
 
 	for (TPair<FString, FString> pair : source)
@@ -180,21 +181,22 @@ FString UJsonParseLib::MakeJson(const TMap<FString, FString>& source)
 		jsonObject->SetStringField(pair.Key, pair.Value);
 	}
 
-	// writer¸¦ ¸¸µé¾î¼­ JsonObject¸¦ ÀÎÄÚµùÇØ¼­ 
+	// writerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î¼­ JsonObjectï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½Ø¼ï¿½ 
 	FString json;
 	TSharedRef<TJsonWriter<TCHAR>> writer = TJsonWriterFactory<TCHAR>::Create(&json);
 	FJsonSerializer::Serialize(jsonObject.ToSharedRef(), writer);
-	// ¹ÝÈ¯ÇÑ´Ù.
+	// ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
 	return json;
 }
 
-FString UJsonParseLib::JsonParseRoomList(const FString& json)
+TArray<FMyCreatedRoom>  UJsonParseLib::JsonParseRoomList(const FString& json)
 {
-	// ¸®´õ±â¸¦ ¸¸µé°í
+	TArray<FMyCreatedRoom> RoomInfos;
+	// ï¿½ï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½
 	TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(json);
-	// ÆÄ½Ì °á°ú¸¦ ´ãÀ» º¯¼ö ¼±¾ð
+	// ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-	// ÇØ¼®À» ÇÑ´Ù.
+	// ï¿½Ø¼ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	FString returnValue;
 	if (FJsonSerializer::Deserialize(reader, result))
 	{
@@ -202,11 +204,15 @@ FString UJsonParseLib::JsonParseRoomList(const FString& json)
 		for (TSharedPtr<FJsonValue> data : parseDataList)
 		{
 			
-			FString roomNum = data->AsObject()->GetStringField("roomNum");
-			FString roomName = data->AsObject()->GetStringField("roomName");
+			FString roomNum = data->AsObject()->GetStringField(TEXT("roomNum"));
+			FString roomName = data->AsObject()->GetStringField(TEXT("roomName"));
 			returnValue.Append(FString::Printf(TEXT("roomNum : %s / roomName : %s\n"), *roomNum, *roomName));
+			FMyCreatedRoom RoomInfo;
+			RoomInfo.RoomNum = roomNum;
+			RoomInfo.RoomName = roomName;
+			RoomInfos.Add(RoomInfo);
 		}
 	}
-	// ¹ÝÈ¯ÇÑ´Ù.
-	return returnValue;
+	// ï¿½ï¿½È¯ï¿½Ñ´ï¿½.
+	return RoomInfos;
 }

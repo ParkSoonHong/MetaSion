@@ -7,6 +7,9 @@
 #include "CJS/CJS_AimPointWidget.h"
 #include "CJS/CJS_MultiRoomActor.h"
 #include "CJS/CJS_HttpActor.h"
+#include "CJS/SessionGameInstance.h"
+#include "CJS/CJS_UltraDynamicSkyActor.h"
+
 #include "HttpActor.h"
 #include "JsonParseLib.h"
 
@@ -17,20 +20,19 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimSequence.h"
+#include "Components/ArrowComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/ArrowComponent.h"
 #include "Blueprint/UserWidget.h"
 
 #include "JsonUtilities.h" // JSON 관련 유틸리티
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
-#include "CJS/SessionGameInstance.h"
-
 #include "../../../../Plugins/Experimental/PythonScriptPlugin/Source/PythonScriptPlugin/Public/IPythonScriptPlugin.h"  // 파이썬 자동 실행
 
+#include "Math/Color.h"
 
 
 
@@ -75,7 +77,8 @@ ACJS_BallPlayer::ACJS_BallPlayer() : Super()
 	//SetInitMultiRoomInfo(1, 5, "빛나는 호수", 87);
 	// 월드에서 MultiRoomActor 클래스의 인스턴스를 찾습니다.
 
-	InitJsonData(Json);
+	InitJsonData(Json);  //<-- 테스트 시 (통신 x)
+
 }
 	
 
@@ -85,7 +88,10 @@ void ACJS_BallPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// SessionGameInstance 할당
+	// 오로라 색상 변경
+	ModifyAuroraColors();
+
+	// SessionGameInstance 할당  // <--- 통신 적용 시 (생성자의 InitJsonData() 주석 처리하기)
 	/*SessionGI = Cast<USessionGameInstance>(GetGameInstance());
 	if (SessionGI)
 	{
@@ -96,20 +102,6 @@ void ACJS_BallPlayer::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
 	}*/
-
-	// SessionGameInstance 할당 + 컨트롤러 변경
-	//SessionGI = Cast<USessionGameInstance>(GetGameInstance());
-	//if (SessionGI)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::BeginPlay()::USessionGameInstance is set"));
-	//	//InitJsonData(SessionGI->GetNetInfoCharacterTOLobby());
-	//	SessionGI->HandleMapChange(GetWorld());
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance is not set"));
-	//}
-
 
 	// Initialize from JSON data
 	InitializeFromJson(JsonData);
@@ -146,8 +138,8 @@ void ACJS_BallPlayer::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("SkeletalMeshComponent (GetMesh()) is null."));
 	}
 	// 초기 회전값을 Identity로 설정
-	MaterialRotationQuat = FQuat::Identity;
-	TargetYaw = 0.0f; // 초기 목표 Yaw 값
+	//MaterialRotationQuat = FQuat::Identity;
+	//TargetYaw = 0.0f; // 초기 목표 Yaw 값
 
 
 	// 추천방 정보 초기화
@@ -282,6 +274,7 @@ void ACJS_BallPlayer::BeginPlay()
 
 	// 기본 이동 힘 설정
 	MoveForce = 150.0f;
+	
 }
 
 // Called every frame
@@ -368,36 +361,6 @@ void ACJS_BallPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		UE_LOG(LogTemp, Error, TEXT("ACJS_BallPlayer::SetupPlayerInputComponent():: EnhancedInputComponent is null"));
 	}
-}
-
-void ACJS_BallPlayer::UpdateMaterialRotation(float DeltaTime)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("ACJS_UserCharacter::UpdateMaterialRotation()"));
-
-	if (!DynamicMaterialInstance) return;
-
-	// 목표 회전 쿼터니언 설정
-	FQuat TargetRotationQuat = FQuat(FRotator(0.0f, TargetYaw, 0.0f));
-	//UE_LOG(LogTemp, Warning, TEXT("TargetYaw: %f, TargetRotationQuat: X=%f, Y=%f, Z=%f, W=%f"), TargetYaw, TargetRotationQuat.X, TargetRotationQuat.Y, TargetRotationQuat.Z, TargetRotationQuat.W);
-
-	// 현재 회전 쿼터니언을 목표 회전값으로 보간하여 점진적으로 회전
-	MaterialRotationQuat = FQuat::Slerp(MaterialRotationQuat, TargetRotationQuat, DeltaTime * 5.0f); // 회전 속도 조절
-	//UE_LOG(LogTemp, Warning, TEXT("MaterialRotationQuat after Slerp: X=%f, Y=%f, Z=%f, W=%f"), MaterialRotationQuat.X, MaterialRotationQuat.Y, MaterialRotationQuat.Z, MaterialRotationQuat.W);
-
-	// 머터리얼에 회전값 전달
-	FRotator Rotation = MaterialRotationQuat.Rotator();
-	//UE_LOG(LogTemp, Warning, TEXT("Rotation applied to material - Pitch: %f, Yaw: %f, Roll: %f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll);
-
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleX"), Rotation.Pitch);
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleY"), Rotation.Yaw);
-	DynamicMaterialInstance->SetScalarParameterValue(FName("RotationAngleZ"), Rotation.Roll);
-
-	float SetPitchRotation, SetYawRotation, SetRollRotation;
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleX"), SetPitchRotation);
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleY"), SetYawRotation);
-	DynamicMaterialInstance->GetScalarParameterValue(FName("RotationAngleZ"), SetRollRotation);
-	//UE_LOG(LogTemp, Warning, TEXT("After Set Rotation to material - Pitch: %f, Yaw: %f, Roll: %f"), SetPitchRotation, SetYawRotation, SetRollRotation);
-
 }
 
 void ACJS_BallPlayer::OnMyActionMove(const FInputActionValue& Value)
@@ -519,7 +482,6 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 					FString UserId;
 					int32 ActorIndex;
 					FString RoomOwner;
-					FString RoomNum;
 					USessionGameInstance* GameInstance = Cast<USessionGameInstance>(GetWorld()->GetGameInstance());
 					if (GameInstance)
 					{
@@ -536,10 +498,10 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 						if (UserObject.IsValid())
 						{
 							RoomOwner = UserObject->GetStringField(TEXT("UserId"));
-							//RoomNum = UserObject->GetStringField(TEXT("RoomNum"));
-							RoomNum = "3";
-							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
-							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *RoomNum);
+							ClickedRoomNum = UserObject->GetStringField(TEXT("roomNum"));
+							//ClickedRoomNum = "3";  // <-- 미리 방 정보 추가로 다 가지고 있어야 함.
+							//UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor Owner UserId: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
+							UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor RoomOwner: %s, RoomNum: %s"), *RoomOwner, *ClickedRoomNum);
 						}
 						else
 						{
@@ -556,16 +518,15 @@ void ACJS_BallPlayer::OnMyActionClick(const FInputActionValue& Value)
 
 					//MyRoomData.Add("userId", UserId);
 					//MultiRoomData.Add("userId", UserId);
-					//MultiRoomData.Add("room_num", "3");
 
-					MultiRoomData.Add("room_num", RoomNum);
+					MultiRoomData.Add("room_num", ClickedRoomNum);
 					
 					// JSON 형식으로 변환
 					FString json = UJsonParseLib::MakeJson(MultiRoomData);
 
 					// 로그 출력 (디버깅용)
 					UE_LOG(LogTemp, Warning, TEXT("MakeJson() Ok!!!!"));
-					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *RoomNum);
+					UE_LOG(LogTemp, Warning, TEXT("userId: %s, room_num: %s"), *UserId, *ClickedRoomNum);
 					UE_LOG(LogTemp, Warning, TEXT("json: %s"), *json);
 
 					HttpActor->ReqPostClickMultiRoom(MultiRoomURL, json);
@@ -873,175 +834,69 @@ void ACJS_BallPlayer::InitializeFromJson(const FString& LocalJsonData)
 		float B = JsonObject->GetNumberField(TEXT("B"));
 		SetInitColorValue(R, G, B);
 
-		// 2. 월드에 배치된 5개의 MultiRoomActor를 찾고 저장 <-- 기존
-		//TArray<AActor*> FoundActors;
-		//UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
+		// 2. 월드에 배치된 20개의 MultiRoomActor를 찾고 저장
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_MultiRoomActor::StaticClass(), FoundActors);
 
-		//// 최대 5개만 저장
-		//for (int32 i = 0; i < FoundActors.Num() && i < 5; i++)
-		//{
-		//	ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
-		//	if (MultiRoomActor)
-		//	{
-		//		MultiRoomActors.Add(MultiRoomActor);
-		//	}
-		//}
-
-		// 2. 20개의 MultiRoomActor 생성 및 저장
-		TSet<FVector> SpawnedLocations; // 중복 위치 체크를 위한 Set
-
-		for (int32 i = 0; i < 20; i++)
+		// 최대 20개만 저장
+		for (int32 i = 0; i < FoundActors.Num() && i < 20; i++)
 		{
-			FVector SpawnLocation;
-			bool bValidLocation = false;
-
-			//// 최대 10회 반복하여 유효한 위치 찾기
-			//for (int32 j = 0; j < 10; j++)
-			//{
-			//	// 랜덤 위치 생성
-			//	float X = FMath::RandRange(-15000.0f, 15000.0f);
-			//	float Y = FMath::RandRange(-15000.0f, 15000.0f);
-			//	SpawnLocation = FVector(X, Y, 400.0f);
-
-			//	// 간격 체크
-			//	bool bIsOverlapping = false;
-			//	for (const FVector& ExistingLocation : SpawnedLocations)
-			//	{
-			//		if (FVector::Dist(ExistingLocation, SpawnLocation) < 500.0f) // 800 이하일 경우 겹친다고 판단
-			//		{
-			//			bIsOverlapping = true;
-			//			break;
-			//		}
-			//	}
-
-			//	// 간섭이 없으면 위치를 등록하고 루프 종료
-			//	if (!bIsOverlapping)
-			//	{
-			//		bValidLocation = true;
-			//		SpawnedLocations.Add(SpawnLocation);
-			//		break;
-			//	}
-			//}
-
-			 // 최대 10회 반복하여 유효한 위치 찾기
-			for (int32 j = 0; j < 10; j++)
+			ACJS_MultiRoomActor* MultiRoomActor = Cast<ACJS_MultiRoomActor>(FoundActors[i]);
+			if (MultiRoomActor)
 			{
-				// 랜덤 위치 생성
-				float X = FMath::RandRange(-15000.0f, 15000.0f);
-				float Y = FMath::RandRange(-15000.0f, 15000.0f);
-				SpawnLocation = FVector(X, Y, 400.0f);
-
-				// 스폰 금지 지역 확인
-				bool bIsInRestrictedArea = false;
-
-				// 첫 번째 금지 영역 확인: X 0, Y 0, Z 0에서 X 1000, Y 1000, Z 0 사이
-				if (SpawnLocation.X >= 0 && SpawnLocation.X <= 1000 &&
-					SpawnLocation.Y >= 0 && SpawnLocation.Y <= 1000)
-				{
-					bIsInRestrictedArea = true;
-				}
-
-				// 두 번째 금지 영역 확인: X -8000, Y 4000, Z 0에서 1000 정도 범위
-				if (SpawnLocation.X >= -8000 && SpawnLocation.X <= -7000 &&
-					SpawnLocation.Y >= 4000 && SpawnLocation.Y <= 5000)
-				{
-					bIsInRestrictedArea = true;
-				}
-
-				// 금지 지역에 있지 않다면 간격 체크
-				if (!bIsInRestrictedArea)
-				{
-					bool bIsOverlapping = false;
-					for (const FVector& ExistingLocation : SpawnedLocations)
-					{
-						if (FVector::Dist(ExistingLocation, SpawnLocation) < 500.0f) // 500 이하일 경우 겹친다고 판단
-						{
-							bIsOverlapping = true;
-							break;
-						}
-					}
-
-					// 간섭이 없으면 위치를 등록하고 루프 종료
-					if (!bIsOverlapping)
-					{
-						bValidLocation = true;
-						SpawnedLocations.Add(SpawnLocation);
-						break;
-					}
-				}
-			}
-
-			// 유효한 위치가 발견되면 Actor 생성
-			if (bValidLocation)
-			{
-				FRotator SpawnRotation = FRotator::ZeroRotator;
-				UE_LOG(LogTemp, Warning, TEXT("Trying to spawn MultiRoomActor %d at location: %s"), i, *SpawnLocation.ToString());
-				//ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(ACJS_MultiRoomActor::StaticClass(), SpawnLocation, SpawnRotation);
-				ACJS_MultiRoomActor* NewMultiRoomActor = GetWorld()->SpawnActor<ACJS_MultiRoomActor>(RefMultiRoom, SpawnLocation, SpawnRotation);
-				if (NewMultiRoomActor)
-				{
-					MultiRoomActors.Add(NewMultiRoomActor);
-					UE_LOG(LogTemp, Warning, TEXT("Successfully spawned MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
-					UE_LOG(LogTemp, Warning, TEXT("MultiRoomActor %d is located at %s, Visibility: %s"), i, *NewMultiRoomActor->GetActorLocation().ToString(), NewMultiRoomActor->IsHidden() ? TEXT("Hidden") : TEXT("Visible"));
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("Failed to spawn MultiRoomActor %d at %s"), i, *SpawnLocation.ToString());
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Failed to find valid spawn location for MultiRoomActor %d"), i);
+				MultiRoomActors.Add(MultiRoomActor);
+				UE_LOG(LogTemp, Warning, TEXT("Found MultiRoomActor %d at location: %s"), i, *MultiRoomActor->GetActorLocation().ToString());
 			}
 		}
 		// 저장된 MultiRoomActor의 개수 출력
 		UE_LOG(LogTemp, Warning, TEXT("Found %d MultiRoomActors in the world."), MultiRoomActors.Num());
 
 
-		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장                            <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
-		//TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
-		//TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
+		// 3. SimilarUsers 및 OppositeUsers 배열 추출 및 저장   // <-- 통신 시 주석 해제                         <-------------- 수정 필요 (소유자의 UserId, RoomNum 같이 저장 필요)
+		TArray<TSharedPtr<FJsonValue>> SimilarUsersArray = JsonObject->GetArrayField(TEXT("SimilarUsers"));
+		TArray<TSharedPtr<FJsonValue>> OppositeUsersArray = JsonObject->GetArrayField(TEXT("OppositeUsers"));
 
 		//TArray<TSharedPtr<FJsonValue>> AllUsersArray;
-		//AllUsersArray.Append(SimilarUsersArray);
-		//AllUsersArray.Append(OppositeUsersArray);
+		AllUsersArray.Append(SimilarUsersArray);
+		AllUsersArray.Append(OppositeUsersArray);
 
-		// 최대 5개의 방 정보를 저장하고, MultiRoomActor에 설정
-		//for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
-		//{
-		//	TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
-		//	if (UserObject.IsValid())
-		//	{
-		//		// EmotionScore와 RoomName을 가져와 설정
-		//		FString Message = UserObject->GetStringField(TEXT("Message"));
-		//		FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
-
-		//		// 현재 사용자 수와 최대 수 설정 (예시)
-		//		int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
-		//		int32 MaxNumPlayer = 5;
-		//		//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
-
-		//		// 각 MultiRoomActor에 정보 설정
-		//		SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
-		//	}
-		//}
-
-
-		for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용
+		// 최대 20개의 방 정보를 저장하고, MultiRoomActor에 설정
+		for (int32 i = 0; i < AllUsersArray.Num() && i < MultiRoomActors.Num(); i++)
 		{
-			// Message에 0부터 100까지의 랜덤 값 할당
-			FString Message = FString::Printf(TEXT("%d"), FMath::RandRange(0, 100));
-			// RoomName에 "user_"와 인덱스 결합하여 할당
-			FString RoomName = FString::Printf(TEXT("user_%d"), i);
+			TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+			if (UserObject.IsValid())
+			{
+				// EmotionScore와 RoomName을 가져와 설정
+				FString Message = UserObject->GetStringField(TEXT("Message"));
+				FString RoomName = UserObject->GetStringField(TEXT("RoomName"));
+				FString CurNumPlayer = UserObject->GetStringField(TEXT("playerNum"));  // <-- 자료형 모두 str
 
-			// 현재 사용자 수와 최대 수 설정 (예시)
-			int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
-			int32 MaxNumPlayer = 5;
-			//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+				// 현재 사용자 수와 최대 수 설정 (예시)
+				//int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+				FString MaxNumPlayer = "5";
+				//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
 
-			// 각 MultiRoomActor에 정보 설정
-			SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+				// 각 MultiRoomActor에 정보 설정
+				SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+			}
 		}
+
+
+		//for (int32 i = 0; i < MultiRoomActors.Num(); i++)  //<--- 테스트 용 (통신 x)
+		//{
+		//	// Message에 0부터 100까지의 랜덤 값 할당
+		//	FString Message = FString::Printf(TEXT("%d"), FMath::RandRange(0, 100));
+		//	// RoomName에 "user_"와 인덱스 결합하여 할당
+		//	FString RoomName = FString::Printf(TEXT("user_%d"), i);
+
+		//	// 현재 사용자 수와 최대 수 설정 (예시)  <-- API 확정시 추가 수정하기
+		//	int32 CurNumPlayer = FMath::RandRange(0, 5); // 예시로 랜덤 설정
+		//	int32 MaxNumPlayer = 5;
+		//	//float Percent = (Message / 500.0f) * 100.0f; // Percent 계산 (예시로 500.0을 기준으로)
+
+		//	// 각 MultiRoomActor에 정보 설정
+		//	SetInitMultiRoomInfo(MultiRoomActors[i], CurNumPlayer, MaxNumPlayer, RoomName, Message);
+		//}
 	}
 	else
 	{
@@ -1082,7 +937,7 @@ void ACJS_BallPlayer::SetInitColorValue(float r, float g, float b) // 색상
 //	}
 //}
 
-void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, int32 CurNumPlayer, int32 MaxNumPlayer, const FString& RoomName, const FString& Percent)
+void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, const FString& CurNumPlayer, const FString& MaxNumPlayer, const FString& RoomName, const FString& Percent)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::SetInitMultiRoomInfo()"));
 	if (MultiRoomActor)
@@ -1095,13 +950,106 @@ void ACJS_BallPlayer::SetInitMultiRoomInfo(ACJS_MultiRoomActor* MultiRoomActor, 
 		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
 	}
 }
+void ACJS_BallPlayer::UpdateMultiRoomPlayerNumInfo(ACJS_MultiRoomActor* MultiRoomActor, const FString& CurNumPlayer, const FString& MaxNumPlayer)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::UpdateMultiRoomPlayerNumInfo()"));
+	if (MultiRoomActor)
+	{
+		MultiRoomActor->UpdateClickedRefRoomPlayerNum(CurNumPlayer, MaxNumPlayer);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid MultiRoomActor provided."));
+	}
+}
 
+void ACJS_BallPlayer::ModifyAuroraColors()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ModifyAuroraColors()"));
+
+	// 현재 월드에 있는 ACJS_UltraDynamicSkyActor 인스턴스 찾기
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACJS_UltraDynamicSkyActor::StaticClass(), FoundActors);
+
+	// 첫 번째 액터가 존재하는지 확인
+	if (FoundActors.Num() > 0)
+	{
+		ACJS_UltraDynamicSkyActor* DynamicSky = Cast<ACJS_UltraDynamicSkyActor>(FoundActors[0]);
+
+		// 색상 설정 (예: Aurora Color 1)
+		//FLinearColor AuroraColor1(1.0f, 0.0f, 0.0f, 1.0f); // 새로운 색상
+		//FLinearColor AuroraColor2(0.0f, 1.0f, 0.0f, 1.0f);
+		//FLinearColor AuroraColor3(0.0f, 0.0f, 1.0f, 1.0f);
+
+		// 각 색상의 R, G, B, A 값 출력
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor1: R=%f, G=%f, B=%f, A=%f"), AuroraColor1.R, AuroraColor1.G, AuroraColor1.B, AuroraColor1.A);
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor2: R=%f, G=%f, B=%f, A=%f"), AuroraColor2.R, AuroraColor2.G, AuroraColor2.B, AuroraColor2.A);
+		//UE_LOG(LogTemp, Warning, TEXT("AuroraColor3: R=%f, G=%f, B=%f, A=%f"), AuroraColor3.R, AuroraColor3.G, AuroraColor3.B, AuroraColor3.A);
+
+		// 속성 변경 후 업데이트
+		//DynamicSky->UpdateAuroraColors(AuroraColor1, AuroraColor2, AuroraColor3);
+		DynamicSky->SetModifyAuroraColors();
+		//UE_LOG(LogTemp, Warning, TEXT("After Call DynamicSky->UpdateAuroraColors()"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::ModifyAuroraColors()::Cannot Find DynamicSky!!!"));
+	}
+}
+
+// 로비 월드 초기 설정 (JSON 전달 부분)
 void ACJS_BallPlayer::InitJsonData(FString LocalJsonData)
 {
 	JsonData = LocalJsonData;
 	UE_LOG(LogTemp, Warning, TEXT("ACJS_BallPlayer::InitJsonData()::JsonData initialized with value: %s"), *JsonData);
 }
 
+// 특정 MultiRoom 찾고 playerNum 업데이트하여 UI에 반영하기
+void ACJS_BallPlayer::FindMultiRoomList(FString roomNum, FString newPlayerNum)
+{
+	int32 multiRoomIndex;
+	// AllUsersArray에서 roomNum의 방 번호 찾기
+	for (int32 i = 0; i < AllUsersArray.Num(); i++)
+	{
+		TSharedPtr<FJsonObject> UserObject = AllUsersArray[i]->AsObject();
+		if (UserObject.IsValid())
+		{
+			FString RoomNum = UserObject->GetStringField(TEXT("roomNum"));
+
+			// 만일 roomNum이 AllUsersArray에 있다면 
+			if(RoomNum == roomNum)
+			{
+				multiRoomIndex = i;
+				break;
+			}
+		}
+	}
+
+	// multiRoomIndex가 유효한지 확인
+	if (multiRoomIndex != -1)
+	{
+		// AllUsersArray에서 playerNum 값을 newPlayerNum으로 업데이트
+		TSharedPtr<FJsonObject> UserObject = StaticCastSharedPtr<FJsonObject>(AllUsersArray[multiRoomIndex]->AsObject());
+		if (UserObject.IsValid())
+		{
+			UserObject->SetStringField(TEXT("playerNum"), newPlayerNum); // playerNum 값을 새로 설정
+
+			// 업데이트된 playerNum 값을 로그로 출력
+			FString UpdatedPlayerNum = UserObject->GetStringField(TEXT("playerNum")); // JSON에서 새로 설정한 playerNum을 가져옵니다.
+			UE_LOG(LogTemp, Warning, TEXT("Updated playerNum for room %s: %s"), *roomNum, *UpdatedPlayerNum);
+
+			// UI에 업데이트 시키기
+			UpdateMultiRoomPlayerNumInfo(MultiRoomActors[multiRoomIndex], newPlayerNum, "5");
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Room number %s not found in AllUsersArray"), *roomNum);
+	}
+}
+
+
+// 월페이퍼 PC 적용
 void ACJS_BallPlayer::ExecuteWallPaperPython()
 {
 	// 파이썬 파일 경로 설정

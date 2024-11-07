@@ -23,6 +23,8 @@
 #include "Components/VerticalBox.h"
 #include "CJS/CJS_BallPlayer.h"
 #include "HttpActor.h"
+#include "HttpActor.h"
+#include "CJS/CJS_JS_WidgetFunction.h"
 
 AJS_RoomController::AJS_RoomController()
 {
@@ -240,6 +242,15 @@ void AJS_RoomController::ShowHeartUITimer()
 }
 //Room --------------------------------------------------------------------------
 
+//myWorld -> MultiWorld:: Make Session
+void AJS_RoomController::OpenMultiWorld()
+{
+    HttpActor = Cast<AHttpActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AHttpActor::StaticClass()));
+    HttpActor->StartHttpMultyWorld();
+}
+
+
+
 //Mouse Interaction --------------------------------------------------------------------------
 void AJS_RoomController::OnMouseClick()
 {
@@ -295,14 +306,28 @@ void AJS_RoomController::OnMouseClick()
                 //{
                 //    UE_LOG(LogTemp, Error, TEXT("Failed to get SessionGameInstance"));
                 //}
+                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
             }
             else if (HitActor->ActorHasTag(TEXT("EnterCreateRoom")))
             {
 
                 UE_LOG(LogTemp, Warning, TEXT("Lobby Hit - Loading lobby level"));
+//              UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
+                OpenMultiWorld();
 
-                UGameplayStatics::OpenLevel(this, FName("Main_Lobby"));
-
+            }
+            else if (HitActor->ActorHasTag(TEXT("ChatWidget")))  //  <-- 채팅 위젯 추가
+            {
+                UE_LOG(LogTemp, Warning, TEXT("ChatWidget Hit - Loading Chat Widget"));
+                if (ChatActorFactory)
+                {
+                    // ChatActorFactory가 ACJS_JS_WidgetFunction 타입임을 보장
+                    ACJS_JS_WidgetFunction* ChatFunction = Cast<ACJS_JS_WidgetFunction>(ChatActorFactory);
+                    if (ChatFunction)
+                    {
+                        ChatFunction->ToggleChatUIVisible();
+                    }
+                }
             }
 
         }
@@ -409,6 +434,7 @@ void AJS_RoomController::OnMouseHoverEnd(AActor* HoveredActor)
 
     }
 }
+
 
 void AJS_RoomController::SpawnAndSwitchToCamera()
 {

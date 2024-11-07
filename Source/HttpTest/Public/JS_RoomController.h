@@ -87,9 +87,21 @@ public:
 
     void OnMouseHoverEnd(AActor* HoveredActor);
 
+    //myWorld -> MultiWorld:: Make Session
+    UPROPERTY()
+	class AHttpActor* HttpActor;
+
+    void OpenMultiWorld();
+
+
     AActor* CurrentHoveredActor = nullptr;
 
     //Screen Capture + Wallpaper Python Auto Execute
     void ScreenCapture();
     void ExecuteWallPaperPython();
+
+
+    /* Chat Widget */
+    UPROPERTY(EditDefaultsOnly, Category = "Heart")
+	class ACJS_JS_WidgetFunction* ChatActorFactory;
 };

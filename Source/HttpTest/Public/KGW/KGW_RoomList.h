@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "CJS/SessionGameInstance.h"
 #include "KGW_RoomList.generated.h"
 
 /**
@@ -16,18 +17,18 @@ class HTTPTEST_API UKGW_RoomList : public UUserWidget
 
 public: 
 
- 		UPROPERTY(meta=(BindWidget))
-	class UTextBlock* Text_Finding;
+//  		UPROPERTY(meta=(BindWidget))
+// 	class UTextBlock* Text_Finding;
 
 		UPROPERTY(meta=(BindWidget))
 	class UScrollBox* ScrollBox;
 
 
 
-	void AddSessionSlotWidget(const TArray<FString>& RoomNames);
+	void AddSessionSlotWidget(const TArray<FMyCreatedRoom>& RoomInfos);
 
 
-	void SetFindActive(bool value);
+// 	void SetFindActive(bool value);
 
 		UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UKGW_UserRoomName> UserRoomNameFactory;

@@ -230,7 +230,7 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 
 			if (HostName == "testuser")  // 정확한 세션 이름 확인
 			{
-				JoinSession(i);  // 인덱스를 전달
+				ReqJoinSession(i);  // 인덱스를 전달
 				bJoinSession = true;
 				break;
 			}
@@ -249,7 +249,7 @@ void USessionGameInstance::OnMyFindSessionCompleteDelegate(bool bWasSuccessful)
 }
 
 // 방 조인 요청 (주어진 인덱스의 세션에 참가. 세션 검색 결과를 사용하여 해당 세션에 연결을 시도)
-void USessionGameInstance::JoinSession(int32 index)
+void USessionGameInstance::ReqJoinSession(int32 index)
 {
 	// SessionSearch
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::JoinSession()"));
@@ -348,19 +348,36 @@ bool USessionGameInstance::ValidateSessionInterfaceAndSearch() const
 	return true;
 }
 
+
+
 void USessionGameInstance::InitSessionName(FString name)
 {
 	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName()"));
 	MySessionName = name;
 	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitSessionName() MySessionName : %s"), *MySessionName);
 }
-
 FString USessionGameInstance::GetMySessionName()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %s"), *MySessionName);
 	return MySessionName;
 }
-	
+
+void USessionGameInstance::InitRoomNameNum(TArray<FMyCreatedRoom> list)
+{
+	UE_LOG(LogTemp, Warning, TEXT(" USessionGameInstance::InitRoomNameNum()"));
+
+	RoomInfoList = list;
+	UE_LOG(LogTemp, Error, TEXT("GameInstance->StoredRoomInfos size: %d"), RoomInfoList.Num());
+
+}
+TArray<FMyCreatedRoom> USessionGameInstance::GettRoomNameNum()
+{
+	UE_LOG(LogTemp, Error, TEXT("USessionGameInstance::GetMySessionName() MySessionName : %d"), RoomInfoList.Num());
+
+	return RoomInfoList;
+
+}
+
 	
 //void USessionGameInstance::SetRefMultiRoomInfo(FString json)
 //{
@@ -400,7 +417,6 @@ void USessionGameInstance::SetNetInfoCharacterTOLobby(FString info)
 	NetInfoCharacterTOLobby = info;
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::SetNetInfoCharacterTOLobby() : %s"), *NetInfoCharacterTOLobby);
 }
-
 FString USessionGameInstance::GetNetInfoCharacterTOLobby()
 {
 	UE_LOG(LogTemp, Warning, TEXT("USessionGameInstance::GetNetInfoCharacterTOLobby()"));
