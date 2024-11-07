@@ -146,5 +146,7 @@ public:
     TArray<FMyCreatedRoom> RoomInfoList; 
 
 
+	//JS
+	bool bSuccess = false; // 상태 유지 변수
 };
 
